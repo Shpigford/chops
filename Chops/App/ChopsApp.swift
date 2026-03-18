@@ -51,7 +51,7 @@ struct ChopsApp: App {
         }
 
         Settings {
-            SettingsView()
+            SettingsView(updater: updaterController.updater)
                 .environment(appState)
                 .modelContainer(sharedModelContainer)
         }

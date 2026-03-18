@@ -1,10 +1,12 @@
 import SwiftUI
+import Sparkle
 
 extension Notification.Name {
     static let customScanPathsChanged = Notification.Name("customScanPathsChanged")
 }
 
 struct SettingsView: View {
+    let updater: SPUUpdater
     @State private var customPaths: [String] = []
     @State private var defaultTool: ToolSource = .claude
 
@@ -18,6 +20,11 @@ struct SettingsView: View {
             scanSettings
                 .tabItem {
                     Label("Scan Directories", systemImage: "folder.badge.gearshape")
+                }
+
+            aboutView
+                .tabItem {
+                    Label("About", systemImage: "info.circle")
                 }
         }
         .frame(width: 480, height: 320)
@@ -87,6 +94,61 @@ struct SettingsView: View {
             }
         }
         .padding()
+    }
+
+    private var aboutView: some View {
+        VStack(spacing: 16) {
+            Image("tool-claude") // App icon from asset catalog
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 80, height: 80)
+                .opacity(0) // Hidden — use the actual app icon instead
+                .overlay {
+                    if let icon = NSApp.applicationIconImage {
+                        Image(nsImage: icon)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 80, height: 80)
+                    }
+                }
+
+            Text("Chops")
+                .font(.title)
+                .fontWeight(.bold)
+
+            Text("Version \(appVersion)")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+
+            Text("Your AI agent skills, finally organized.")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+
+            HStack(spacing: 16) {
+                Button("Check for Updates") {
+                    updater.checkForUpdates()
+                }
+
+                Button("Website") {
+                    NSWorkspace.shared.open(URL(string: "https://chops.md")!)
+                }
+
+                Button("@Shpigford") {
+                    NSWorkspace.shared.open(URL(string: "https://x.com/Shpigford")!)
+                }
+            }
+
+            Text("\u{00A9} 2026 Josh Pigford. MIT License.")
+                .font(.caption)
+                .foregroundStyle(.tertiary)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private var appVersion: String {
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
+        let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "?"
+        return "\(version) (\(build))"
     }
 
     private func loadCustomPaths() {
