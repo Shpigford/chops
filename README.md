@@ -1,4 +1,4 @@
-# Chops 🥢
+# Chops
 
 Your AI agent skills, finally organized.
 
