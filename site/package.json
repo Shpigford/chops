@@ -8,7 +8,6 @@
     "preview": "astro preview"
   },
   "dependencies": {
-    "@astrojs/cloudflare": "^13.1.2",
     "astro": "^6.0.5",
     "sharp": "^0.34.5"
   }
