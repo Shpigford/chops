@@ -9,27 +9,56 @@ SIGNING_IDENTITY="Developer ID Application: Sabotage Media, LLC ($TEAM_ID)"
 APPLE_ID="josh@sabotagemedia.com"
 BUNDLE_ID="com.joshpigford.Chops"
 
-if ! command -v create-dmg &>/dev/null; then
-  echo "❌ create-dmg not found. Install with: brew install create-dmg"
-  exit 1
-fi
-
 create_chops_dmg() {
-  rm -f build/Chops.dmg
-  create-dmg \
-    --volname "Chops" \
-    --volicon "build/export/Chops.app/Contents/Resources/AppIcon.icns" \
-    --background "scripts/dmg-background.png" \
-    --window-pos 200 120 \
-    --window-size 790 480 \
-    --icon-size 128 \
-    --icon "Chops.app" 195 220 \
-    --app-drop-link 595 220 \
-    --hide-extension "Chops.app" \
-    --no-internet-enable \
-    build/Chops.dmg \
-    build/export/Chops.app \
-    || test $? -eq 2
+  rm -f build/Chops.dmg build/Chops_rw.dmg
+
+  # Create writable DMG from the app (temp volume name avoids Gatekeeper collision)
+  hdiutil create -volname "Chops Installer" -srcfolder build/export/Chops.app -fs HFS+ -format UDRW build/Chops_rw.dmg
+
+  # Mount, add Applications symlink and background, apply Finder styling
+  hdiutil attach build/Chops_rw.dmg
+  ln -s /Applications "/Volumes/Chops Installer/Applications"
+  mkdir -p "/Volumes/Chops Installer/.background"
+  cp scripts/dmg-background.png "/Volumes/Chops Installer/.background/background.png"
+
+  osascript <<'APPLESCRIPT'
+tell application "Finder"
+  tell disk "Chops Installer"
+    open
+    tell container window
+      set current view to icon view
+      set toolbar visible to false
+      set statusbar visible to false
+      set the bounds to {200, 120, 990, 600}
+    end tell
+    set opts to the icon view options of container window
+    tell opts
+      set icon size to 128
+      set text size to 13
+      set arrangement to not arranged
+      set background picture to POSIX file "/Volumes/Chops Installer/.background/background.png"
+    end tell
+    set position of item "Chops.app" to {195, 220}
+    set position of item "Applications" to {595, 220}
+    set the extension hidden of item "Chops.app" to true
+    close
+    open
+    delay 1
+    tell container window
+      set the bounds to {200, 120, 980, 590}
+    end tell
+    delay 1
+    tell container window
+      set the bounds to {200, 120, 990, 600}
+    end tell
+    delay 3
+  end tell
+end tell
+APPLESCRIPT
+
+  hdiutil detach "/Volumes/Chops Installer"
+  hdiutil convert build/Chops_rw.dmg -format UDZO -o build/Chops.dmg
+  rm -f build/Chops_rw.dmg
 }
 
 echo "🔨 Building Chops v$VERSION..."
