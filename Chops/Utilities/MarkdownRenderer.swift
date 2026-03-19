@@ -8,6 +8,7 @@ struct MarkdownRenderer: MarkupWalker {
     private var listDepth = 0
     private var orderedListCounters: [Int] = []
     private var isInOrderedList = false
+    private var isFirstParagraphInListItem = false
 
     private static let headingSizes: [CGFloat] = [18, 16, 14, 13, 13, 13]
     private static let bodyFont = NSFont.systemFont(ofSize: 13)
@@ -15,6 +16,10 @@ struct MarkdownRenderer: MarkupWalker {
     private static let textColor = NSColor.labelColor
     private static let secondaryColor = NSColor.secondaryLabelColor
     private static let codeBgColor = NSColor.quaternaryLabelColor
+
+    // Indentation per list nesting level
+    private static let listIndentStep: CGFloat = 24
+    private static let bulletTabStop: CGFloat = 16
 
     // MARK: - Public API
 
@@ -48,7 +53,15 @@ struct MarkdownRenderer: MarkupWalker {
     }
 
     mutating func visitParagraph(_ paragraph: Paragraph) {
-        addBlockSpacingIfNeeded()
+        if isFirstParagraphInListItem {
+            // Don't add block spacing — bullet/number is already on this line
+            isFirstParagraphInListItem = false
+        } else if listDepth > 0 {
+            // Subsequent paragraphs in a list item — just a single newline
+            appendNewline()
+        } else {
+            addBlockSpacingIfNeeded()
+        }
         descendInto(paragraph)
         appendNewline()
     }
@@ -59,9 +72,10 @@ struct MarkdownRenderer: MarkupWalker {
             ? String(codeBlock.code.dropLast())
             : codeBlock.code
 
+        let indent = CGFloat(listDepth) * Self.listIndentStep
         let para = NSMutableParagraphStyle()
-        para.firstLineHeadIndent = 12
-        para.headIndent = 12
+        para.firstLineHeadIndent = indent + 12
+        para.headIndent = indent + 12
         para.tailIndent = -12
         para.paragraphSpacingBefore = 4
         para.paragraphSpacing = 4
@@ -90,7 +104,9 @@ struct MarkdownRenderer: MarkupWalker {
     }
 
     mutating func visitOrderedList(_ orderedList: OrderedList) {
-        addBlockSpacingIfNeeded()
+        if listDepth == 0 {
+            addBlockSpacingIfNeeded()
+        }
         listDepth += 1
         orderedListCounters.append(Int(orderedList.startIndex))
         let savedOrdered = isInOrderedList
@@ -102,7 +118,9 @@ struct MarkdownRenderer: MarkupWalker {
     }
 
     mutating func visitUnorderedList(_ unorderedList: UnorderedList) {
-        addBlockSpacingIfNeeded()
+        if listDepth == 0 {
+            addBlockSpacingIfNeeded()
+        }
         listDepth += 1
         let savedOrdered = isInOrderedList
         isInOrderedList = false
@@ -112,18 +130,30 @@ struct MarkdownRenderer: MarkupWalker {
     }
 
     mutating func visitListItem(_ listItem: ListItem) {
-        let indent = String(repeating: "    ", count: listDepth - 1)
         let bullet: String
         if isInOrderedList, !orderedListCounters.isEmpty {
             let num = orderedListCounters[orderedListCounters.count - 1]
-            bullet = "\(indent)\(num). "
+            bullet = "\(num).\t"
             orderedListCounters[orderedListCounters.count - 1] = num + 1
         } else {
-            bullet = "\(indent)\u{2022} "
+            bullet = "\u{2022}\t"
         }
 
+        // Build a paragraph style with hanging indent using tab stops
+        let indent = CGFloat(listDepth) * Self.listIndentStep
+        let para = NSMutableParagraphStyle()
+        para.firstLineHeadIndent = indent - Self.listIndentStep
+        para.headIndent = indent
+        para.tabStops = [NSTextTab(textAlignment: .left, location: indent)]
+        para.paragraphSpacing = 2
+
+        let saved = currentAttributes
+        currentAttributes[.paragraphStyle] = para
+
         result.append(NSAttributedString(string: bullet, attributes: currentAttributes))
+        isFirstParagraphInListItem = true
         descendInto(listItem)
+        currentAttributes = saved
     }
 
     mutating func visitThematicBreak(_ thematicBreak: ThematicBreak) {
@@ -142,9 +172,8 @@ struct MarkdownRenderer: MarkupWalker {
 
         // Collect all rows (head + body)
         var allRows: [[String]] = []
-        var columnCount = table.maxColumnCount
+        let columnCount = table.maxColumnCount
 
-        // Head row
         let headRow = table.head
         var headCells: [String] = []
         for cell in headRow.cells {
@@ -152,7 +181,6 @@ struct MarkdownRenderer: MarkupWalker {
         }
         allRows.append(headCells)
 
-        // Body rows
         for row in table.body.rows {
             var rowCells: [String] = []
             for cell in row.cells {
@@ -161,11 +189,12 @@ struct MarkdownRenderer: MarkupWalker {
             allRows.append(rowCells)
         }
 
-        // Calculate column widths
+        // Calculate column widths in characters, cap each column
+        let maxColWidth = 40
         var colWidths = Array(repeating: 0, count: columnCount)
         for row in allRows {
             for (i, cell) in row.enumerated() where i < columnCount {
-                colWidths[i] = max(colWidths[i], cell.count)
+                colWidths[i] = min(max(colWidths[i], cell.count), maxColWidth)
             }
         }
 
@@ -182,18 +211,17 @@ struct MarkdownRenderer: MarkupWalker {
             var line = ""
             for (i, cell) in row.enumerated() where i < columnCount {
                 let padded = cell.padding(toLength: colWidths[i], withPad: " ", startingAt: 0)
-                line += i == 0 ? padded : "  \(padded)"
+                line += i == 0 ? padded : " \u{2502} \(padded)"
             }
             let attrs = rowIndex == 0 ? headerAttrs : monoAttrs
             result.append(NSAttributedString(string: line, attributes: attrs))
             appendNewline()
 
-            // Separator after header
             if rowIndex == 0 {
                 var sep = ""
                 for (i, width) in colWidths.enumerated() {
                     let dashes = String(repeating: "\u{2500}", count: width)
-                    sep += i == 0 ? dashes : "  \(dashes)"
+                    sep += i == 0 ? dashes : "\u{2500}\u{253C}\u{2500}\(dashes)"
                 }
                 result.append(NSAttributedString(string: sep, attributes: monoAttrs))
                 appendNewline()

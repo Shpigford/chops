@@ -65,37 +65,73 @@ struct FrontmatterCardView: View {
     }
 }
 
-// MARK: - Rendered Markdown (read-only NSTextView)
+// MARK: - Rendered Markdown (NSTextView with dynamic height)
 
 struct RenderedMarkdownView: NSViewRepresentable {
     let markdown: String
 
-    func makeNSView(context: Context) -> NSScrollView {
-        let textView = NSTextView()
-        textView.isEditable = false
-        textView.isSelectable = true
-        textView.drawsBackground = false
-        textView.textContainerInset = .zero
-        textView.isVerticallyResizable = true
-        textView.isHorizontallyResizable = false
-        textView.textContainer?.widthTracksTextView = true
-        textView.textContainer?.lineFragmentPadding = 0
-        textView.isAutomaticLinkDetectionEnabled = true
-
-        // Wrap in a non-scrolling scroll view for proper layout
-        let scrollView = NSScrollView()
-        scrollView.hasVerticalScroller = false
-        scrollView.hasHorizontalScroller = false
-        scrollView.drawsBackground = false
-        scrollView.documentView = textView
-        scrollView.autoresizesSubviews = true
-
-        return scrollView
+    func makeNSView(context: Context) -> RenderedMarkdownContainer {
+        RenderedMarkdownContainer()
     }
 
-    func updateNSView(_ scrollView: NSScrollView, context: Context) {
-        guard let textView = scrollView.documentView as? NSTextView else { return }
+    func updateNSView(_ container: RenderedMarkdownContainer, context: Context) {
         let rendered = MarkdownRenderer.render(markdown)
-        textView.textStorage?.setAttributedString(rendered)
+        container.update(with: rendered)
+    }
+}
+
+/// A self-sizing container that wraps an NSTextView and reports its height to SwiftUI.
+final class RenderedMarkdownContainer: NSView {
+    private let textView: NSTextView = {
+        let tv = NSTextView()
+        tv.isEditable = false
+        tv.isSelectable = true
+        tv.drawsBackground = false
+        tv.textContainerInset = .zero
+        tv.isVerticallyResizable = true
+        tv.isHorizontallyResizable = false
+        tv.textContainer?.widthTracksTextView = true
+        tv.textContainer?.lineFragmentPadding = 0
+        tv.isAutomaticLinkDetectionEnabled = true
+        tv.translatesAutoresizingMaskIntoConstraints = false
+        return tv
+    }()
+
+    private var heightConstraint: NSLayoutConstraint!
+
+    override init(frame frameRect: NSRect) {
+        super.init(frame: frameRect)
+        addSubview(textView)
+        NSLayoutConstraint.activate([
+            textView.topAnchor.constraint(equalTo: topAnchor),
+            textView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            textView.trailingAnchor.constraint(equalTo: trailingAnchor),
+        ])
+        heightConstraint = heightAnchor.constraint(equalToConstant: 0)
+        heightConstraint.isActive = true
+    }
+
+    required init?(coder: NSCoder) { fatalError() }
+
+    func update(with attributed: NSAttributedString) {
+        textView.textStorage?.setAttributedString(attributed)
+        invalidateIntrinsicContentSize()
+        needsLayout = true
+    }
+
+    override func layout() {
+        super.layout()
+        // Force the text container to use the current width
+        textView.textContainer?.containerSize = NSSize(width: bounds.width, height: .greatestFiniteMagnitude)
+        textView.layoutManager?.ensureLayout(for: textView.textContainer!)
+        let usedRect = textView.layoutManager!.usedRect(for: textView.textContainer!)
+        let newHeight = ceil(usedRect.height)
+        if abs(heightConstraint.constant - newHeight) > 1 {
+            heightConstraint.constant = newHeight
+        }
+    }
+
+    override var intrinsicContentSize: NSSize {
+        NSSize(width: NSView.noIntrinsicMetric, height: heightConstraint.constant)
     }
 }
