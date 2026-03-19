@@ -10,20 +10,21 @@ APPLE_ID="josh@sabotagemedia.com"
 BUNDLE_ID="com.joshpigford.Chops"
 
 create_chops_dmg() {
+  hdiutil detach "/Volumes/Chops" 2>/dev/null || true
   rm -f build/Chops.dmg build/Chops_rw.dmg
 
-  # Create writable DMG from the app (temp volume name avoids Gatekeeper collision)
-  hdiutil create -volname "Chops Installer" -srcfolder build/export/Chops.app -fs HFS+ -format UDRW build/Chops_rw.dmg
+  # Create writable DMG from the app
+  hdiutil create -volname "Chops" -srcfolder build/export/Chops.app -fs HFS+ -format UDRW build/Chops_rw.dmg
 
   # Mount, add Applications symlink and background, apply Finder styling
   hdiutil attach build/Chops_rw.dmg
-  ln -s /Applications "/Volumes/Chops Installer/Applications"
-  mkdir -p "/Volumes/Chops Installer/.background"
-  cp scripts/dmg-background.png "/Volumes/Chops Installer/.background/background.png"
+  ln -s /Applications "/Volumes/Chops/Applications"
+  mkdir -p "/Volumes/Chops/.background"
+  cp scripts/dmg-background.png "/Volumes/Chops/.background/background.png"
 
   osascript <<'APPLESCRIPT'
 tell application "Finder"
-  tell disk "Chops Installer"
+  tell disk "Chops"
     open
     tell container window
       set current view to icon view
@@ -36,7 +37,7 @@ tell application "Finder"
       set icon size to 128
       set text size to 13
       set arrangement to not arranged
-      set background picture to POSIX file "/Volumes/Chops Installer/.background/background.png"
+      set background picture to POSIX file "/Volumes/Chops/.background/background.png"
     end tell
     set position of item "Chops.app" to {195, 220}
     set position of item "Applications" to {595, 220}
@@ -56,7 +57,7 @@ tell application "Finder"
 end tell
 APPLESCRIPT
 
-  hdiutil detach "/Volumes/Chops Installer"
+  hdiutil detach "/Volumes/Chops"
   hdiutil convert build/Chops_rw.dmg -format UDZO -o build/Chops.dmg
   rm -f build/Chops_rw.dmg
 }
