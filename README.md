@@ -27,26 +27,157 @@ One macOS app to discover, organize, and edit coding agent skills across Claude 
 - **Full-text search** — Search across name, description, and content
 - **Create new skills** — Generates correct boilerplate per tool
 
-## Requirements
+## Prerequisites
 
-- macOS 15 (Sequoia) or later
+- **macOS 15** (Sequoia) or later
+- **Xcode** with command-line tools (`xcode-select --install`)
+- **Homebrew** ([brew.sh](https://brew.sh))
+- **xcodegen** — `brew install xcodegen`
 
-## Development
+Sparkle (auto-update framework) is the only external dependency and is pulled automatically by Xcode via Swift Package Manager. No manual setup needed.
+
+## Quick Start
 
 ```bash
-brew install xcodegen
-xcodegen generate
-open Chops.xcodeproj
+git clone https://github.com/Shpigford/chops.git
+cd chops
+brew install xcodegen    # skip if already installed
+xcodegen generate        # generates Chops.xcodeproj from project.yml
+open Chops.xcodeproj     # opens in Xcode
+```
+
+Then hit **Cmd+R** to build and run.
+
+> **Note:** The Xcode project is generated from `project.yml`. If you change `project.yml`, re-run `xcodegen generate`. Don't edit the `.xcodeproj` directly.
+
+### CLI build (no Xcode GUI)
+
+```bash
+xcodebuild -scheme Chops -configuration Debug build
+```
+
+## Project Structure
+
+```
+Chops/
+├── App/
+│   ├── ChopsApp.swift        # @main entry — SwiftData ModelContainer + Sparkle
+│   ├── AppState.swift         # @Observable singleton — filters, selection, search
+│   └── ContentView.swift      # Three-column NavigationSplitView, kicks off scanning
+├── Models/
+│   ├── Skill.swift            # @Model — a discovered skill file
+│   ├── Collection.swift       # @Model — user-created skill groupings
+│   └── ToolSource.swift       # Enum of supported tools, their paths and icons
+├── Services/
+│   ├── SkillScanner.swift     # Probes tool directories, upserts skills into SwiftData
+│   ├── SkillParser.swift      # Dispatches to FrontmatterParser or MDCParser
+│   ├── FileWatcher.swift      # FSEvents listener, triggers re-scan on changes
+│   └── SearchService.swift    # In-memory full-text search
+├── Utilities/
+│   ├── FrontmatterParser.swift  # Extracts YAML frontmatter from .md files
+│   └── MDCParser.swift          # Parses Cursor .mdc files
+├── Views/
+│   ├── Sidebar/               # Tool filters, collection list
+│   ├── Detail/                # Skill editor, metadata display
+│   ├── Settings/              # Preferences & update UI
+│   └── Shared/                # Reusable components (ToolBadge, NewSkillSheet)
+├── Resources/                 # Asset catalog (tool icons, colors)
+└── Chops.entitlements         # Disables sandbox (intentional)
+
+project.yml          # xcodegen config — source of truth for Xcode project settings
+scripts/             # Release pipeline (release.sh)
+site/                # Marketing website (Astro 6)
 ```
 
 ## Architecture
 
-- **SwiftUI** + **SwiftData** — native macOS, zero web views
-- **Sparkle** — auto-updates via GitHub Releases
-- **FSEvents** — file watching via DispatchSource
-- **No sandbox** — direct access to dotfile directories
+**SwiftUI + SwiftData**, native macOS with zero web views.
+
+### App lifecycle
+
+1. `ChopsApp` initializes a SwiftData `ModelContainer` (persists `Skill` and `SkillCollection`)
+2. Sparkle updater starts in the background
+3. `AppState` is created and injected into the SwiftUI environment
+4. `ContentView` renders and calls `startScanning()`
+5. `SkillScanner` probes all tool directories and upserts discovered skills
+6. `FileWatcher` attaches FSEvents listeners — on any change, the scanner re-runs automatically
+
+### Key design decisions
+
+- **No sandbox.** The app needs unrestricted filesystem access to read dotfiles across `~/`. This is intentional and required for core functionality. The entitlements file explicitly disables the app sandbox.
+- **Dedup via symlinks.** Skills are uniquely identified by their resolved symlink path. If the same file is symlinked into multiple tool directories, it shows up as one skill with multiple tool badges.
+- **No test suite.** Validate changes manually — build, run, trigger the feature you changed, observe the result.
+
+### State management
+
+`AppState` is an `@Observable` class that holds all UI state: selected tool filter, selected skill, search text, sidebar filter mode. It's injected via `@Environment` and accessible from any view.
+
+### UI layout
+
+Three-column `NavigationSplitView`:
+- **Sidebar** — tool filters and collections
+- **List** — filtered/searched skill list
+- **Detail** — skill editor (wraps `NSTextView` for native text editing with Cmd+S save)
+
+## Supported Tools
+
+Chops scans these directories for skills:
+
+| Tool | Global Paths |
+|------|-------------|
+| Claude Code | `~/.claude/skills/`, `~/.agents/skills` |
+| Cursor | `~/.cursor/skills/`, `~/.cursor/rules` |
+| Windsurf | `~/.codeium/windsurf/memories/`, `~/.windsurf/rules` |
+| Codex | `~/.codex` |
+| Amp | `~/.config/amp` |
+
+Copilot and Aider are also supported but only detect project-level skills (no global paths). Custom paths can be added for any tool.
+
+Tool definitions live in `Chops/Models/ToolSource.swift` — each enum case knows its display name, icon, color, and filesystem paths.
+
+## Common Dev Tasks
+
+### Add support for a new tool
+
+1. Add a new case to the `ToolSource` enum in `Chops/Models/ToolSource.swift`
+2. Fill in `displayName`, `iconName`, `color`, and `globalPaths`
+3. Optionally add a logo to the asset catalog and return it from `logoAssetName`
+4. Update `SkillScanner` if the new tool uses a non-standard file layout
+
+### Modify skill parsing
+
+- **Frontmatter (`.md`)** — edit `Chops/Utilities/FrontmatterParser.swift`
+- **Cursor `.mdc` files** — edit `Chops/Utilities/MDCParser.swift`
+- **Dispatch logic** — edit `Chops/Services/SkillParser.swift` (decides which parser to use)
+
+### Change the UI
+
+Views are in `Chops/Views/`, organized by column (Sidebar, Detail) and shared components. The main layout is in `Chops/App/ContentView.swift`.
+
+## Testing
+
+No automated test suite. Validate manually:
+
+1. Build and run the app (Cmd+R)
+2. Trigger the exact feature you changed
+3. Observe the result — check for correct behavior and error messages
+4. Test edge cases (empty states, missing directories, malformed files)
+
+## Website
+
+The marketing site lives in `site/` and is built with [Astro](https://astro.build/).
+
+```bash
+cd site
+npm install      # first time only
+npm run dev      # local dev server
+npm run build    # production build → site/dist/
+```
+
+## AI Agent Setup
+
+This repo includes a Claude Code skill at `.claude/skills/setup.md` that gives AI coding agents full context on the project — architecture, key files, and common tasks. If you're using Claude Code, it'll pick this up automatically.
 
 ## License
 
 MIT — see [LICENSE](LICENSE).
-
