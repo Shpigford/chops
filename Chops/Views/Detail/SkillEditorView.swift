@@ -3,6 +3,7 @@ import AppKit
 
 struct SkillEditorView: View {
     @Bindable var skill: Skill
+    @Binding var isPreviewMode: Bool
     @State private var editorContent: String = ""
     @State private var hasUnsavedChanges = false
     @State private var showingSaveError = false
@@ -11,16 +12,20 @@ struct SkillEditorView: View {
 
     var body: some View {
         ZStack(alignment: .topTrailing) {
-            HighlightedTextEditor(text: $editorContent)
+            if isPreviewMode {
+                SkillPreviewView(content: editorContent)
+            } else {
+                HighlightedTextEditor(text: $editorContent)
 
-            if hasUnsavedChanges {
-                Text("Modified")
-                    .font(.caption)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(.orange.opacity(0.2), in: Capsule())
-                    .foregroundStyle(.orange)
-                    .padding(12)
+                if hasUnsavedChanges {
+                    Text("Modified")
+                        .font(.caption)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(.orange.opacity(0.2), in: Capsule())
+                        .foregroundStyle(.orange)
+                        .padding(12)
+                }
             }
         }
         .onChange(of: editorContent) {
@@ -32,7 +37,7 @@ struct SkillEditorView: View {
         .onChange(of: skill.filePath) {
             loadContent()
         }
-        .focusedValue(\.saveAction, SaveAction(action: saveFile))
+        .focusedValue(\.saveAction, isPreviewMode ? nil : SaveAction(action: saveFile))
         .alert("Save Error", isPresented: $showingSaveError) {
             Button("OK") {}
         } message: {
