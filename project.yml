@@ -10,6 +10,9 @@ packages:
   Sparkle:
     url: https://github.com/sparkle-project/Sparkle
     from: "2.6.0"
+  swift-markdown:
+    url: https://github.com/apple/swift-markdown
+    from: "0.5.0"
 
 targets:
   Chops:
@@ -22,6 +25,8 @@ targets:
           - Info.plist
     dependencies:
       - package: Sparkle
+      - package: swift-markdown
+        product: Markdown
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.joshpigford.Chops
