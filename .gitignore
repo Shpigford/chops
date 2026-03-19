@@ -18,6 +18,9 @@ build/
 .swiftpm/
 Packages/
 
+# Environment
+.env
+
 # macOS
 .DS_Store
 *.swp

@@ -3,10 +3,15 @@ set -euo pipefail
 
 # Usage: ./scripts/release.sh 1.0.0
 #
-# Required environment variables:
-#   APPLE_TEAM_ID          — Apple Developer Team ID
-#   APPLE_ID               — Apple ID email for notarization
-#   SIGNING_IDENTITY_NAME  — e.g. "Sabotage Media, LLC"
+# Reads credentials from .env in the project root.
+# See .env.example for required variables.
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+if [ -f "$SCRIPT_DIR/../.env" ]; then
+  set -a
+  source "$SCRIPT_DIR/../.env"
+  set +a
+fi
 
 VERSION="${1:?Usage: ./scripts/release.sh <version>}"
 TEAM_ID="${APPLE_TEAM_ID:?Set APPLE_TEAM_ID}"
