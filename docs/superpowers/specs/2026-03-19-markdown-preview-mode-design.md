@@ -15,11 +15,12 @@ Add a read-only markdown preview mode to the skill detail view. Users toggle bet
 
 ## State & Toggle
 
-- New `@State private var isPreviewMode: Bool = false` on `SkillEditorView`
-- Resets to `false` on skill change (`onChange(of: skill)`)
+- New `@State private var isPreviewMode: Bool = false` on `SkillDetailView` (owns the state, since the toolbar toggle lives there)
+- Passed as `@Binding` to `SkillEditorView`
+- Resets to `false` on skill change via `onChange(of: skill.filePath)` in `SkillDetailView` (matches existing pattern for detecting skill switches)
 - Toolbar in `SkillDetailView` gets a third button: SF Symbol `book` (unfilled) / `book.fill` (active)
 - Placed alongside existing star and folder icons
-- State passed as `@Binding` from `SkillDetailView` to `SkillEditorView`
+- Cmd+S in preview mode is a no-op (the `focusedValue` for save is not set when the editor is swapped out)
 
 ## Frontmatter Card
 
@@ -42,7 +43,7 @@ Walks a `swift-markdown` `Document` AST and produces `NSAttributedString`.
 
 | Element | Rendering |
 |---------|-----------|
-| Headings (H1-H4) | Bold, sized 18/16/14/13pt (matches editor highlighter) |
+| Headings (H1-H6) | Bold, sized 18/16/14/13/13/13pt (matches editor highlighter) |
 | Paragraphs | Regular weight, label color, spacing between blocks |
 | Bold / Italic | Appropriate font traits |
 | Inline code | Monospace + subtle background |
@@ -65,7 +66,8 @@ Walks a `swift-markdown` `Document` AST and produces `NSAttributedString`.
 
 New `SkillPreviewView` in `Chops/Views/Detail/SkillPreviewView.swift`.
 
-- Takes a `Skill` as input
+- Takes the current `editorContent: String` as input (not just the `Skill` model), so unsaved edits are previewed
+- Calls `FrontmatterParser.parse()` on the raw content to split frontmatter from body
 - Displays frontmatter card at top, then rendered markdown body below
 - Body rendered in a read-only `NSTextView` wrapped in `NSScrollView` (consistent with editor approach)
 - Not editable: no cursor, no selection for editing, no save support
@@ -78,6 +80,10 @@ New `SkillPreviewView` in `Chops/Views/Detail/SkillPreviewView.swift`.
 - `isPreviewMode == true` → `SkillPreviewView`
 
 Simple swap, no animation.
+
+### SkillMetadataBar
+
+The `SkillMetadataBar` remains visible in both edit and preview mode — it shows file path, size, and modification date which are useful regardless of mode.
 
 ## Dependency
 
@@ -93,7 +99,14 @@ packages:
     from: "0.5.0"
 ```
 
-Add as a dependency to the Chops target.
+Add as a dependency to the Chops target. The SPM product name is `Markdown`:
+
+```yaml
+dependencies:
+  - package: Sparkle
+  - package: swift-markdown
+    product: Markdown
+```
 
 ## File Changes
 
