@@ -29,7 +29,7 @@ One macOS app to discover, organize, and edit coding agent skills across Claude 
 
 ## Requirements
 
-- macOS 26 (Tahoe) or later
+- macOS 15 (Sequoia) or later
 
 ## Development
 
