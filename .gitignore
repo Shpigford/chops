@@ -21,6 +21,9 @@ Packages/
 # Environment
 .env
 
+# Worktrees
+.worktrees/
+
 # macOS
 .DS_Store
 *.swp
