@@ -1,46 +1,24 @@
 import SwiftUI
 import AppKit
 
-struct SkillEditorView: View {
-    @Bindable var skill: Skill
-    @State private var editorContent: String = ""
-    @State private var hasUnsavedChanges = false
-    @State private var showingSaveError = false
-    @State private var saveErrorMessage = ""
-    @State private var fullFileContent: String = ""
-
-    var body: some View {
-        ZStack(alignment: .topTrailing) {
-            HighlightedTextEditor(text: $editorContent)
-
-            if hasUnsavedChanges {
-                Text("Modified")
-                    .font(.caption)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(.orange.opacity(0.2), in: Capsule())
-                    .foregroundStyle(.orange)
-                    .padding(12)
-            }
-        }
-        .onChange(of: editorContent) {
+@Observable
+final class SkillEditorDocument {
+    var editorContent: String = "" {
+        didSet {
+            guard !isLoading else { return }
             hasUnsavedChanges = editorContent != fullFileContent
         }
-        .onAppear {
-            loadContent()
-        }
-        .onChange(of: skill.filePath) {
-            loadContent()
-        }
-        .focusedValue(\.saveAction, SaveAction(action: saveFile))
-        .alert("Save Error", isPresented: $showingSaveError) {
-            Button("OK") {}
-        } message: {
-            Text(saveErrorMessage)
-        }
     }
+    var hasUnsavedChanges = false
+    var showingSaveError = false
+    var saveErrorMessage = ""
 
-    private func loadContent() {
+    private var fullFileContent: String = ""
+    private var isLoading = false
+
+    func load(from skill: Skill) {
+        isLoading = true
+
         if let data = try? String(contentsOfFile: skill.filePath, encoding: .utf8) {
             editorContent = data
             fullFileContent = data
@@ -48,10 +26,14 @@ struct SkillEditorView: View {
             editorContent = skill.content
             fullFileContent = skill.content
         }
+
+        isLoading = false
         hasUnsavedChanges = false
+        showingSaveError = false
+        saveErrorMessage = ""
     }
 
-    private func saveFile() {
+    func save(to skill: Skill) {
         do {
             try editorContent.write(toFile: skill.filePath, atomically: true, encoding: .utf8)
             fullFileContent = editorContent
@@ -64,9 +46,33 @@ struct SkillEditorView: View {
             skill.skillDescription = parsed.description
             skill.content = parsed.content
             skill.frontmatter = parsed.frontmatter
+
+            let attrs = try? FileManager.default.attributesOfItem(atPath: skill.filePath)
+            skill.fileModifiedDate = (attrs?[.modificationDate] as? Date) ?? skill.fileModifiedDate
+            skill.fileSize = (attrs?[.size] as? Int) ?? skill.fileSize
         } catch {
             saveErrorMessage = error.localizedDescription
             showingSaveError = true
+        }
+    }
+}
+
+struct SkillEditorView: View {
+    @Bindable var document: SkillEditorDocument
+
+    var body: some View {
+        ZStack(alignment: .topTrailing) {
+            HighlightedTextEditor(text: $document.editorContent)
+
+            if document.hasUnsavedChanges {
+                Text("Modified")
+                    .font(.caption)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(.orange.opacity(0.2), in: Capsule())
+                    .foregroundStyle(.orange)
+                    .padding(12)
+            }
         }
     }
 }

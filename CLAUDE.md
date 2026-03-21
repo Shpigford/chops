@@ -18,6 +18,9 @@ open Chops.xcodeproj
 # CLI build
 xcodebuild -scheme Chops -configuration Release
 
+# Local release-like build that launches cleanly from shell
+xcodebuild -scheme Chops -configuration LocalRelease
+
 # Release (needs APPLE_TEAM_ID, APPLE_ID, SIGNING_IDENTITY_NAME env vars)
 ./scripts/release.sh <version>
 ```
@@ -25,6 +28,12 @@ xcodebuild -scheme Chops -configuration Release
 Requires: Xcode, `brew install xcodegen`, macOS 15+. Sparkle (>= 2.6.0) is the only external dependency (auto-updates via GitHub Releases).
 
 No test suite exists. Validate manually by building and running.
+
+## Development Rules
+
+**Always manually test.** After every change, build the app (`xcodebuild`), launch it, and exercise the feature you changed. Seeing "build succeeded" is not enough — open the app and verify the actual behavior. If it's a UI change, look at it. If it's a data change, confirm the data. No exceptions.
+
+**No fallbacks.** Do not write fallback logic, graceful degradation, or backwards-compatibility shims. The product should work correctly via the primary code path. If something fails, fix the root cause — don't paper over it with a fallback. We are early-stage; the code should be clean and direct, not defensive.
 
 ## Architecture
 
