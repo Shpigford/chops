@@ -26,6 +26,7 @@ One macOS app to discover, organize, and edit coding agent skills across Claude 
 - **Real-time file watching** — FSEvents-based, instant updates on disk changes
 - **Full-text search** — Search across name, description, and content
 - **Create new skills** — Generates correct boilerplate per tool
+- **Remote skill servers** — Connect to servers like [OpenClaw](https://openclaw.ai) to discover, browse, and install skills
 
 ## Prerequisites
 
