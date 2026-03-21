@@ -6,6 +6,7 @@ final class AppState {
     var selectedSkill: Skill?
     var searchText: String = ""
     var showingNewSkillSheet: Bool = false
+    var showingRegistrySheet: Bool = false
     var sidebarFilter: SidebarFilter = .all
 }
 

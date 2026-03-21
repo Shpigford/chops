@@ -12,15 +12,7 @@ enum SkillParser {
                 return MDCParser.parse(content)
             }
             return FrontmatterParser.parse(content)
-        case .codex, .amp:
-            return parseHeadingFormat(content)
-        case .windsurf:
-            return FrontmatterParser.parse(content)
-        case .copilot:
-            return parseHeadingFormat(content)
-        case .aider:
-            return parseHeadingFormat(content)
-        case .custom:
+        case .codex, .amp, .windsurf, .copilot, .aider, .custom:
             // Try frontmatter first, fall back to heading
             let parsed = FrontmatterParser.parse(content)
             if !parsed.name.isEmpty { return parsed }

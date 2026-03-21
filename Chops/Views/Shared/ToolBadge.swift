@@ -27,6 +27,7 @@ struct ToolIcon: View {
                 .frame(width: size, height: size)
         } else {
             Image(systemName: tool.iconName)
+                .font(.system(size: size * 0.7))
                 .frame(width: size, height: size)
         }
     }

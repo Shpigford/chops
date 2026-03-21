@@ -78,9 +78,15 @@ struct SkillRow: View {
     let skill: Skill
 
     var body: some View {
-        HStack {
+        HStack(spacing: 6) {
             Text(skill.name)
                 .lineLimit(1)
+
+            if skill.isFavorite {
+                Image(systemName: "star.fill")
+                    .font(.caption2)
+                    .foregroundStyle(.yellow)
+            }
 
             Spacer()
 
@@ -91,12 +97,15 @@ struct SkillRow: View {
                     .lineLimit(1)
             }
 
-            if skill.isFavorite {
-                Image(systemName: "star.fill")
-                    .font(.caption2)
-                    .foregroundStyle(.yellow)
+            HStack(spacing: 3) {
+                ForEach(skill.toolSources, id: \.self) { tool in
+                    ToolIcon(tool: tool, size: 14)
+                        .help(tool.displayName)
+                        .opacity(0.6)
+                }
             }
         }
         .padding(.vertical, 4)
     }
 }
+

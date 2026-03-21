@@ -81,19 +81,25 @@ final class SkillScanner {
             if fm.fileExists(atPath: agentsMD.path) {
                 upsertSkill(at: agentsMD, toolSource: toolSource, isDirectory: false, isGlobal: isGlobal)
             }
-            // Also scan subdirectories for skills
-            if let contents = try? fm.contentsOfDirectory(
-                at: directory,
-                includingPropertiesForKeys: [.isDirectoryKey],
-                options: [.skipsHiddenFiles]
-            ) {
+            // Scan subdirectories for skills (SKILL.md or AGENTS.md)
+            // The official skills CLI installs SKILL.md into subdirectories here
+            let scanDirs = [directory, directory.appendingPathComponent("skills")]
+            for scanDir in scanDirs {
+                guard let contents = try? fm.contentsOfDirectory(
+                    at: scanDir,
+                    includingPropertiesForKeys: [.isDirectoryKey],
+                    options: [.skipsHiddenFiles]
+                ) else { continue }
                 for item in contents {
                     var itemIsDir: ObjCBool = false
                     fm.fileExists(atPath: item.path, isDirectory: &itemIsDir)
                     if itemIsDir.boolValue {
-                        let skillFile = item.appendingPathComponent("AGENTS.md")
+                        let skillFile = item.appendingPathComponent("SKILL.md")
+                        let agentsFile = item.appendingPathComponent("AGENTS.md")
                         if fm.fileExists(atPath: skillFile.path) {
                             upsertSkill(at: skillFile, toolSource: toolSource, isDirectory: true, isGlobal: isGlobal)
+                        } else if fm.fileExists(atPath: agentsFile.path) {
+                            upsertSkill(at: agentsFile, toolSource: toolSource, isDirectory: true, isGlobal: isGlobal)
                         }
                     }
                 }

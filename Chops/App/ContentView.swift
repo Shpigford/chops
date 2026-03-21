@@ -34,13 +34,26 @@ struct ContentView: View {
         .sheet(isPresented: $appState.showingNewSkillSheet) {
             NewSkillSheet()
         }
+        .sheet(isPresented: $appState.showingRegistrySheet) {
+            RegistrySheet()
+        }
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                Button {
-                    appState.showingNewSkillSheet = true
+                Menu {
+                    Button {
+                        appState.showingNewSkillSheet = true
+                    } label: {
+                        Label("New Skill", systemImage: "plus")
+                    }
+                    Button {
+                        appState.showingRegistrySheet = true
+                    } label: {
+                        Label("Browse Registry", systemImage: "globe")
+                    }
                 } label: {
-                    Label("New Skill", systemImage: "plus")
+                    Label("Add", systemImage: "plus")
                 }
+                .menuIndicator(.hidden)
             }
         }
         .frame(minWidth: 900, minHeight: 500)
