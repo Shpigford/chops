@@ -146,7 +146,6 @@ xcodebuild -project Chops.xcodeproj \
   -configuration Release \
   -archivePath build/Chops.xcarchive \
   archive \
-  CODE_SIGN_IDENTITY="$SIGNING_IDENTITY" \
   DEVELOPMENT_TEAM="$TEAM_ID" \
   MARKETING_VERSION="$VERSION" \
   CURRENT_PROJECT_VERSION="$VERSION"
