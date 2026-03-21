@@ -132,4 +132,44 @@ final class Skill {
             toolSources = tools
         }
     }
+
+    var deletionTargets: [String] {
+        Array(
+            Set(
+                ([filePath] + installedPaths).map { path in
+                    if isDirectory {
+                        return (path as NSString).deletingLastPathComponent
+                    }
+                    return path
+                }
+            )
+        ).sorted()
+    }
+
+    func deleteFromDisk() throws {
+        let fm = FileManager.default
+
+        for path in deletionTargets where fm.fileExists(atPath: path) {
+            guard fm.isDeletableFile(atPath: path) else {
+                throw SkillDeletionError.notDeletable(path)
+            }
+        }
+
+        for path in deletionTargets where fm.fileExists(atPath: path) {
+            try fm.removeItem(atPath: path)
+        }
+    }
+}
+
+enum SkillDeletionError: LocalizedError {
+    case notDeletable(String)
+
+    var errorDescription: String? {
+        switch self {
+        case .notDeletable(let path):
+            let home = FileManager.default.homeDirectoryForCurrentUser.path
+            let displayPath = path.replacingOccurrences(of: home, with: "~")
+            return "Couldn't delete \(displayPath). Check permissions and try again."
+        }
+    }
 }

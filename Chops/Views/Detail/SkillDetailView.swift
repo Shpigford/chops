@@ -2,10 +2,26 @@ import SwiftUI
 import SwiftData
 
 struct SkillDetailView: View {
+    private enum ActiveAlert: Identifiable {
+        case confirmDelete
+        case deleteError(String)
+
+        var id: String {
+            switch self {
+            case .confirmDelete:
+                return "confirm-delete"
+            case .deleteError(let message):
+                return "delete-error-\(message)"
+            }
+        }
+    }
+
     @Bindable var skill: Skill
     @Environment(\.modelContext) private var modelContext
+    @Environment(AppState.self) private var appState
     @AppStorage("preferPreview") private var preferPreview = false
     @State private var document = SkillEditorDocument()
+    @State private var activeAlert: ActiveAlert?
 
     var body: some View {
         @Bindable var document = document
@@ -59,6 +75,44 @@ struct SkillDetailView: View {
                 }
                 .help("Show in Finder")
             }
+            ToolbarItem {
+                Button {
+                    activeAlert = .confirmDelete
+                } label: {
+                    Image(systemName: "trash")
+                }
+                .help("Delete Skill")
+            }
+        }
+        .alert(item: $activeAlert) { alert in
+            switch alert {
+            case .confirmDelete:
+                return Alert(
+                    title: Text("Delete Skill?"),
+                    message: Text("This will permanently delete \"\(skill.name)\" from disk."),
+                    primaryButton: .destructive(Text("Delete")) {
+                        deleteSkill()
+                    },
+                    secondaryButton: .cancel()
+                )
+            case .deleteError(let message):
+                return Alert(
+                    title: Text("Delete Failed"),
+                    message: Text(message),
+                    dismissButton: .default(Text("OK"))
+                )
+            }
+        }
+    }
+
+    private func deleteSkill() {
+        do {
+            try skill.deleteFromDisk()
+            appState.selectedSkill = nil
+            modelContext.delete(skill)
+            try modelContext.save()
+        } catch {
+            activeAlert = .deleteError(error.localizedDescription)
         }
     }
 }

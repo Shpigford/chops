@@ -2,9 +2,24 @@ import SwiftUI
 import SwiftData
 
 struct SkillListView: View {
+    private enum ActiveAlert: Identifiable {
+        case confirmDelete(Skill)
+        case deleteError(String)
+
+        var id: String {
+            switch self {
+            case .confirmDelete(let skill):
+                return "confirm-delete-\(skill.filePath)"
+            case .deleteError(let message):
+                return "delete-error-\(message)"
+            }
+        }
+    }
+
     @Environment(\.modelContext) private var modelContext
     @Environment(AppState.self) private var appState
     @Query(sort: \Skill.name) private var allSkills: [Skill]
+    @State private var activeAlert: ActiveAlert?
 
     private var filteredSkills: [Skill] {
         var result = allSkills
@@ -42,6 +57,19 @@ struct SkillListView: View {
         }
     }
 
+    private func deleteSkill(_ skill: Skill) {
+        do {
+            try skill.deleteFromDisk()
+            if appState.selectedSkill == skill {
+                appState.selectedSkill = nil
+            }
+            modelContext.delete(skill)
+            try modelContext.save()
+        } catch {
+            activeAlert = .deleteError(error.localizedDescription)
+        }
+    }
+
     var body: some View {
         @Bindable var appState = appState
 
@@ -58,10 +86,33 @@ struct SkillListView: View {
                         Button("Show in Finder") {
                             NSWorkspace.shared.selectFile(skill.filePath, inFileViewerRootedAtPath: "")
                         }
+                        Divider()
+                        Button("Delete", role: .destructive) {
+                            activeAlert = .confirmDelete(skill)
+                        }
                     }
             }
         }
         .navigationTitle(title)
+        .alert(item: $activeAlert) { alert in
+            switch alert {
+            case .confirmDelete(let skill):
+                return Alert(
+                    title: Text("Delete Skill?"),
+                    message: Text("This will permanently delete \"\(skill.name)\" from disk."),
+                    primaryButton: .destructive(Text("Delete")) {
+                        deleteSkill(skill)
+                    },
+                    secondaryButton: .cancel()
+                )
+            case .deleteError(let message):
+                return Alert(
+                    title: Text("Delete Failed"),
+                    message: Text(message),
+                    dismissButton: .default(Text("OK"))
+                )
+            }
+        }
         .overlay {
             if filteredSkills.isEmpty {
                 ContentUnavailableView(
@@ -108,4 +159,3 @@ struct SkillRow: View {
         .padding(.vertical, 4)
     }
 }
-
