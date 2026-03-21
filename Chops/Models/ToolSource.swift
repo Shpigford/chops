@@ -50,7 +50,6 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
         case .codex: "tool-codex"
         case .windsurf: "tool-windsurf"
         case .amp: "tool-amp"
-        case .openclaw: "tool-openclaw"
         default: nil
         }
     }

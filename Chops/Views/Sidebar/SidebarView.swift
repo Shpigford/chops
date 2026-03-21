@@ -54,15 +54,8 @@ struct SidebarView: View {
                             Label {
                                 Text(server.label)
                             } icon: {
-                                if server.isOpenClaw {
-                                    Image("tool-openclaw")
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fit)
-                                        .frame(width: 16, height: 16)
-                                } else {
-                                    Image(systemName: "server.rack")
-                                        .foregroundStyle(.secondary)
-                                }
+                                Image(systemName: "server.rack")
+                                    .foregroundStyle(.secondary)
                             }
 
                             Spacer()

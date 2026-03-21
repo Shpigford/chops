@@ -48,7 +48,9 @@ private struct ServerRow: View {
     @Bindable var server: RemoteServer
     @Environment(\.modelContext) private var modelContext
     @State private var isTesting = false
+    @State private var isSyncing = false
     @State private var testResult: TestResult?
+    @State private var syncLog: String?
     @State private var showingEditSheet = false
 
     enum TestResult {
@@ -57,60 +59,97 @@ private struct ServerRow: View {
     }
 
     var body: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(server.label)
-                    .font(.body)
-                Text("\(server.username)@\(server.host):\(server.port)")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .fontDesign(.monospaced)
-                if let lastSync = server.lastSyncDate {
-                    Text("Synced \(lastSync.formatted(.relative(presentation: .named)))")
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(server.label)
+                        .font(.body)
+                    Text("\(server.username)@\(server.host):\(server.port)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .fontDesign(.monospaced)
+                    Text("Path: \(server.skillsBasePath)")
                         .font(.caption2)
                         .foregroundStyle(.tertiary)
+                        .fontDesign(.monospaced)
+                    if let lastSync = server.lastSyncDate {
+                        Text("Synced \(lastSync.formatted(.relative(presentation: .named)))")
+                            .font(.caption2)
+                            .foregroundStyle(.tertiary)
+                    }
                 }
-            }
 
-            Spacer()
+                Spacer()
 
-            if let result = testResult {
-                switch result {
-                case .success:
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(.green)
-                case .failure:
-                    Image(systemName: "xmark.circle.fill")
+                if let result = testResult {
+                    switch result {
+                    case .success:
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundStyle(.green)
+                    case .failure:
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundStyle(.red)
+                    }
+                }
+
+                Button {
+                    testConnection()
+                } label: {
+                    if isTesting {
+                        ProgressView()
+                            .controlSize(.small)
+                    } else {
+                        Text("Test")
+                    }
+                }
+                .disabled(isTesting)
+
+                Button {
+                    syncNow()
+                } label: {
+                    if isSyncing {
+                        ProgressView()
+                            .controlSize(.small)
+                    } else {
+                        Text("Sync")
+                    }
+                }
+                .disabled(isSyncing)
+
+                Button {
+                    showingEditSheet = true
+                } label: {
+                    Text("Edit")
+                }
+
+                Button(role: .destructive) {
+                    modelContext.delete(server)
+                    try? modelContext.save()
+                } label: {
+                    Image(systemName: "minus.circle.fill")
                         .foregroundStyle(.red)
                 }
+                .buttonStyle(.plain)
             }
 
-            Button {
-                testConnection()
-            } label: {
-                if isTesting {
-                    ProgressView()
-                        .controlSize(.small)
-                } else {
-                    Text("Test")
-                }
-            }
-            .disabled(isTesting)
-
-            Button {
-                showingEditSheet = true
-            } label: {
-                Text("Edit")
-            }
-
-            Button(role: .destructive) {
-                modelContext.delete(server)
-                try? modelContext.save()
-            } label: {
-                Image(systemName: "minus.circle.fill")
+            if let error = server.lastSyncError {
+                Text("Error: \(error)")
+                    .font(.caption)
                     .foregroundStyle(.red)
+                    .textSelection(.enabled)
             }
-            .buttonStyle(.plain)
+
+            if let log = syncLog {
+                Text(log)
+                    .font(.caption)
+                    .fontDesign(.monospaced)
+                    .foregroundStyle(.secondary)
+                    .textSelection(.enabled)
+                    .padding(6)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(.quaternary.opacity(0.5))
+                    .clipShape(RoundedRectangle(cornerRadius: 4))
+            }
         }
         .sheet(isPresented: $showingEditSheet) {
             EditServerSheet(server: server)
@@ -136,6 +175,25 @@ private struct ServerRow: View {
         }
     }
 
+    private func syncNow() {
+        isSyncing = true
+        syncLog = "Connecting to \(server.sshDestination)..."
+        Task { @MainActor in
+            do {
+                let skills = try await SSHService.findSkills(server)
+                if skills.isEmpty {
+                    syncLog = "find returned 0 results.\nPath searched: \(server.skillsBasePath)\nCommand: find <path> -name 'SKILL.md' -type f"
+                } else {
+                    let scanner = SkillScanner(modelContext: modelContext)
+                    await scanner.scanRemoteServer(server)
+                    syncLog = "Found \(skills.count) skill(s):\n" + skills.map { "  \($0.path)" }.joined(separator: "\n")
+                }
+            } catch {
+                syncLog = "Sync failed: \(error.localizedDescription)"
+            }
+            isSyncing = false
+        }
+    }
 }
 
 // MARK: - Add Server Sheet
