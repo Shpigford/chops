@@ -1,9 +1,27 @@
 import Foundation
 import SwiftData
+import os
+
+/// Data collected from the filesystem for a single skill, before SwiftData persistence.
+struct ScannedSkillData: Sendable {
+    let fileURL: URL
+    let resolvedPath: String
+    let toolSource: ToolSource
+    let isDirectory: Bool
+    let isGlobal: Bool
+    let name: String
+    let skillDescription: String
+    let content: String
+    let frontmatter: [String: String]
+    let modDate: Date
+    let fileSize: Int
+}
 
 @Observable
 final class SkillScanner {
     private let modelContext: ModelContext
+    private var scanTask: Task<Void, Never>?
+    private var scanGeneration = 0
 
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
@@ -21,18 +39,49 @@ final class SkillScanner {
     ]
 
     func scanAll() {
-        for tool in ToolSource.allCases where tool != .custom {
-            scanTool(tool)
-        }
+        let start = CFAbsoluteTimeGetCurrent()
+        AppLogger.scanning.notice("Scan started")
+
+        scanTask?.cancel()
+        scanGeneration += 1
+        let generation = scanGeneration
         let customPaths = UserDefaults.standard.stringArray(forKey: "customScanPaths") ?? []
-        for path in customPaths {
-            scanCustomDirectory(URL(fileURLWithPath: path))
+        scanTask = Task.detached { [weak self] in
+            let results = Self.collectAllSkills(customPaths: customPaths)
+            guard !Task.isCancelled else { return }
+            let elapsed = CFAbsoluteTimeGetCurrent() - start
+            AppLogger.scanning.notice("File collection done: \(results.count) skills in \(String(format: "%.2f", elapsed))s")
+
+            await MainActor.run {
+                guard let self, self.scanGeneration == generation else { return }
+                self.applyResults(results)
+                let total = CFAbsoluteTimeGetCurrent() - start
+                AppLogger.scanning.notice("Scan complete: \(results.count) skills applied in \(String(format: "%.2f", total))s")
+            }
         }
     }
 
-    /// Scans a custom directory by iterating its subdirectories (projects)
-    /// and probing each for tool-specific skill locations.
-    private func scanCustomDirectory(_ directory: URL) {
+    /// Pure filesystem I/O — safe to run off main thread.
+    private static func collectAllSkills(customPaths: [String]) -> [ScannedSkillData] {
+        var results: [ScannedSkillData] = []
+
+        for tool in ToolSource.allCases where tool != .custom {
+            guard !Task.isCancelled else { return results }
+            for path in tool.globalPaths {
+                let url = URL(fileURLWithPath: path)
+                collectFromDirectory(url, toolSource: tool, isGlobal: true, into: &results)
+            }
+        }
+
+        for path in customPaths {
+            guard !Task.isCancelled else { return results }
+            collectFromCustomDirectory(URL(fileURLWithPath: path), into: &results)
+        }
+
+        return results
+    }
+
+    private static func collectFromCustomDirectory(_ directory: URL, into results: inout [ScannedSkillData]) {
         let fm = FileManager.default
         guard let projects = try? fm.contentsOfDirectory(
             at: directory,
@@ -41,35 +90,30 @@ final class SkillScanner {
         ) else { return }
 
         for project in projects {
+            guard !Task.isCancelled else { return }
             var isDir: ObjCBool = false
             fm.fileExists(atPath: project.path, isDirectory: &isDir)
             guard isDir.boolValue else { continue }
 
-            for probe in Self.projectProbes {
+            for probe in projectProbes {
                 let probePath = project.appendingPathComponent(probe.subpath)
                 guard fm.fileExists(atPath: probePath.path) else { continue }
 
                 if probe.tool == .copilot {
-                    // Copilot: single file
                     let file = probePath.appendingPathComponent("copilot-instructions.md")
                     if fm.fileExists(atPath: file.path) {
-                        upsertSkill(at: file, toolSource: .copilot, isDirectory: false, isGlobal: false)
+                        if let data = collectSkillData(at: file, toolSource: .copilot, isDirectory: false, isGlobal: false) {
+                            results.append(data)
+                        }
                     }
                 } else {
-                    scanDirectory(probePath, toolSource: probe.tool, isGlobal: false)
+                    collectFromDirectory(probePath, toolSource: probe.tool, isGlobal: false, into: &results)
                 }
             }
         }
     }
 
-    func scanTool(_ tool: ToolSource) {
-        for path in tool.globalPaths {
-            let url = URL(fileURLWithPath: path)
-            scanDirectory(url, toolSource: tool, isGlobal: true)
-        }
-    }
-
-    private func scanDirectory(_ directory: URL, toolSource: ToolSource, isGlobal: Bool = true) {
+    private static func collectFromDirectory(_ directory: URL, toolSource: ToolSource, isGlobal: Bool, into results: inout [ScannedSkillData]) {
         let fm = FileManager.default
 
         var isDir: ObjCBool = false
@@ -79,10 +123,10 @@ final class SkillScanner {
         if toolSource == .codex || toolSource == .amp {
             let agentsMD = directory.appendingPathComponent("AGENTS.md")
             if fm.fileExists(atPath: agentsMD.path) {
-                upsertSkill(at: agentsMD, toolSource: toolSource, isDirectory: false, isGlobal: isGlobal)
+                if let data = collectSkillData(at: agentsMD, toolSource: toolSource, isDirectory: false, isGlobal: isGlobal) {
+                    results.append(data)
+                }
             }
-            // Scan subdirectories for skills (SKILL.md or AGENTS.md)
-            // The official skills CLI installs SKILL.md into subdirectories here
             let scanDirs = [directory, directory.appendingPathComponent("skills")]
             for scanDir in scanDirs {
                 guard let contents = try? fm.contentsOfDirectory(
@@ -97,9 +141,13 @@ final class SkillScanner {
                         let skillFile = item.appendingPathComponent("SKILL.md")
                         let agentsFile = item.appendingPathComponent("AGENTS.md")
                         if fm.fileExists(atPath: skillFile.path) {
-                            upsertSkill(at: skillFile, toolSource: toolSource, isDirectory: true, isGlobal: isGlobal)
+                            if let data = collectSkillData(at: skillFile, toolSource: toolSource, isDirectory: true, isGlobal: isGlobal) {
+                                results.append(data)
+                            }
                         } else if fm.fileExists(atPath: agentsFile.path) {
-                            upsertSkill(at: agentsFile, toolSource: toolSource, isDirectory: true, isGlobal: isGlobal)
+                            if let data = collectSkillData(at: agentsFile, toolSource: toolSource, isDirectory: true, isGlobal: isGlobal) {
+                                results.append(data)
+                            }
                         }
                     }
                 }
@@ -116,31 +164,40 @@ final class SkillScanner {
         ) else { return }
 
         for item in contents {
+            guard !Task.isCancelled else { return }
             var itemIsDir: ObjCBool = false
             fm.fileExists(atPath: item.path, isDirectory: &itemIsDir)
 
             if itemIsDir.boolValue {
-                // Directory-based skill — look for SKILL.md or AGENTS.md inside
                 let skillFile = item.appendingPathComponent("SKILL.md")
                 let agentsFile = item.appendingPathComponent("AGENTS.md")
 
                 if fm.fileExists(atPath: skillFile.path) {
-                    upsertSkill(at: skillFile, toolSource: toolSource, isDirectory: true, isGlobal: isGlobal)
+                    if let data = collectSkillData(at: skillFile, toolSource: toolSource, isDirectory: true, isGlobal: isGlobal) {
+                        results.append(data)
+                    }
                 } else if fm.fileExists(atPath: agentsFile.path) {
-                    upsertSkill(at: agentsFile, toolSource: toolSource, isDirectory: true, isGlobal: isGlobal)
+                    if let data = collectSkillData(at: agentsFile, toolSource: toolSource, isDirectory: true, isGlobal: isGlobal) {
+                        results.append(data)
+                    }
                 }
             } else if item.pathExtension == "md" || item.pathExtension == "mdc" {
-                upsertSkill(at: item, toolSource: toolSource, isDirectory: false, isGlobal: isGlobal)
+                if let data = collectSkillData(at: item, toolSource: toolSource, isDirectory: false, isGlobal: isGlobal) {
+                    results.append(data)
+                }
             }
         }
     }
 
-    private func upsertSkill(at fileURL: URL, toolSource: ToolSource, isDirectory: Bool, isGlobal: Bool = true) {
+    /// Read and parse a single skill file. Pure I/O, no SwiftData.
+    private static func collectSkillData(at fileURL: URL, toolSource: ToolSource, isDirectory: Bool, isGlobal: Bool) -> ScannedSkillData? {
         let fm = FileManager.default
-        let path = fileURL.path
         let resolved = fileURL.resolvingSymlinksInPath().path
 
-        guard let parsed = SkillParser.parse(fileURL: fileURL, toolSource: toolSource) else { return }
+        guard let parsed = SkillParser.parse(fileURL: fileURL, toolSource: toolSource) else {
+            AppLogger.scanning.warning("Failed to parse: \(fileURL.path)")
+            return nil
+        }
 
         let attrs = try? fm.attributesOfItem(atPath: resolved)
         let modDate = (attrs?[.modificationDate] as? Date) ?? .now
@@ -155,36 +212,54 @@ final class SkillScanner {
             name = fileURL.deletingPathExtension().lastPathComponent
         }
 
-        // Dedup: look up by resolved path first
-        let predicate = #Predicate<Skill> { $0.resolvedPath == resolved }
-        let descriptor = FetchDescriptor<Skill>(predicate: predicate)
+        return ScannedSkillData(
+            fileURL: fileURL,
+            resolvedPath: resolved,
+            toolSource: toolSource,
+            isDirectory: isDirectory,
+            isGlobal: isGlobal,
+            name: name,
+            skillDescription: parsed.description,
+            content: parsed.content,
+            frontmatter: parsed.frontmatter,
+            modDate: modDate,
+            fileSize: fileSize
+        )
+    }
 
-        if let existing = try? modelContext.fetch(descriptor).first {
-            // Same physical file — merge this tool/path into the existing entry
-            existing.content = parsed.content
-            existing.name = name
-            existing.skillDescription = parsed.description
-            existing.frontmatter = parsed.frontmatter
-            existing.fileModifiedDate = modDate
-            existing.fileSize = fileSize
-            existing.addInstallation(path: path, tool: toolSource)
-        } else {
-            let skill = Skill(
-                filePath: path,
-                toolSource: toolSource,
-                isDirectory: isDirectory,
-                name: name,
-                skillDescription: parsed.description,
-                content: parsed.content,
-                frontmatter: parsed.frontmatter,
-                fileModifiedDate: modDate,
-                fileSize: fileSize,
-                isGlobal: isGlobal,
-                resolvedPath: resolved
-            )
-            modelContext.insert(skill)
+    /// Apply collected results to SwiftData. Must be called on main thread.
+    @MainActor
+    private func applyResults(_ results: [ScannedSkillData]) {
+        for data in results {
+            let resolved = data.resolvedPath
+            let predicate = #Predicate<Skill> { $0.resolvedPath == resolved }
+            let descriptor = FetchDescriptor<Skill>(predicate: predicate)
+
+            if let existing = try? modelContext.fetch(descriptor).first {
+                existing.content = data.content
+                existing.name = data.name
+                existing.skillDescription = data.skillDescription
+                existing.frontmatter = data.frontmatter
+                existing.fileModifiedDate = data.modDate
+                existing.fileSize = data.fileSize
+                existing.addInstallation(path: data.fileURL.path, tool: data.toolSource)
+            } else {
+                let skill = Skill(
+                    filePath: data.fileURL.path,
+                    toolSource: data.toolSource,
+                    isDirectory: data.isDirectory,
+                    name: data.name,
+                    skillDescription: data.skillDescription,
+                    content: data.content,
+                    frontmatter: data.frontmatter,
+                    fileModifiedDate: data.modDate,
+                    fileSize: data.fileSize,
+                    isGlobal: data.isGlobal,
+                    resolvedPath: data.resolvedPath
+                )
+                modelContext.insert(skill)
+            }
         }
-
         try? modelContext.save()
     }
 
@@ -194,18 +269,20 @@ final class SkillScanner {
         let fm = FileManager.default
 
         for skill in skills {
-            // Remove paths that no longer exist
             let validPaths = skill.installedPaths.filter { fm.fileExists(atPath: $0) }
             if validPaths.isEmpty {
                 modelContext.delete(skill)
             } else {
                 skill.installedPaths = validPaths
-                // Update primary filePath if it was deleted
                 if !fm.fileExists(atPath: skill.filePath), let first = validPaths.first {
                     skill.filePath = first
                 }
             }
         }
         try? modelContext.save()
+    }
+
+    deinit {
+        scanTask?.cancel()
     }
 }

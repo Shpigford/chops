@@ -1,5 +1,6 @@
 import SwiftUI
 import AppKit
+import os
 
 @Observable
 final class SkillEditorDocument {
@@ -15,22 +16,41 @@ final class SkillEditorDocument {
 
     private var fullFileContent: String = ""
     private var isLoading = false
+    private var loadTask: Task<Void, Never>?
+    private var loadGeneration = 0
 
     func load(from skill: Skill) {
         isLoading = true
+        loadTask?.cancel()
+        loadGeneration += 1
 
-        if let data = try? String(contentsOfFile: skill.filePath, encoding: .utf8) {
-            editorContent = data
-            fullFileContent = data
-        } else {
-            editorContent = skill.content
-            fullFileContent = skill.content
+        let path = skill.filePath
+        let fallback = skill.content
+        let generation = loadGeneration
+
+        loadTask = Task.detached { [weak self] in
+            let start = CFAbsoluteTimeGetCurrent()
+            let data: String
+            if let fileData = try? String(contentsOfFile: path, encoding: .utf8) {
+                data = fileData
+            } else {
+                AppLogger.fileIO.warning("Failed to read file, using cached content: \(path)")
+                data = fallback
+            }
+            guard !Task.isCancelled else { return }
+            let elapsed = CFAbsoluteTimeGetCurrent() - start
+            AppLogger.fileIO.notice("Loaded \(path) in \(String(format: "%.3f", elapsed))s (\(data.count) chars)")
+
+            await MainActor.run { [data] in
+                guard let self, self.loadGeneration == generation else { return }
+                self.editorContent = data
+                self.fullFileContent = data
+                self.isLoading = false
+                self.hasUnsavedChanges = false
+                self.showingSaveError = false
+                self.saveErrorMessage = ""
+            }
         }
-
-        isLoading = false
-        hasUnsavedChanges = false
-        showingSaveError = false
-        saveErrorMessage = ""
     }
 
     func save(to skill: Skill) {
@@ -50,10 +70,16 @@ final class SkillEditorDocument {
             let attrs = try? FileManager.default.attributesOfItem(atPath: skill.filePath)
             skill.fileModifiedDate = (attrs?[.modificationDate] as? Date) ?? skill.fileModifiedDate
             skill.fileSize = (attrs?[.size] as? Int) ?? skill.fileSize
+            AppLogger.fileIO.info("Saved: \(skill.filePath)")
         } catch {
+            AppLogger.fileIO.error("Save failed: \(error.localizedDescription)")
             saveErrorMessage = error.localizedDescription
             showingSaveError = true
         }
+    }
+
+    deinit {
+        loadTask?.cancel()
     }
 }
 

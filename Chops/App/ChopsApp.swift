@@ -49,6 +49,12 @@ struct ChopsApp: App {
             CommandGroup(after: .appInfo) {
                 CheckForUpdatesView(updater: updaterController.updater)
             }
+            CommandGroup(after: .help) {
+                Button("Export Diagnostic Log…") {
+                    let context = sharedModelContainer.mainContext
+                    DiagnosticExporter.export(modelContext: context)
+                }
+            }
         }
 
         Settings {
