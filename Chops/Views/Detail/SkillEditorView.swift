@@ -225,21 +225,10 @@ struct SkillEditorView: View {
     }
 }
 
-// MARK: - Save Action via FocusedValues for Cmd+S menu support
+// MARK: - Save notification for Cmd+S menu support
 
-struct SaveAction {
-    let action: () -> Void
-}
-
-struct SaveActionKey: FocusedValueKey {
-    typealias Value = SaveAction
-}
-
-extension FocusedValues {
-    var saveAction: SaveAction? {
-        get { self[SaveActionKey.self] }
-        set { self[SaveActionKey.self] = newValue }
-    }
+extension Notification.Name {
+    static let saveCurrentSkill = Notification.Name("saveCurrentSkill")
 }
 
 // MARK: - Syntax-highlighted NSTextView wrapper
@@ -312,7 +301,6 @@ struct HighlightedTextEditor: NSViewRepresentable {
 enum MarkdownHighlighter {
     private static let muted = NSColor.secondaryLabelColor
     private static let faintBg = NSColor.quaternaryLabelColor
-
     static func highlight(_ textView: NSTextView) {
         let text = textView.string
         let fullRange = NSRange(location: 0, length: (text as NSString).length)

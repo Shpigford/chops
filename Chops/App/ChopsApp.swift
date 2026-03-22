@@ -26,8 +26,6 @@ struct ChopsApp: App {
         }
     }()
 
-    @FocusedValue(\.saveAction) var saveAction
-
     var body: some Scene {
         WindowGroup {
             ContentView()
@@ -37,10 +35,10 @@ struct ChopsApp: App {
         .commands {
             CommandGroup(replacing: .saveItem) {
                 Button("Save") {
-                    saveAction?.action()
+                    NotificationCenter.default.post(name: .saveCurrentSkill, object: nil)
                 }
                 .keyboardShortcut("s", modifiers: .command)
-                .disabled(saveAction == nil)
+                .disabled(appState.selectedSkill == nil)
             }
             CommandGroup(after: .appInfo) {
                 CheckForUpdatesView(updater: updaterController.updater)

@@ -44,7 +44,9 @@ struct SkillDetailView: View {
         .onChange(of: skill.filePath) {
             document.load(from: skill)
         }
-        .focusedValue(\.saveAction, SaveAction(action: { document.save(to: skill) }))
+        .onReceive(NotificationCenter.default.publisher(for: .saveCurrentSkill)) { _ in
+            document.save(to: skill)
+        }
         .alert("Save Error", isPresented: $document.showingSaveError) {
             Button("OK") {}
         } message: {
