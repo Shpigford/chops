@@ -3,10 +3,82 @@ import SwiftData
 
 struct CollectionListView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(AppState.self) private var appState
     @Query(sort: \SkillCollection.sortOrder) private var collections: [SkillCollection]
     @State private var showingNewCollection = false
     @State private var newCollectionName = ""
     @State private var newCollectionIcon = "folder"
+    @State private var editingCollectionID: PersistentIdentifier?
+    @State private var editingName = ""
+    @State private var errorMessage: String?
+    @FocusState private var isRenameFocused: Bool
+
+    private func normalizedName(_ name: String) -> String {
+        name.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private func hasDuplicateName(_ name: String, excluding collectionID: PersistentIdentifier? = nil) -> Bool {
+        collections.contains { collection in
+            collection.persistentModelID != collectionID &&
+            collection.name.localizedCaseInsensitiveCompare(name) == .orderedSame
+        }
+    }
+
+    private func commitRename(_ collection: SkillCollection) {
+        errorMessage = nil
+        let trimmed = normalizedName(editingName)
+        guard !trimmed.isEmpty else {
+            editingCollectionID = nil
+            return
+        }
+        guard trimmed != collection.name else {
+            editingCollectionID = nil
+            return
+        }
+        guard !hasDuplicateName(trimmed, excluding: collection.persistentModelID) else {
+            errorMessage = "A collection with this name already exists"
+            return
+        }
+        let oldName = collection.name
+        collection.name = trimmed
+        do {
+            try modelContext.save()
+            if appState.sidebarFilter == .collection(oldName) {
+                appState.sidebarFilter = .collection(trimmed)
+            }
+            editingCollectionID = nil
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    private func createCollection() {
+        errorMessage = nil
+        let trimmed = normalizedName(newCollectionName)
+        guard !trimmed.isEmpty else {
+            errorMessage = "Collection name can't be empty"
+            return
+        }
+        guard !hasDuplicateName(trimmed) else {
+            errorMessage = "A collection with this name already exists"
+            return
+        }
+
+        let collection = SkillCollection(
+            name: trimmed,
+            icon: newCollectionIcon,
+            sortOrder: collections.count
+        )
+        modelContext.insert(collection)
+
+        do {
+            try modelContext.save()
+            newCollectionName = ""
+            showingNewCollection = false
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
 
     private let availableIcons = [
         "folder", "star", "bookmark", "tag", "tray",
@@ -17,18 +89,44 @@ struct CollectionListView: View {
 
     var body: some View {
         ForEach(collections) { collection in
-            Label(collection.name, systemImage: collection.icon)
-                .badge(collection.skills.count)
-                .tag(SidebarFilter.collection(collection.name))
-                .contextMenu {
-                    Button("Delete", role: .destructive) {
-                        modelContext.delete(collection)
-                        try? modelContext.save()
+            if editingCollectionID == collection.persistentModelID {
+                TextField("Name", text: $editingName)
+                    .textFieldStyle(.roundedBorder)
+                    .focused($isRenameFocused)
+                    .onAppear {
+                        isRenameFocused = true
+                        DispatchQueue.main.async {
+                            NSApp.sendAction(#selector(NSText.selectAll(_:)), to: nil, from: nil)
+                        }
                     }
-                }
+                    .onSubmit {
+                        commitRename(collection)
+                    }
+                    .onExitCommand {
+                        editingCollectionID = nil
+                    }
+                    .tag(SidebarFilter.collection(collection.name))
+            } else {
+                Label(collection.name, systemImage: collection.icon)
+                    .badge(collection.skills.count)
+                    .tag(SidebarFilter.collection(collection.name))
+                    .contextMenu {
+                        Button("Rename") {
+                            errorMessage = nil
+                            editingName = collection.name
+                            editingCollectionID = collection.persistentModelID
+                        }
+                        Divider()
+                        Button("Delete", role: .destructive) {
+                            modelContext.delete(collection)
+                            try? modelContext.save()
+                        }
+                    }
+            }
         }
 
         Button {
+            errorMessage = nil
             showingNewCollection = true
         } label: {
             Label("New Collection", systemImage: "plus.circle")
@@ -39,6 +137,12 @@ struct CollectionListView: View {
             VStack(spacing: 12) {
                 TextField("Collection name", text: $newCollectionName)
                     .textFieldStyle(.roundedBorder)
+
+                if let errorMessage {
+                    Text(errorMessage)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                }
 
                 LazyVGrid(columns: Array(repeating: GridItem(.fixed(28)), count: 6), spacing: 8) {
                     ForEach(availableIcons, id: \.self) { icon in
@@ -60,24 +164,27 @@ struct CollectionListView: View {
                 }
 
                 HStack {
-                    Button("Cancel") { showingNewCollection = false }
+                    Button("Cancel") {
+                        errorMessage = nil
+                        showingNewCollection = false
+                    }
                     Spacer()
                     Button("Create") {
-                        let collection = SkillCollection(
-                            name: newCollectionName,
-                            icon: newCollectionIcon,
-                            sortOrder: collections.count
-                        )
-                        modelContext.insert(collection)
-                        try? modelContext.save()
-                        newCollectionName = ""
-                        showingNewCollection = false
+                        createCollection()
                     }
                     .disabled(newCollectionName.isEmpty)
                 }
             }
             .padding()
             .frame(width: 240)
+        }
+        .alert("Collection Error", isPresented: Binding(
+            get: { errorMessage != nil && !showingNewCollection },
+            set: { if !$0 { errorMessage = nil } }
+        )) {
+            Button("OK") {}
+        } message: {
+            Text(errorMessage ?? "")
         }
     }
 }
