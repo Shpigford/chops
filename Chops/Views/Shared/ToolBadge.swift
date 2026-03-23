@@ -44,6 +44,7 @@ extension ToolSource {
         case .aider: "AI"
         case .amp: "AM"
         case .openclaw: "OC"
+        case .pi: "PI"
         case .custom: "?"
         }
     }
