@@ -215,7 +215,7 @@ cat > build/appcast.xml << APPCAST
       <title>Version $VERSION</title>
       <sparkle:version>$VERSION</sparkle:version>
       <sparkle:shortVersionString>$VERSION</sparkle:shortVersionString>
-      <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+      <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
       <pubDate>$PUB_DATE</pubDate>
 $DESC_ELEMENT
       <enclosure
