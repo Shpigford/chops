@@ -228,14 +228,22 @@ final class SkillScanner {
     }
 
     /// Apply collected results to SwiftData. Must be called on main thread.
+    ///
+    /// All mutations are performed inside a single `withoutActuallyEscaping`-style
+    /// batch: we defer `save()` until the end so SwiftUI's `@Query` observers
+    /// coalesce into a single view update instead of firing once per insert.
     @MainActor
     private func applyResults(_ results: [ScannedSkillData]) {
-        for data in results {
-            let resolved = data.resolvedPath
-            let predicate = #Predicate<Skill> { $0.resolvedPath == resolved }
-            let descriptor = FetchDescriptor<Skill>(predicate: predicate)
+        // Pre-fetch all existing skills in one query to avoid N+1 fetches
+        let allDescriptor = FetchDescriptor<Skill>()
+        let existingSkills = (try? modelContext.fetch(allDescriptor)) ?? []
+        let existingByPath = Dictionary(uniqueKeysWithValues: existingSkills.map { ($0.resolvedPath, $0) })
 
-            if let existing = try? modelContext.fetch(descriptor).first {
+        modelContext.undoManager?.disableUndoRegistration()
+        defer { modelContext.undoManager?.enableUndoRegistration() }
+
+        for data in results {
+            if let existing = existingByPath[data.resolvedPath] {
                 existing.content = data.content
                 existing.name = data.name
                 existing.skillDescription = data.skillDescription

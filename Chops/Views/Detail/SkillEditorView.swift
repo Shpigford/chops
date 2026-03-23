@@ -269,6 +269,17 @@ struct HighlightedTextEditor: NSViewRepresentable {
         textView.textContainerInset = NSSize(width: 12, height: 12)
         textView.backgroundColor = .clear
 
+        // Prevent NSTextView's intrinsic content size from propagating up through
+        // the NavigationSplitView constraint chain. Without this, large documents
+        // trigger recursive _informContainerThatSubviewsNeedUpdateConstraints calls
+        // that crash AppKit's constraint solver.
+        textView.isVerticallyResizable = true
+        textView.isHorizontallyResizable = false
+        textView.textContainer?.widthTracksTextView = true
+        textView.textContainer?.heightTracksTextView = false
+        scrollView.hasVerticalScroller = true
+        scrollView.hasHorizontalScroller = false
+
         textView.delegate = context.coordinator
         context.coordinator.textView = textView
 
@@ -281,10 +292,17 @@ struct HighlightedTextEditor: NSViewRepresentable {
     func updateNSView(_ scrollView: NSScrollView, context: Context) {
         let textView = scrollView.documentView as! NSTextView
         if textView.string != text {
-            let selectedRanges = textView.selectedRanges
-            textView.string = text
-            MarkdownHighlighter.highlight(textView)
-            textView.selectedRanges = selectedRanges
+            // Defer the text update to the next run loop tick so it doesn't
+            // overlap with SwiftUI's constraint update pass. This prevents the
+            // recursive _informContainerThatSubviewsNeedUpdateConstraints crash.
+            let newText = text
+            DispatchQueue.main.async {
+                guard textView.string != newText else { return }
+                let selectedRanges = textView.selectedRanges
+                textView.string = newText
+                MarkdownHighlighter.highlight(textView)
+                textView.selectedRanges = selectedRanges
+            }
         }
     }
 
