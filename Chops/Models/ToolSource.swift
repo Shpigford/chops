@@ -74,14 +74,20 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
 
     var globalPaths: [String] {
         let home = FileManager.default.homeDirectoryForCurrentUser.path
+        let configHome: String = {
+            if let xdg = ProcessInfo.processInfo.environment["XDG_CONFIG_HOME"], !xdg.isEmpty {
+                return xdg
+            }
+            return "\(home)/.config"
+        }()
         switch self {
         case .claude: return ["\(home)/.claude/skills", "\(home)/.agents/skills"]
         case .cursor: return ["\(home)/.cursor/skills", "\(home)/.cursor/rules"]
         case .windsurf: return ["\(home)/.codeium/windsurf/memories", "\(home)/.windsurf/rules"]
-        case .codex: return ["\(home)/.codex"]
+        case .codex: return ["\(home)/.codex/skills"]
         case .copilot: return []
         case .aider: return []
-        case .amp: return ["\(home)/.config/amp"]
+        case .amp: return ["\(configHome)/amp/skills"]
         case .openclaw: return []
         case .pi: return ["\(home)/.pi/agent/skills"]
         case .custom: return []

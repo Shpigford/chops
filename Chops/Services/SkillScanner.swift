@@ -23,6 +23,25 @@ final class SkillScanner {
     private var scanTask: Task<Void, Never>?
     private var scanGeneration = 0
 
+    /// Filenames that are tool config/meta files, not skills.
+    private static let ignoredFileNames: Set<String> = [
+        "README.md",
+        "README",
+        "CLAUDE.md",
+        "AGENTS.md",
+        "AGENTS.override.md",
+        "global_rules.md",
+        "SYSTEM.md",
+        "APPEND_SYSTEM.md",
+        "LICENSE.md",
+        "LICENSE",
+        "CHANGELOG.md",
+    ]
+
+    private static func shouldIgnoreLooseMarkdownFile(named fileName: String) -> Bool {
+        return ignoredFileNames.contains(fileName)
+    }
+
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
     }
@@ -32,10 +51,10 @@ final class SkillScanner {
         (".claude/skills", .claude),
         (".cursor/skills", .cursor),
         (".cursor/rules", .cursor),
-        (".codex", .codex),
+        (".codex/skills", .codex),
         (".windsurf/rules", .windsurf),
         (".github", .copilot),
-        (".config/amp", .amp),
+        (".config/amp/skills", .amp),
     ]
 
     func scanAll() {
@@ -119,42 +138,6 @@ final class SkillScanner {
         var isDir: ObjCBool = false
         guard fm.fileExists(atPath: directory.path, isDirectory: &isDir) else { return }
 
-        // Single-file tools like Codex: look for AGENTS.md directly in the directory
-        if toolSource == .codex || toolSource == .amp {
-            let agentsMD = directory.appendingPathComponent("AGENTS.md")
-            if fm.fileExists(atPath: agentsMD.path) {
-                if let data = collectSkillData(at: agentsMD, toolSource: toolSource, isDirectory: false, isGlobal: isGlobal) {
-                    results.append(data)
-                }
-            }
-            let scanDirs = [directory, directory.appendingPathComponent("skills")]
-            for scanDir in scanDirs {
-                guard let contents = try? fm.contentsOfDirectory(
-                    at: scanDir,
-                    includingPropertiesForKeys: [.isDirectoryKey],
-                    options: [.skipsHiddenFiles]
-                ) else { continue }
-                for item in contents {
-                    var itemIsDir: ObjCBool = false
-                    fm.fileExists(atPath: item.path, isDirectory: &itemIsDir)
-                    if itemIsDir.boolValue {
-                        let skillFile = item.appendingPathComponent("SKILL.md")
-                        let agentsFile = item.appendingPathComponent("AGENTS.md")
-                        if fm.fileExists(atPath: skillFile.path) {
-                            if let data = collectSkillData(at: skillFile, toolSource: toolSource, isDirectory: true, isGlobal: isGlobal) {
-                                results.append(data)
-                            }
-                        } else if fm.fileExists(atPath: agentsFile.path) {
-                            if let data = collectSkillData(at: agentsFile, toolSource: toolSource, isDirectory: true, isGlobal: isGlobal) {
-                                results.append(data)
-                            }
-                        }
-                    }
-                }
-            }
-            return
-        }
-
         guard isDir.boolValue else { return }
 
         guard let contents = try? fm.contentsOfDirectory(
@@ -182,6 +165,7 @@ final class SkillScanner {
                     }
                 }
             } else if item.pathExtension == "md" || item.pathExtension == "mdc" {
+                guard !shouldIgnoreLooseMarkdownFile(named: item.lastPathComponent) else { continue }
                 if let data = collectSkillData(at: item, toolSource: toolSource, isDirectory: false, isGlobal: isGlobal) {
                     results.append(data)
                 }
@@ -355,6 +339,14 @@ final class SkillScanner {
 
             // Remote skills are managed by scanRemoteServer(), skip here
             if skill.isRemote { continue }
+
+            // Remove previously-scanned loose markdown files that are now filtered out.
+            let fileName = URL(fileURLWithPath: skill.filePath).lastPathComponent
+            if !skill.isDirectory, Self.shouldIgnoreLooseMarkdownFile(named: fileName) {
+                modelContext.delete(skill)
+                continue
+            }
+
             let validPaths = skill.installedPaths.filter { fm.fileExists(atPath: $0) }
             if validPaths.isEmpty {
                 modelContext.delete(skill)

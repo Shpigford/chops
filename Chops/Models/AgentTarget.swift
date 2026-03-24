@@ -99,8 +99,8 @@ struct AgentTarget: Identifiable, Hashable {
             AgentTarget(
                 id: "amp",
                 displayName: "Amp",
-                globalSkillsDir: "\(configHome)/amp",
-                skillFileName: "AGENTS.md",
+                globalSkillsDir: "\(configHome)/amp/skills",
+                skillFileName: "SKILL.md",
                 evidencePaths: [
                     "\(configHome)/amp/config.json",
                     "\(configHome)/amp/settings.json",

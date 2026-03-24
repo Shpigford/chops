@@ -55,6 +55,12 @@ struct NewSkillSheet: View {
 
     private func createSkill() {
         let fm = FileManager.default
+        let configHome: String = {
+            if let xdg = ProcessInfo.processInfo.environment["XDG_CONFIG_HOME"], !xdg.isEmpty {
+                return xdg
+            }
+            return "\(fm.homeDirectoryForCurrentUser.path)/.config"
+        }()
         let sanitizedName = skillName
             .lowercased()
             .replacingOccurrences(of: " ", with: "-")
@@ -79,13 +85,17 @@ struct NewSkillSheet: View {
             fileName = "SKILL.md"
             isDirectory = true
         case .codex:
-            basePath = "\(fm.homeDirectoryForCurrentUser.path)/.codex"
-            fileName = "AGENTS.md"
-            isDirectory = false
+            basePath = "\(fm.homeDirectoryForCurrentUser.path)/.codex/skills/\(sanitizedName)"
+            fileName = "SKILL.md"
+            isDirectory = true
         case .amp:
-            basePath = "\(fm.homeDirectoryForCurrentUser.path)/.config/amp"
-            fileName = "AGENTS.md"
-            isDirectory = false
+            basePath = "\(configHome)/amp/skills/\(sanitizedName)"
+            fileName = "SKILL.md"
+            isDirectory = true
+        case .pi:
+            basePath = "\(fm.homeDirectoryForCurrentUser.path)/.pi/agent/skills/\(sanitizedName)"
+            fileName = "SKILL.md"
+            isDirectory = true
         default:
             let firstPath = selectedTool.globalPaths.first ?? "\(fm.homeDirectoryForCurrentUser.path)/.claude/skills/\(sanitizedName)"
             basePath = firstPath
@@ -155,8 +165,13 @@ struct NewSkillSheet: View {
 
             Add your skill instructions here.
             """
-        case .codex, .amp:
+        case .codex, .amp, .pi:
             return """
+            ---
+            name: \(name.lowercased().replacingOccurrences(of: " ", with: "-"))
+            description: \(name)
+            ---
+
             # \(name)
 
             ## Instructions
