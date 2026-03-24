@@ -85,7 +85,7 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
         case .cursor: return ["\(home)/.cursor/skills", "\(home)/.cursor/rules"]
         case .windsurf: return ["\(home)/.codeium/windsurf/memories", "\(home)/.windsurf/rules"]
         case .codex: return ["\(home)/.codex/skills"]
-        case .copilot: return []
+        case .copilot: return ["\(home)/.copilot/skills"]
         case .aider: return []
         case .amp: return ["\(configHome)/amp/skills"]
         case .openclaw: return []
@@ -125,7 +125,10 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
                 || Self.cliBinaryExists("amp")
         case .pi:
             return Self.cliBinaryExists("pi")
-        case .copilot, .aider, .openclaw, .custom:
+        case .copilot:
+            return fm.fileExists(atPath: "\(home)/.copilot")
+                || Self.cliBinaryExists("copilot")
+        case .aider, .openclaw, .custom:
             return true
         }
     }
