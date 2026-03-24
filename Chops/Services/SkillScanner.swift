@@ -86,6 +86,9 @@ final class SkillScanner {
 
         for tool in ToolSource.allCases where tool != .custom {
             guard !Task.isCancelled else { return results }
+            guard tool.isInstalled || tool.globalPaths.contains(where: { FileManager.default.fileExists(atPath: $0) }) else {
+                continue
+            }
             for path in tool.globalPaths {
                 let url = URL(fileURLWithPath: path)
                 collectFromDirectory(url, toolSource: tool, isGlobal: true, into: &results)

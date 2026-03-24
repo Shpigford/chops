@@ -93,4 +93,60 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
         case .custom: return []
         }
     }
+
+    /// Whether the tool is actually installed on this machine.
+    /// Checks for app bundles, CLI binaries, tool-specific config files,
+    /// or known global skill locations that imply a real setup is present.
+    var isInstalled: Bool {
+        let fm = FileManager.default
+        let home = fm.homeDirectoryForCurrentUser.path
+
+        switch self {
+        case .claude:
+            return fm.fileExists(atPath: "\(home)/.claude/settings.json")
+                || fm.fileExists(atPath: "\(home)/.claude/CLAUDE.md")
+                || fm.fileExists(atPath: "\(home)/.agents/skills")
+                || Self.cliBinaryExists("claude")
+        case .cursor:
+            return fm.fileExists(atPath: "/Applications/Cursor.app")
+                || fm.fileExists(atPath: "\(home)/.cursor/argv.json")
+        case .windsurf:
+            return fm.fileExists(atPath: "/Applications/Windsurf.app")
+                || fm.fileExists(atPath: "\(home)/.codeium/windsurf/argv.json")
+        case .codex:
+            return fm.fileExists(atPath: "\(home)/.codex/config.toml")
+                || fm.fileExists(atPath: "\(home)/.codex/auth.json")
+                || Self.cliBinaryExists("codex")
+        case .amp:
+            let configHome = ProcessInfo.processInfo.environment["XDG_CONFIG_HOME"]
+                .flatMap { $0.isEmpty ? nil : $0 } ?? "\(home)/.config"
+            return fm.fileExists(atPath: "\(configHome)/amp/config.json")
+                || fm.fileExists(atPath: "\(configHome)/amp/settings.json")
+                || Self.cliBinaryExists("amp")
+        case .pi:
+            return Self.cliBinaryExists("pi")
+        case .copilot, .aider, .openclaw, .custom:
+            return true
+        }
+    }
+
+    private static func cliBinaryExists(_ name: String) -> Bool {
+        let fm = FileManager.default
+        let home = fm.homeDirectoryForCurrentUser.path
+        let paths = [
+            "/usr/local/bin/\(name)",
+            "/opt/homebrew/bin/\(name)",
+            "\(home)/.local/bin/\(name)",
+        ]
+        for path in paths where fm.fileExists(atPath: path) {
+            return true
+        }
+        let nvmDir = "\(home)/.nvm/versions/node"
+        if let nodeDirs = try? fm.contentsOfDirectory(atPath: nvmDir) {
+            for nodeDir in nodeDirs {
+                if fm.fileExists(atPath: "\(nvmDir)/\(nodeDir)/bin/\(name)") { return true }
+            }
+        }
+        return false
+    }
 }
