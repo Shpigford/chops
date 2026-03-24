@@ -86,7 +86,7 @@ final class SkillScanner {
 
         for tool in ToolSource.allCases where tool != .custom {
             guard !Task.isCancelled else { return results }
-            guard tool.isInstalled || tool.globalPaths.contains(where: { FileManager.default.fileExists(atPath: $0) }) else {
+            guard tool.isInstalled else {
                 continue
             }
             for path in tool.globalPaths {

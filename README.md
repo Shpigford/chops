@@ -126,11 +126,12 @@ Chops scans these directories for skills:
 
 | Tool | Global Paths |
 |------|-------------|
-| Claude Code | `~/.claude/skills/`, `~/.agents/skills` |
+| Claude Code | `~/.claude/skills/` |
 | Cursor | `~/.cursor/skills/`, `~/.cursor/rules` |
 | Windsurf | `~/.codeium/windsurf/memories/`, `~/.windsurf/rules` |
 | Codex | `~/.codex` |
 | Amp | `~/.config/amp` |
+| Global Agents | `~/.agents/skills/` |
 
 Copilot and Aider are also supported but only detect project-level skills (no global paths). Custom paths can be added for any tool.
 

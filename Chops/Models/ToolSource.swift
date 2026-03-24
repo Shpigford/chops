@@ -1,6 +1,7 @@
 import SwiftUI
 
 enum ToolSource: String, Codable, CaseIterable, Identifiable {
+    case agents
     case claude
     case cursor
     case windsurf
@@ -25,6 +26,7 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
         case .amp: "Amp"
         case .openclaw: "OpenClaw"
         case .pi: "Pi"
+        case .agents: "Global Agents"
         case .custom: "Custom"
         }
     }
@@ -41,6 +43,7 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
         case .amp: "bolt.fill"
         case .openclaw: "server.rack"
         case .pi: "sparkles"
+        case .agents: "globe"
         case .custom: "folder"
         }
     }
@@ -52,6 +55,7 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
         case .cursor: "tool-cursor"
         case .codex: "tool-codex"
         case .windsurf: "tool-windsurf"
+        case .copilot: "tool-copilot"
         case .amp: "tool-amp"
         default: nil
         }
@@ -68,6 +72,7 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
         case .amp: .pink
         case .openclaw: .indigo
         case .pi: .cyan
+        case .agents: .mint
         case .custom: .gray
         }
     }
@@ -81,7 +86,7 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
             return "\(home)/.config"
         }()
         switch self {
-        case .claude: return ["\(home)/.claude/skills", "\(home)/.agents/skills"]
+        case .claude: return ["\(home)/.claude/skills"]
         case .cursor: return ["\(home)/.cursor/skills", "\(home)/.cursor/rules"]
         case .windsurf: return ["\(home)/.codeium/windsurf/memories", "\(home)/.windsurf/rules"]
         case .codex: return ["\(home)/.codex/skills"]
@@ -90,6 +95,7 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
         case .amp: return ["\(configHome)/amp/skills"]
         case .openclaw: return []
         case .pi: return ["\(home)/.pi/agent/skills"]
+        case .agents: return ["\(home)/.agents/skills"]
         case .custom: return []
         }
     }
@@ -105,7 +111,6 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
         case .claude:
             return fm.fileExists(atPath: "\(home)/.claude/settings.json")
                 || fm.fileExists(atPath: "\(home)/.claude/CLAUDE.md")
-                || fm.fileExists(atPath: "\(home)/.agents/skills")
                 || Self.cliBinaryExists("claude")
         case .cursor:
             return fm.fileExists(atPath: "/Applications/Cursor.app")
@@ -128,6 +133,8 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
         case .copilot:
             return fm.fileExists(atPath: "\(home)/.copilot")
                 || Self.cliBinaryExists("copilot")
+        case .agents:
+            return fm.fileExists(atPath: "\(home)/.agents/skills")
         case .aider, .openclaw, .custom:
             return true
         }

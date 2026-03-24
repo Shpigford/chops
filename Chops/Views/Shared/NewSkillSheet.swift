@@ -9,6 +9,8 @@ struct NewSkillSheet: View {
     @State private var selectedTool: ToolSource = .claude
     @State private var errorMessage: String?
 
+    private let creatableTools: [ToolSource] = [.claude, .agents, .cursor, .codex, .amp, .pi]
+
     var body: some View {
         VStack(spacing: 20) {
             Text("New Skill")
@@ -20,7 +22,7 @@ struct NewSkillSheet: View {
                     .textFieldStyle(.roundedBorder)
 
                 Picker("Tool", selection: $selectedTool) {
-                    ForEach(ToolSource.allCases.filter { $0 != .custom }) { tool in
+                    ForEach(creatableTools) { tool in
                         Label(tool.displayName, systemImage: tool.iconName)
                             .tag(tool)
                     }
@@ -78,6 +80,10 @@ struct NewSkillSheet: View {
         switch selectedTool {
         case .claude:
             basePath = "\(fm.homeDirectoryForCurrentUser.path)/.claude/skills/\(sanitizedName)"
+            fileName = "SKILL.md"
+            isDirectory = true
+        case .agents:
+            basePath = "\(fm.homeDirectoryForCurrentUser.path)/.agents/skills/\(sanitizedName)"
             fileName = "SKILL.md"
             isDirectory = true
         case .cursor:
@@ -165,7 +171,7 @@ struct NewSkillSheet: View {
 
             Add your skill instructions here.
             """
-        case .codex, .amp, .pi:
+        case .codex, .amp, .pi, .agents:
             return """
             ---
             name: \(name.lowercased().replacingOccurrences(of: " ", with: "-"))
