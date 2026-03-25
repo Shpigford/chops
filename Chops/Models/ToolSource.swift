@@ -10,6 +10,7 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
     case aider
     case amp
     case openclaw
+    case opencode
     case pi
     case custom
 
@@ -25,6 +26,7 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
         case .aider: "Aider"
         case .amp: "Amp"
         case .openclaw: "OpenClaw"
+        case .opencode: "OpenCode"
         case .pi: "Pi"
         case .agents: "Global Agents"
         case .custom: "Custom"
@@ -42,6 +44,7 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
         case .aider: "wrench.and.screwdriver"
         case .amp: "bolt.fill"
         case .openclaw: "server.rack"
+        case .opencode: "terminal"
         case .pi: "sparkles"
         case .agents: "globe"
         case .custom: "folder"
@@ -57,6 +60,7 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
         case .windsurf: "tool-windsurf"
         case .copilot: "tool-copilot"
         case .amp: "tool-amp"
+        case .opencode: "tool-opencode"
         default: nil
         }
     }
@@ -71,6 +75,7 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
         case .aider: .yellow
         case .amp: .pink
         case .openclaw: .indigo
+        case .opencode: .red
         case .pi: .cyan
         case .agents: .mint
         case .custom: .gray
@@ -94,6 +99,7 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
         case .aider: return []
         case .amp: return ["\(configHome)/amp/skills"]
         case .openclaw: return []
+        case .opencode: return ["\(configHome)/opencode/skills"]
         case .pi: return ["\(home)/.pi/agent/skills"]
         case .agents: return ["\(home)/.agents/skills"]
         case .custom: return []
@@ -135,9 +141,27 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
                 || Self.cliBinaryExists("copilot")
         case .agents:
             return fm.fileExists(atPath: "\(home)/.agents/skills")
+        case .opencode:
+            let configHome = ProcessInfo.processInfo.environment["XDG_CONFIG_HOME"]
+                .flatMap { $0.isEmpty ? nil : $0 } ?? "\(home)/.config"
+            return Self.appBundleExists("OpenCode")
+                || fm.fileExists(atPath: "\(configHome)/opencode/opencode.json")
+                || fm.fileExists(atPath: "\(configHome)/opencode/opencode.jsonc")
+                || fm.fileExists(atPath: "\(home)/.local/share/opencode")
+                || Self.cliBinaryExists("opencode")
         case .aider, .openclaw, .custom:
             return true
         }
+    }
+
+    private static func appBundleExists(_ name: String) -> Bool {
+        let fm = FileManager.default
+        let home = fm.homeDirectoryForCurrentUser.path
+        let paths = [
+            "/Applications/\(name).app",
+            "\(home)/Applications/\(name).app",
+        ]
+        return paths.contains { fm.fileExists(atPath: $0) }
     }
 
     private static func cliBinaryExists(_ name: String) -> Bool {

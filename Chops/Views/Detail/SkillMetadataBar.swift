@@ -30,7 +30,7 @@ struct SkillMetadataBar: View {
                 Divider().frame(height: 16)
             }
 
-            Text(skill.isRemote ? (skill.remotePath ?? "") : abbreviatedPath)
+            Text(skill.isRemote ? (skill.remotePath ?? "") : displayPath)
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
@@ -68,7 +68,13 @@ struct SkillMetadataBar: View {
         .background(.bar)
     }
 
-    private var abbreviatedPath: String {
+    private var displayPath: String {
+        let additionalCount = max(0, displayInstalledPaths.count - 1)
+        let suffix = additionalCount > 0 ? " (+\(additionalCount))" : ""
+        return abbreviatedFilePath + suffix
+    }
+
+    private var abbreviatedFilePath: String {
         skill.filePath.replacingOccurrences(
             of: FileManager.default.homeDirectoryForCurrentUser.path,
             with: "~"
@@ -80,10 +86,16 @@ struct SkillMetadataBar: View {
     }
 
     private var installedPathsSummary: String {
-        let home = FileManager.default.homeDirectoryForCurrentUser.path
-        return skill.installedPaths
-            .map { $0.replacingOccurrences(of: home, with: "~") }
+        displayInstalledPaths
+            .map { $0.replacingOccurrences(of: FileManager.default.homeDirectoryForCurrentUser.path, with: "~") }
             .joined(separator: "\n")
+    }
+
+    private var displayInstalledPaths: [String] {
+        let otherPaths = skill.installedPaths
+            .filter { $0 != skill.filePath }
+            .sorted()
+        return [skill.filePath] + otherPaths
     }
 
     private var collectionPickerContent: some View {

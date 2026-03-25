@@ -9,7 +9,7 @@ struct NewSkillSheet: View {
     @State private var selectedTool: ToolSource = .claude
     @State private var errorMessage: String?
 
-    private let creatableTools: [ToolSource] = [.claude, .agents, .cursor, .codex, .amp, .pi]
+    private let creatableTools: [ToolSource] = [.claude, .agents, .cursor, .codex, .amp, .opencode, .pi]
 
     var body: some View {
         VStack(spacing: 20) {
@@ -98,6 +98,10 @@ struct NewSkillSheet: View {
             basePath = "\(configHome)/amp/skills/\(sanitizedName)"
             fileName = "SKILL.md"
             isDirectory = true
+        case .opencode:
+            basePath = "\(configHome)/opencode/skills/\(sanitizedName)"
+            fileName = "SKILL.md"
+            isDirectory = true
         case .pi:
             basePath = "\(fm.homeDirectoryForCurrentUser.path)/.pi/agent/skills/\(sanitizedName)"
             fileName = "SKILL.md"
@@ -124,7 +128,7 @@ struct NewSkillSheet: View {
                 return
             }
 
-            let boilerplate = generateBoilerplate(name: skillName, tool: selectedTool)
+            let boilerplate = generateBoilerplate(name: skillName, skillID: sanitizedName, tool: selectedTool)
             try boilerplate.write(toFile: filePath, atomically: true, encoding: .utf8)
 
             // Insert into SwiftData
@@ -152,12 +156,12 @@ struct NewSkillSheet: View {
         }
     }
 
-    private func generateBoilerplate(name: String, tool: ToolSource) -> String {
+    private func generateBoilerplate(name: String, skillID: String, tool: ToolSource) -> String {
         switch tool {
         case .claude, .cursor:
             return """
             ---
-            name: \(name.lowercased().replacingOccurrences(of: " ", with: "-"))
+            name: \(skillID)
             description: \(name)
             ---
 
@@ -171,10 +175,10 @@ struct NewSkillSheet: View {
 
             Add your skill instructions here.
             """
-        case .codex, .amp, .pi, .agents:
+        case .codex, .amp, .opencode, .pi, .agents:
             return """
             ---
-            name: \(name.lowercased().replacingOccurrences(of: " ", with: "-"))
+            name: \(skillID)
             description: \(name)
             ---
 
@@ -187,7 +191,7 @@ struct NewSkillSheet: View {
         default:
             return """
             ---
-            name: \(name.lowercased().replacingOccurrences(of: " ", with: "-"))
+            name: \(skillID)
             description: \(name)
             ---
 
