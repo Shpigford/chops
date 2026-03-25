@@ -19,6 +19,7 @@ struct SkillListView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(AppState.self) private var appState
     @Query(sort: \Skill.name) private var allSkills: [Skill]
+    @Query(sort: \SkillCollection.name) private var allCollections: [SkillCollection]
     @State private var activeAlert: ActiveAlert?
 
     private var filteredSkills: [Skill] {
@@ -86,6 +87,25 @@ struct SkillListView: View {
                         Button(skill.isFavorite ? "Unfavorite" : "Favorite") {
                             skill.isFavorite.toggle()
                             try? modelContext.save()
+                        }
+                        if !allCollections.isEmpty {
+                            Menu("Collections") {
+                                ForEach(allCollections) { collection in
+                                    let isAssigned = skill.collections.contains(where: { $0.name == collection.name })
+                                    Button {
+                                        if isAssigned {
+                                            skill.collections.removeAll { $0.name == collection.name }
+                                        } else {
+                                            skill.collections.append(collection)
+                                        }
+                                        try? modelContext.save()
+                                    } label: {
+                                        Toggle(isOn: .constant(isAssigned)) {
+                                            Label(collection.name, systemImage: collection.icon)
+                                        }
+                                    }
+                                }
+                            }
                         }
                         if !skill.isRemote {
                             Divider()
