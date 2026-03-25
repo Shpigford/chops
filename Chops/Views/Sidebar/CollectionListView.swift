@@ -80,6 +80,21 @@ struct CollectionListView: View {
         }
     }
 
+    private func handleDrop(_ resolvedPaths: [String], onto collection: SkillCollection) -> Bool {
+        var added = false
+        for path in resolvedPaths {
+            let descriptor = FetchDescriptor<Skill>(
+                predicate: #Predicate { $0.resolvedPath == path }
+            )
+            guard let skill = try? modelContext.fetch(descriptor).first else { continue }
+            guard !collection.skills.contains(where: { $0.resolvedPath == path }) else { continue }
+            collection.skills.append(skill)
+            added = true
+        }
+        if added { try? modelContext.save() }
+        return added
+    }
+
     private let availableIcons = [
         "folder", "star", "bookmark", "tag", "tray",
         "archivebox", "doc.text", "gearshape", "wrench",
@@ -110,6 +125,9 @@ struct CollectionListView: View {
                 Label(collection.name, systemImage: collection.icon)
                     .badge(collection.skills.count)
                     .tag(SidebarFilter.collection(collection.name))
+                    .dropDestination(for: String.self) { resolvedPaths, _ in
+                        handleDrop(resolvedPaths, onto: collection)
+                    }
                     .contextMenu {
                         Button("Rename") {
                             errorMessage = nil

@@ -81,6 +81,7 @@ struct SkillListView: View {
             ForEach(filteredSkills) { skill in
                 SkillRow(skill: skill)
                     .tag(skill)
+                    .draggable(skill.resolvedPath)
                     .contextMenu {
                         Button(skill.isFavorite ? "Unfavorite" : "Favorite") {
                             skill.isFavorite.toggle()
