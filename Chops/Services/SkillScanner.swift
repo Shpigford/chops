@@ -55,6 +55,7 @@ final class SkillScanner {
         (".windsurf/rules", .windsurf),
         (".github", .copilot),
         (".config/amp/skills", .amp),
+        (".opencode/skills", .opencode),
     ]
 
     func scanAll() {
@@ -217,36 +218,60 @@ final class SkillScanner {
     /// Apply collected results to SwiftData. Must be called on main thread.
     @MainActor
     private func applyResults(_ results: [ScannedSkillData]) {
-        for data in results {
-            let resolved = data.resolvedPath
-            let predicate = #Predicate<Skill> { $0.resolvedPath == resolved }
-            let descriptor = FetchDescriptor<Skill>(predicate: predicate)
+        let groupedResults = Dictionary(grouping: results, by: \.resolvedPath)
+        let descriptor = FetchDescriptor<Skill>()
+        let allSkills = (try? modelContext.fetch(descriptor)) ?? []
+        let localSkills = allSkills.filter { !$0.isRemote }
+        let existingByResolved = Dictionary(uniqueKeysWithValues: localSkills.map { ($0.resolvedPath, $0) })
+        let scannedResolvedPaths = Set(groupedResults.keys)
 
-            if let existing = try? modelContext.fetch(descriptor).first {
-                existing.content = data.content
-                existing.name = data.name
-                existing.skillDescription = data.skillDescription
-                existing.frontmatter = data.frontmatter
-                existing.fileModifiedDate = data.modDate
-                existing.fileSize = data.fileSize
-                existing.addInstallation(path: data.fileURL.path, tool: data.toolSource)
+        for (resolvedPath, installations) in groupedResults {
+            guard let primary = installations.first else { continue }
+
+            let installedPaths = Array(Set(installations.map(\.fileURL.path))).sorted()
+            let toolSources = ToolSource.allCases.filter { tool in
+                installations.contains { $0.toolSource == tool }
+            }
+
+            if let existing = existingByResolved[resolvedPath] {
+                let preferredPath = installedPaths.contains(existing.filePath) ? existing.filePath : primary.fileURL.path
+                let preferredData = installations.first(where: { $0.fileURL.path == preferredPath }) ?? primary
+
+                existing.filePath = preferredPath
+                existing.isDirectory = preferredData.isDirectory
+                existing.name = preferredData.name
+                existing.skillDescription = preferredData.skillDescription
+                existing.content = preferredData.content
+                existing.frontmatter = preferredData.frontmatter
+                existing.fileModifiedDate = preferredData.modDate
+                existing.fileSize = preferredData.fileSize
+                existing.isGlobal = preferredData.isGlobal
+                existing.installedPaths = installedPaths
+                existing.toolSources = toolSources
             } else {
                 let skill = Skill(
-                    filePath: data.fileURL.path,
-                    toolSource: data.toolSource,
-                    isDirectory: data.isDirectory,
-                    name: data.name,
-                    skillDescription: data.skillDescription,
-                    content: data.content,
-                    frontmatter: data.frontmatter,
-                    fileModifiedDate: data.modDate,
-                    fileSize: data.fileSize,
-                    isGlobal: data.isGlobal,
-                    resolvedPath: data.resolvedPath
+                    filePath: primary.fileURL.path,
+                    toolSource: primary.toolSource,
+                    isDirectory: primary.isDirectory,
+                    name: primary.name,
+                    skillDescription: primary.skillDescription,
+                    content: primary.content,
+                    frontmatter: primary.frontmatter,
+                    fileModifiedDate: primary.modDate,
+                    fileSize: primary.fileSize,
+                    isGlobal: primary.isGlobal,
+                    resolvedPath: primary.resolvedPath
                 )
+                skill.installedPaths = installedPaths
+                skill.toolSources = toolSources
                 modelContext.insert(skill)
             }
         }
+
+        for skill in localSkills where !scannedResolvedPaths.contains(skill.resolvedPath) {
+            modelContext.delete(skill)
+        }
+
         try? modelContext.save()
     }
 

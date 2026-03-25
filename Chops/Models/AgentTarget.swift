@@ -18,10 +18,17 @@ struct AgentTarget: Identifiable, Hashable {
 
     var isInstalled: Bool {
         let fm = FileManager.default
+        let home = fm.homeDirectoryForCurrentUser.path
 
         // Check for app bundle
-        if let app = appBundleName, fm.fileExists(atPath: "/Applications/\(app).app") {
-            return true
+        if let app = appBundleName {
+            let appPaths = [
+                "/Applications/\(app).app",
+                "\(home)/Applications/\(app).app",
+            ]
+            if appPaths.contains(where: { fm.fileExists(atPath: $0) }) {
+                return true
+            }
         }
 
         // Check for CLI binary
@@ -29,10 +36,10 @@ struct AgentTarget: Identifiable, Hashable {
             let searchPaths = [
                 "/usr/local/bin/\(cli)",
                 "/opt/homebrew/bin/\(cli)",
-                "\(fm.homeDirectoryForCurrentUser.path)/.local/bin/\(cli)",
+                "\(home)/.local/bin/\(cli)",
             ]
             // Also check nvm paths
-            let nvmDir = "\(fm.homeDirectoryForCurrentUser.path)/.nvm/versions/node"
+            let nvmDir = "\(home)/.nvm/versions/node"
             if let nodeDirs = try? fm.contentsOfDirectory(atPath: nvmDir) {
                 for nodeDir in nodeDirs {
                     let binPath = "\(nvmDir)/\(nodeDir)/bin/\(cli)"
@@ -107,6 +114,19 @@ struct AgentTarget: Identifiable, Hashable {
                 ],
                 appBundleName: nil,
                 cliBinaryName: "amp"
+            ),
+            AgentTarget(
+                id: "opencode",
+                displayName: "OpenCode",
+                globalSkillsDir: "\(configHome)/opencode/skills",
+                skillFileName: "SKILL.md",
+                evidencePaths: [
+                    "\(configHome)/opencode/opencode.json",
+                    "\(configHome)/opencode/opencode.jsonc",
+                    "\(home)/.local/share/opencode",
+                ],
+                appBundleName: "OpenCode",
+                cliBinaryName: "opencode"
             ),
             AgentTarget(
                 id: "goose",
