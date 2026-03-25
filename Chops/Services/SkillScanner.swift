@@ -96,6 +96,16 @@ final class SkillScanner {
             }
         }
 
+        // CLI plugins (installed_plugins.json)
+        if ToolSource.claude.isInstalled {
+            collectFromCLIPlugins(into: &results)
+        }
+
+        // Claude Desktop/Cowork plugin skills
+        if ToolSource.claudeDesktop.isInstalled {
+            collectClaudeDesktopSkills(into: &results)
+        }
+
         for path in customPaths {
             guard !Task.isCancelled else { return results }
             collectFromCustomDirectory(URL(fileURLWithPath: path), into: &results)
@@ -177,17 +187,62 @@ final class SkillScanner {
         }
     }
 
+    /// For Claude Desktop plugin paths, produce a canonical identity that strips volatile
+    /// components (session IDs, version numbers). For all other tools, returns the normal
+    /// symlink-resolved path. Same pattern as remote skills using `remote://` prefixes.
+    private static func canonicalResolvedPath(for fileURL: URL, toolSource: ToolSource) -> String {
+        let resolved = fileURL.resolvingSymlinksInPath().path
+        let path = fileURL.path
+
+        // CLI plugins: .../.claude/plugins/cache/<publisher>/<plugin>/<version>/skills/<skill>/SKILL.md
+        if toolSource == .claude, let range = path.range(of: ".claude/plugins/cache/") {
+            let after = String(path[range.upperBound...])
+            let parts = after.components(separatedBy: "/")
+            // parts: [publisher, plugin, version, "skills", skill, "SKILL.md"]
+            guard parts.count >= 6, parts[3] == "skills" else { return resolved }
+            return "claude-plugin:\(parts[0])/\(parts[1])/\(parts[4])"
+        }
+
+        guard toolSource == .claudeDesktop else { return resolved }
+
+        // Local plugins: .../cowork_plugins/cache/<marketplace>/<plugin>/<version>/skills/<skill>/SKILL.md
+        if let range = path.range(of: "cowork_plugins/cache/") {
+            let after = String(path[range.upperBound...])
+            let parts = after.components(separatedBy: "/")
+            // parts: [marketplace, plugin, version, "skills", skill, "SKILL.md"]
+            guard parts.count >= 6, parts[3] == "skills" else { return resolved }
+            return "claude-desktop:cowork_plugins/\(parts[0])/\(parts[1])/\(parts[4])"
+        }
+
+        // Remote plugins: .../remote_cowork_plugins/<plugin-id>/skills/<skill>/SKILL.md
+        if let range = path.range(of: "remote_cowork_plugins/") {
+            let after = String(path[range.upperBound...])
+            let parts = after.components(separatedBy: "/")
+            // parts: [plugin-id, "skills", skill, "SKILL.md"]
+            guard parts.count >= 4, parts[1] == "skills" else { return resolved }
+            return "claude-desktop:remote_cowork_plugins/\(parts[0])/\(parts[2])"
+        }
+
+        return resolved
+    }
+
+    private static func isSyntheticLocalResolvedPath(_ resolvedPath: String) -> Bool {
+        resolvedPath.hasPrefix("claude-plugin:") || resolvedPath.hasPrefix("claude-desktop:")
+    }
+
     /// Read and parse a single skill file. Pure I/O, no SwiftData.
     private static func collectSkillData(at fileURL: URL, toolSource: ToolSource, isDirectory: Bool, isGlobal: Bool) -> ScannedSkillData? {
         let fm = FileManager.default
-        let resolved = fileURL.resolvingSymlinksInPath().path
+        let resolved = canonicalResolvedPath(for: fileURL, toolSource: toolSource)
 
         guard let parsed = SkillParser.parse(fileURL: fileURL, toolSource: toolSource) else {
             AppLogger.scanning.warning("Failed to parse: \(fileURL.path)")
             return nil
         }
 
-        let attrs = try? fm.attributesOfItem(atPath: resolved)
+        // Use the actual filesystem path for attributes (resolved may be a canonical identifier)
+        let attrPath = fileURL.resolvingSymlinksInPath().path
+        let attrs = try? fm.attributesOfItem(atPath: attrPath)
         let modDate = (attrs?[.modificationDate] as? Date) ?? .now
         let fileSize = (attrs?[.size] as? Int) ?? 0
 
@@ -213,6 +268,88 @@ final class SkillScanner {
             modDate: modDate,
             fileSize: fileSize
         )
+    }
+
+    // MARK: - Claude Plugin Scanning
+
+    /// Scan CLI plugins from ~/.claude/plugins/installed_plugins.json
+    private static func collectFromCLIPlugins(into results: inout [ScannedSkillData]) {
+        let fm = FileManager.default
+        let home = fm.homeDirectoryForCurrentUser.path
+        let jsonPath = "\(home)/.claude/plugins/installed_plugins.json"
+
+        guard let data = fm.contents(atPath: jsonPath),
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let plugins = json["plugins"] as? [String: [[String: Any]]] else { return }
+
+        for (_, installations) in plugins {
+            guard !Task.isCancelled else { return }
+            for installation in installations {
+                guard let installPath = installation["installPath"] as? String else { continue }
+                let skillsDir = URL(fileURLWithPath: installPath).appendingPathComponent("skills")
+                collectFromDirectory(skillsDir, toolSource: .claude, isGlobal: true, into: &results)
+            }
+        }
+    }
+
+    /// Scan Claude Desktop/Cowork plugin skills using manifests as source of truth.
+    /// Only scans explicitly installed plugins — skips built-in Anthropic skills (skills-plugin/).
+    private static func collectClaudeDesktopSkills(into results: inout [ScannedSkillData]) {
+        let fm = FileManager.default
+        let home = fm.homeDirectoryForCurrentUser.path
+        let sessionsRoot = "\(home)/Library/Application Support/Claude/local-agent-mode-sessions"
+
+        guard fm.fileExists(atPath: sessionsRoot) else { return }
+        guard let sessionDirs = try? fm.contentsOfDirectory(atPath: sessionsRoot) else { return }
+
+        for sessionDir in sessionDirs {
+            guard !Task.isCancelled else { return }
+            // Skip skills-plugin (Anthropic built-in skills, not user-installed)
+            if sessionDir == "skills-plugin" { continue }
+
+            let sessionPath = "\(sessionsRoot)/\(sessionDir)"
+            guard let subDirs = try? fm.contentsOfDirectory(atPath: sessionPath) else { continue }
+
+            for subDir in subDirs {
+                guard !Task.isCancelled else { return }
+                let subPath = "\(sessionPath)/\(subDir)"
+
+                // Local cowork plugins: use installed_plugins.json as source of truth
+                let installedJson = "\(subPath)/cowork_plugins/installed_plugins.json"
+                if let data = fm.contents(atPath: installedJson),
+                   let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                   let plugins = json["plugins"] as? [String: [[String: Any]]] {
+                    for (_, installations) in plugins {
+                        guard !Task.isCancelled else { return }
+                        for installation in installations {
+                            guard let installPath = installation["installPath"] as? String else { continue }
+                            let skillsDir = URL(fileURLWithPath: installPath).appendingPathComponent("skills")
+                            collectFromDirectory(skillsDir, toolSource: .claudeDesktop, isGlobal: true, into: &results)
+                        }
+                    }
+                }
+
+                // Remote cowork plugins: use manifest.json as source of truth
+                let remoteDir = "\(subPath)/remote_cowork_plugins"
+                let manifestPath = "\(remoteDir)/manifest.json"
+                if let data = fm.contents(atPath: manifestPath),
+                   let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                   let plugins = json["plugins"] as? [[String: Any]] {
+                    for plugin in plugins {
+                        guard !Task.isCancelled else { return }
+                        guard let pluginId = plugin["id"] as? String else { continue }
+                        let skillsDir = "\(remoteDir)/\(pluginId)/skills"
+                        guard fm.fileExists(atPath: skillsDir) else { continue }
+                        collectFromDirectory(
+                            URL(fileURLWithPath: skillsDir),
+                            toolSource: .claudeDesktop,
+                            isGlobal: true,
+                            into: &results
+                        )
+                    }
+                }
+            }
+        }
     }
 
     /// Apply collected results to SwiftData. Must be called on main thread.
@@ -367,6 +504,10 @@ final class SkillScanner {
 
             // Remote skills are managed by scanRemoteServer(), skip here
             if skill.isRemote { continue }
+
+            // Plugin skills use canonical IDs, not filesystem paths. Let applyResults()
+            // handle their lifecycle so updates don't delete and recreate user metadata.
+            if Self.isSyntheticLocalResolvedPath(skill.resolvedPath) { continue }
 
             // Remove previously-scanned loose markdown files that are now filtered out.
             let fileName = URL(fileURLWithPath: skill.filePath).lastPathComponent

@@ -13,6 +13,7 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
     case opencode
     case pi
     case antigravity
+    case claudeDesktop
     case custom
 
     var id: String { rawValue }
@@ -31,6 +32,7 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
         case .pi: "Pi"
         case .agents: "Global Agents"
         case .antigravity: "Antigravity"
+        case .claudeDesktop: "Claude Desktop"
         case .custom: "Custom"
         }
     }
@@ -50,6 +52,7 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
         case .pi: "sparkles"
         case .agents: "globe"
         case .antigravity: "arrow.up.circle"
+        case .claudeDesktop: "desktopcomputer"
         case .custom: "folder"
         }
     }
@@ -64,6 +67,7 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
         case .copilot: "tool-copilot"
         case .amp: "tool-amp"
         case .antigravity: "tool-antigravity"
+        case .claudeDesktop: "tool-claude"
         case .opencode: "tool-opencode"
         default: nil
         }
@@ -83,6 +87,7 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
         case .pi: .cyan
         case .agents: .mint
         case .antigravity: .red
+        case .claudeDesktop: .orange
         case .custom: .gray
         }
     }
@@ -108,6 +113,7 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
         case .pi: return ["\(home)/.pi/agent/skills"]
         case .agents: return ["\(home)/.agents/skills"]
         case .antigravity: return ["\(home)/.gemini/antigravity/skills"]
+        case .claudeDesktop: return []
         case .custom: return []
         }
     }
@@ -123,6 +129,7 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
         case .claude:
             return fm.fileExists(atPath: "\(home)/.claude/settings.json")
                 || fm.fileExists(atPath: "\(home)/.claude/CLAUDE.md")
+                || fm.fileExists(atPath: "\(home)/.claude/plugins/installed_plugins.json")
                 || Self.cliBinaryExists("claude")
         case .cursor:
             return fm.fileExists(atPath: "/Applications/Cursor.app")
@@ -160,6 +167,8 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
                 || fm.fileExists(atPath: "\(configHome)/opencode/opencode.jsonc")
                 || fm.fileExists(atPath: "\(home)/.local/share/opencode")
                 || Self.cliBinaryExists("opencode")
+        case .claudeDesktop:
+            return Self.appBundleExists("Claude")
         case .aider, .openclaw, .custom:
             return true
         }

@@ -7,7 +7,7 @@ enum SkillParser {
         }
 
         switch toolSource {
-        case .claude, .cursor:
+        case .claude, .claudeDesktop, .cursor:
             if fileURL.pathExtension == "mdc" {
                 return MDCParser.parse(content)
             }

@@ -73,6 +73,19 @@ struct ContentView: View {
         for tool in ToolSource.allCases {
             allPaths.append(contentsOf: tool.globalPaths)
         }
+        let fm = FileManager.default
+        let home = fm.homeDirectoryForCurrentUser.path
+        let claudePlugins = "\(home)/.claude/plugins"
+        let claudePluginCache = "\(claudePlugins)/cache"
+        let claudePluginManifest = "\(claudePlugins)/installed_plugins.json"
+        for path in [claudePlugins, claudePluginCache, claudePluginManifest] where fm.fileExists(atPath: path) {
+            allPaths.append(path)
+        }
+        let claudeDesktopSessions = "\(home)/Library/Application Support/Claude/local-agent-mode-sessions"
+        if fm.fileExists(atPath: claudeDesktopSessions) {
+            allPaths.append(claudeDesktopSessions)
+        }
+        allPaths = Array(Set(allPaths)).sorted()
 
         let watcher = FileWatcher { _ in
             scanner.scanAll()

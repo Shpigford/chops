@@ -48,6 +48,7 @@ extension ToolSource {
         case .pi: "PI"
         case .agents: "AG"
         case .antigravity: "AV"
+        case .claudeDesktop: "CD"
         case .custom: "?"
         }
     }
