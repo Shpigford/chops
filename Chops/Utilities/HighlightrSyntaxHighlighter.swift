@@ -3,13 +3,14 @@ import Highlightr
 import SwiftUI
 
 struct HighlightrSyntaxHighlighter: CodeSyntaxHighlighter {
+    private static let shared: Highlightr = Highlightr()!
+
     private let highlightr: Highlightr
 
     init() {
-        let h = Highlightr()!
+        self.highlightr = Self.shared
         let isDark = NSApp.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
-        h.setTheme(to: isDark ? "atom-one-dark" : "atom-one-light")
-        self.highlightr = h
+        highlightr.setTheme(to: isDark ? "atom-one-dark" : "atom-one-light")
     }
 
     func highlightCode(_ code: String, language: String?) -> Text {

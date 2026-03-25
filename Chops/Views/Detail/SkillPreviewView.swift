@@ -5,17 +5,16 @@ struct SkillPreviewView: View {
     let content: String
 
     var body: some View {
-        let parsed = FrontmatterParser.parse(content)
-        let rawFrontmatter = RawFrontmatterParser.parse(content)
+        let parsed = RawFrontmatterParser.parse(content)
 
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                if let rawFrontmatter {
-                    FrontmatterBlockView(frontmatter: rawFrontmatter)
+                if let frontmatter = parsed?.frontmatter {
+                    FrontmatterBlockView(frontmatter: frontmatter)
                         .padding(.bottom, 24)
                 }
 
-                Markdown(parsed.content)
+                Markdown(parsed?.content ?? content)
                     .markdownTheme(.clearly)
                     .markdownCodeSyntaxHighlighter(HighlightrSyntaxHighlighter())
                     .textSelection(.enabled)
@@ -53,7 +52,12 @@ private struct FrontmatterBlockView: View {
 }
 
 private enum RawFrontmatterParser {
-    static func parse(_ text: String) -> String? {
+    struct Result {
+        let frontmatter: String?
+        let content: String
+    }
+
+    static func parse(_ text: String) -> Result? {
         let lines = text.components(separatedBy: "\n")
 
         guard lines.first?.trimmingCharacters(in: .whitespaces) == "---" else {
@@ -65,7 +69,13 @@ private enum RawFrontmatterParser {
                 let frontmatterLines = Array(lines[1..<index])
                 let frontmatter = frontmatterLines.joined(separator: "\n")
                     .trimmingCharacters(in: .whitespacesAndNewlines)
-                return frontmatter.isEmpty ? nil : frontmatter
+                let contentStart = min(index + 1, lines.count)
+                let content = Array(lines[contentStart...]).joined(separator: "\n")
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+                return Result(
+                    frontmatter: frontmatter.isEmpty ? nil : frontmatter,
+                    content: content
+                )
             }
         }
 
