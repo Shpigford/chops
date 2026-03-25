@@ -46,6 +46,7 @@ extension ToolSource {
         case .openclaw: "OC"
         case .pi: "PI"
         case .agents: "AG"
+        case .antigravity: "AV"
         case .custom: "?"
         }
     }

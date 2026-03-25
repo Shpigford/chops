@@ -11,6 +11,7 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
     case amp
     case openclaw
     case pi
+    case antigravity
     case custom
 
     var id: String { rawValue }
@@ -27,6 +28,7 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
         case .openclaw: "OpenClaw"
         case .pi: "Pi"
         case .agents: "Global Agents"
+        case .antigravity: "Antigravity"
         case .custom: "Custom"
         }
     }
@@ -44,6 +46,7 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
         case .openclaw: "server.rack"
         case .pi: "sparkles"
         case .agents: "globe"
+        case .antigravity: "arrow.up.circle"
         case .custom: "folder"
         }
     }
@@ -57,6 +60,7 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
         case .windsurf: "tool-windsurf"
         case .copilot: "tool-copilot"
         case .amp: "tool-amp"
+        case .antigravity: "tool-antigravity"
         default: nil
         }
     }
@@ -73,6 +77,7 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
         case .openclaw: .indigo
         case .pi: .cyan
         case .agents: .mint
+        case .antigravity: .red
         case .custom: .gray
         }
     }
@@ -96,6 +101,7 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
         case .openclaw: return []
         case .pi: return ["\(home)/.pi/agent/skills"]
         case .agents: return ["\(home)/.agents/skills"]
+        case .antigravity: return ["\(home)/.gemini/antigravity/skills"]
         case .custom: return []
         }
     }
@@ -135,6 +141,11 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
                 || Self.cliBinaryExists("copilot")
         case .agents:
             return fm.fileExists(atPath: "\(home)/.agents/skills")
+        case .antigravity:
+            return fm.fileExists(atPath: "/Applications/Antigravity.app")
+                || fm.fileExists(atPath: "\(home)/.gemini/antigravity/skills")
+                || fm.fileExists(atPath: "\(home)/.antigravity")
+                || Self.cliBinaryExists("antigravity")
         case .aider, .openclaw, .custom:
             return true
         }
