@@ -164,6 +164,58 @@ final class Skill {
             try fm.removeItem(atPath: path)
         }
     }
+
+    /// Copy this skill to another tool's skill directory
+    func copyToTool(_ targetTool: ToolSource) throws {
+        let fm = FileManager.default
+
+        // Get the source path (prefer the original filePath)
+        let sourcePath = filePath
+        guard fm.fileExists(atPath: sourcePath) else {
+            throw SkillCopyError.sourceNotFound(sourcePath)
+        }
+
+        // Get target tool's skill directory
+        guard let targetDir = targetTool.globalPaths.first else {
+            throw SkillCopyError.targetToolHasNoPath(targetTool.displayName)
+        }
+
+        // Create target directory if it doesn't exist
+        try fm.createDirectory(atPath: targetDir, withIntermediateDirectories: true)
+
+        // Determine source and destination
+        let sourceFolderPath: String
+        let destinationPath: String
+
+        if isDirectory {
+            // If source is a directory, copy the folder directly
+            sourceFolderPath = sourcePath
+            destinationPath = (targetDir as NSString).appendingPathComponent((sourcePath as NSString).lastPathComponent)
+        } else {
+            // If source is a file, copy its containing folder
+            sourceFolderPath = (sourcePath as NSString).deletingLastPathComponent
+            destinationPath = (targetDir as NSString).appendingPathComponent((sourceFolderPath as NSString).lastPathComponent)
+        }
+
+        // Don't copy if already exists at destination
+        if fm.fileExists(atPath: destinationPath) {
+            throw SkillCopyError.alreadyExists(destinationPath)
+        }
+
+        // Copy the folder
+        try fm.copyItem(atPath: sourceFolderPath, toPath: destinationPath)
+
+        // Determine the actual copied file path
+        let copiedFilePath: String
+        if isDirectory {
+            copiedFilePath = destinationPath
+        } else {
+            copiedFilePath = (destinationPath as NSString).appendingPathComponent((sourcePath as NSString).lastPathComponent)
+        }
+
+        // Update this skill's metadata to track the new installation
+        addInstallation(path: copiedFilePath, tool: targetTool)
+    }
 }
 
 enum SkillDeletionError: LocalizedError {
@@ -175,6 +227,27 @@ enum SkillDeletionError: LocalizedError {
             let home = FileManager.default.homeDirectoryForCurrentUser.path
             let displayPath = path.replacingOccurrences(of: home, with: "~")
             return "Couldn't delete \(displayPath). Check permissions and try again."
+        }
+    }
+}
+
+enum SkillCopyError: LocalizedError {
+    case sourceNotFound(String)
+    case targetToolHasNoPath(String)
+    case alreadyExists(String)
+
+    var errorDescription: String? {
+        switch self {
+        case .sourceNotFound(let path):
+            let home = FileManager.default.homeDirectoryForCurrentUser.path
+            let displayPath = path.replacingOccurrences(of: home, with: "~")
+            return "Source skill not found at \(displayPath)."
+        case .targetToolHasNoPath(let toolName):
+            return "\(toolName) doesn't have a configured skills directory."
+        case .alreadyExists(let path):
+            let home = FileManager.default.homeDirectoryForCurrentUser.path
+            let displayPath = path.replacingOccurrences(of: home, with: "~")
+            return "This skill is already installed at \(displayPath)."
         }
     }
 }
