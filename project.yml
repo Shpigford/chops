@@ -15,6 +15,9 @@ packages:
   Sparkle:
     url: https://github.com/sparkle-project/Sparkle
     from: "2.6.0"
+  ACP:
+    url: https://github.com/aptove/swift-sdk
+    from: "0.1.0"
   MarkdownUI:
     url: https://github.com/gonzalezreal/swift-markdown-ui
     from: "2.4.0"
@@ -35,6 +38,10 @@ targets:
       - package: Sparkle
       - package: MarkdownUI
       - package: Highlightr
+      - package: ACP
+        product: ACP
+      - package: ACP
+        product: ACPModel
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.joshpigford.Chops

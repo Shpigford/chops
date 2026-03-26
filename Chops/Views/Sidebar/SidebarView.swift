@@ -5,15 +5,23 @@ struct SidebarView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Skill.name) private var allSkills: [Skill]
-    @Query(sort: \SkillCollection.sortOrder) private var collections: [SkillCollection]
     @Query(sort: \RemoteServer.label) private var servers: [RemoteServer]
     @State private var syncingServerIDs: Set<String> = []
     @State private var serverErrors: [String: String] = [:]
     @State private var showingErrorForServer: String?
+    @AppStorage("hiddenTools") private var hiddenToolsRaw = ""
+
+    private var hiddenTools: Set<ToolSource> {
+        Set(hiddenToolsRaw.split(separator: ",").compactMap { ToolSource(rawValue: String($0)) })
+    }
 
     private var activeSources: [ToolSource] {
         ToolSource.allCases.filter { tool in
-            allSkills.contains { $0.toolSources.contains(tool) }
+            guard tool.listable else { return false }
+            guard !hiddenTools.contains(tool) else { return false }
+            let hasSkills = allSkills.contains { $0.toolSources.contains(tool) }
+            let canScan = tool.isInstalled && !tool.globalPaths.isEmpty
+            return hasSkills || canScan
         }
     }
 
@@ -21,18 +29,39 @@ struct SidebarView: View {
         allSkills.filter { $0.toolSources.contains(tool) }.count
     }
 
+    private func categoryCount(_ category: SkillCategory) -> Int {
+        allSkills.filter { $0.category == category }.count
+    }
+
     var body: some View {
         @Bindable var appState = appState
 
-        List(selection: $appState.sidebarFilter) {
+        // Keep the parent tool highlighted while browsing its sub-categories
+        let sidebarSelection = Binding<SidebarFilter>(
+            get: {
+                if case .toolCategory(let tool, _) = appState.sidebarFilter {
+                    return .tool(tool)
+                }
+                return appState.sidebarFilter
+            },
+            set: { appState.sidebarFilter = $0 }
+        )
+
+        List(selection: sidebarSelection) {
             Section("Library") {
-                Label("All Skills", systemImage: "tray.full")
+                Label("All", systemImage: "tray.full")
                     .badge(allSkills.count)
                     .tag(SidebarFilter.all)
 
                 Label("Favorites", systemImage: "star")
                     .badge(allSkills.filter(\.isFavorite).count)
                     .tag(SidebarFilter.favorites)
+
+                ForEach(SkillCategory.allCases, id: \.self) { category in
+                    Label(category.displayName, systemImage: category.icon)
+                        .badge(categoryCount(category))
+                        .tag(SidebarFilter.category(category))
+                }
             }
 
             Section("Tools") {
@@ -44,6 +73,13 @@ struct SidebarView: View {
                     }
                     .badge(toolCount(tool))
                     .tag(SidebarFilter.tool(tool))
+                }
+            }
+
+            Section("Wizard Templates") {
+                ForEach(WizardTemplateType.allCases) { templateType in
+                    Label(templateType.displayName, systemImage: templateType.icon)
+                        .tag(SidebarFilter.wizardTemplate(templateType))
                 }
             }
 
@@ -111,14 +147,13 @@ struct SidebarView: View {
     private func syncServer(_ server: RemoteServer) {
         syncingServerIDs.insert(server.id)
         serverErrors.removeValue(forKey: server.id)
-        Task {
-            let scanner = SkillScanner(modelContext: modelContext)
+        let context = modelContext
+        Task { @MainActor in
+            let scanner = SkillScanner(modelContext: context)
             await scanner.scanRemoteServer(server)
-            await MainActor.run {
-                syncingServerIDs.remove(server.id)
-                if let error = server.lastSyncError {
-                    serverErrors[server.id] = error
-                }
+            syncingServerIDs.remove(server.id)
+            if let error = server.lastSyncError {
+                serverErrors[server.id] = error
             }
         }
     }

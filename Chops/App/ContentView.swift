@@ -17,7 +17,9 @@ struct ContentView: View {
         } content: {
             SkillListView()
         } detail: {
-            if let skill = appState.selectedSkill {
+            if case .wizardTemplate(let templateType) = appState.sidebarFilter {
+                TemplateDetailView(templateType: templateType)
+            } else if let skill = appState.selectedSkill {
                 SkillDetailView(skill: skill)
             } else {
                 ContentUnavailableView(

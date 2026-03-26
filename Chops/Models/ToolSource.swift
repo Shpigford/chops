@@ -1,7 +1,9 @@
 import SwiftUI
 
 enum ToolSource: String, Codable, CaseIterable, Identifiable {
+    case global
     case agents
+    case augment
     case claude
     case cursor
     case windsurf
@@ -18,8 +20,20 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
+    /// Whether this tool should appear in the sidebar tools list.
+    /// Excludes internal/legacy tools and those without scannable paths.
+    var listable: Bool {
+        switch self {
+        case .custom, .openclaw, .claudeDesktop, .agents, .aider:
+            return false
+        default:
+            return true
+        }
+    }
+
     var displayName: String {
         switch self {
+        case .global: "Global"
         case .claude: "Claude Code"
         case .cursor: "Cursor"
         case .windsurf: "Windsurf"
@@ -31,6 +45,7 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
         case .opencode: "OpenCode"
         case .pi: "Pi"
         case .agents: "Global Agents"
+        case .augment: "Auggie"
         case .antigravity: "Antigravity"
         case .claudeDesktop: "Claude Desktop"
         case .custom: "Custom"
@@ -40,6 +55,7 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
     /// SF Symbol fallback icon name
     var iconName: String {
         switch self {
+        case .global: "star.circle.fill"
         case .claude: "brain.head.profile"
         case .cursor: "cursorarrow.rays"
         case .windsurf: "wind"
@@ -51,6 +67,7 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
         case .opencode: "terminal"
         case .pi: "sparkles"
         case .agents: "globe"
+        case .augment: "wand.and.sparkles"
         case .antigravity: "arrow.up.circle"
         case .claudeDesktop: "desktopcomputer"
         case .custom: "folder"
@@ -60,6 +77,7 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
     /// Asset catalog image name, nil if no custom logo
     var logoAssetName: String? {
         switch self {
+        case .augment: "tool-augment"
         case .claude: "tool-claude"
         case .cursor: "tool-cursor"
         case .codex: "tool-codex"
@@ -75,6 +93,7 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
 
     var color: Color {
         switch self {
+        case .global: .yellow
         case .claude: .orange
         case .cursor: .blue
         case .windsurf: .teal
@@ -86,26 +105,55 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
         case .opencode: .red
         case .pi: .cyan
         case .agents: .mint
+        case .augment: .cyan
         case .antigravity: .red
         case .claudeDesktop: .orange
         case .custom: .gray
         }
     }
 
+    private static var configHome: String {
+        let home = FileManager.default.homeDirectoryForCurrentUser.path
+        if let xdg = ProcessInfo.processInfo.environment["XDG_CONFIG_HOME"], !xdg.isEmpty {
+            return xdg
+        }
+        return "\(home)/.config"
+    }
+
     var globalPaths: [String] {
         let home = FileManager.default.homeDirectoryForCurrentUser.path
-        let configHome: String = {
-            if let xdg = ProcessInfo.processInfo.environment["XDG_CONFIG_HOME"], !xdg.isEmpty {
-                return xdg
-            }
-            return "\(home)/.config"
-        }()
+        let configHome = Self.configHome
         switch self {
-        case .claude: return ["\(home)/.claude/skills"]
-        case .cursor: return ["\(home)/.cursor/skills", "\(home)/.cursor/rules"]
-        case .windsurf: return ["\(home)/.codeium/windsurf/memories", "\(home)/.windsurf/rules"]
+        case .global:
+            let stored = UserDefaults.standard.string(forKey: "globalSourcePath") ?? ""
+            let customPath = stored.isEmpty ? "\(home)/.aidevtools" : stored
+            return [
+                "\(customPath)/agents",
+                "\(customPath)/skills",
+                "\(customPath)/rules",
+            ]
+        case .claude: return [
+            "\(home)/.claude/agents",
+            "\(home)/.claude/skills",
+            "\(home)/.claude/rules",
+        ]
+        case .cursor: return [
+            "\(home)/.cursor/agents",
+            "\(home)/.cursor/skills",
+            "\(home)/.cursor/rules",
+        ]
+        case .windsurf: return [
+            "\(home)/.codeium/windsurf/agents",
+            "\(home)/.codeium/windsurf/skills",
+            "\(home)/.codeium/windsurf/rules",
+        ]
+        case .augment: return [
+            "\(home)/.augment/agents",
+            "\(home)/.augment/skills",
+            "\(home)/.augment/rules",
+        ]
         case .codex: return ["\(home)/.codex/skills"]
-        case .copilot: return ["\(home)/.copilot/skills"]
+        case .copilot: return ["\(home)/.github"]
         case .aider: return []
         case .amp: return ["\(configHome)/amp/skills"]
         case .openclaw: return []
@@ -126,24 +174,31 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
         let home = fm.homeDirectoryForCurrentUser.path
 
         switch self {
+        case .global:
+            let stored = UserDefaults.standard.string(forKey: "globalSourcePath") ?? ""
+            let customPath = stored.isEmpty ? "\(home)/.aidevtools" : stored
+            return fm.fileExists(atPath: customPath)
         case .claude:
             return fm.fileExists(atPath: "\(home)/.claude/settings.json")
                 || fm.fileExists(atPath: "\(home)/.claude/CLAUDE.md")
                 || fm.fileExists(atPath: "\(home)/.claude/plugins/installed_plugins.json")
                 || Self.cliBinaryExists("claude")
         case .cursor:
-            return fm.fileExists(atPath: "/Applications/Cursor.app")
+            return Self.appBundleExists("Cursor")
                 || fm.fileExists(atPath: "\(home)/.cursor/argv.json")
+                || fm.fileExists(atPath: "\(home)/.cursor/extensions")
+                || fm.fileExists(atPath: "\(home)/.cursor/settings.json")
         case .windsurf:
-            return fm.fileExists(atPath: "/Applications/Windsurf.app")
+            return Self.appBundleExists("Windsurf")
                 || fm.fileExists(atPath: "\(home)/.codeium/windsurf/argv.json")
+                || fm.fileExists(atPath: "\(home)/.codeium/windsurf")
+                || fm.fileExists(atPath: "\(home)/.windsurf")
         case .codex:
             return fm.fileExists(atPath: "\(home)/.codex/config.toml")
                 || fm.fileExists(atPath: "\(home)/.codex/auth.json")
                 || Self.cliBinaryExists("codex")
         case .amp:
-            let configHome = ProcessInfo.processInfo.environment["XDG_CONFIG_HOME"]
-                .flatMap { $0.isEmpty ? nil : $0 } ?? "\(home)/.config"
+            let configHome = Self.configHome
             return fm.fileExists(atPath: "\(configHome)/amp/config.json")
                 || fm.fileExists(atPath: "\(configHome)/amp/settings.json")
                 || Self.cliBinaryExists("amp")
@@ -151,6 +206,8 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
             return Self.cliBinaryExists("pi")
         case .copilot:
             return fm.fileExists(atPath: "\(home)/.copilot")
+                || fm.fileExists(atPath: "\(home)/.config/github-copilot")
+                || fm.fileExists(atPath: "\(home)/.github/copilot-instructions.md")
                 || Self.cliBinaryExists("copilot")
         case .agents:
             return fm.fileExists(atPath: "\(home)/.agents/skills")
@@ -160,8 +217,7 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
                 || fm.fileExists(atPath: "\(home)/.antigravity")
                 || Self.cliBinaryExists("antigravity")
         case .opencode:
-            let configHome = ProcessInfo.processInfo.environment["XDG_CONFIG_HOME"]
-                .flatMap { $0.isEmpty ? nil : $0 } ?? "\(home)/.config"
+            let configHome = Self.configHome
             return Self.appBundleExists("OpenCode")
                 || fm.fileExists(atPath: "\(configHome)/opencode/opencode.json")
                 || fm.fileExists(atPath: "\(configHome)/opencode/opencode.jsonc")
@@ -169,6 +225,9 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
                 || Self.cliBinaryExists("opencode")
         case .claudeDesktop:
             return Self.appBundleExists("Claude")
+        case .augment:
+            return fm.fileExists(atPath: "\(home)/.augment")
+                || Self.cliBinaryExists("augment")
         case .aider, .openclaw, .custom:
             return true
         }

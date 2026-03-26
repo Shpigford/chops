@@ -268,12 +268,23 @@ struct HighlightedTextEditor: NSViewRepresentable {
     }
 
     func updateNSView(_ scrollView: NSScrollView, context: Context) {
-        let textView = scrollView.documentView as! NSTextView
+        guard let textView = scrollView.documentView as? NSTextView else { return }
         if textView.string != text {
-            let selectedRanges = textView.selectedRanges
+            let oldRanges = textView.selectedRanges
             textView.string = text
             MarkdownHighlighter.highlight(textView)
-            textView.selectedRanges = selectedRanges
+            // Clamp saved selection to the new text length to avoid out-of-bounds crash.
+            // Both location AND length must be clamped; location past end is itself invalid.
+            let textLen = (text as NSString).length
+            let safeRanges = oldRanges.compactMap { value -> NSValue? in
+                let r = value.rangeValue
+                let loc = min(r.location, textLen)
+                let len = min(r.length, textLen - loc)
+                return NSValue(range: NSRange(location: loc, length: len))
+            }
+            textView.selectedRanges = safeRanges.isEmpty
+                ? [NSValue(range: NSRange(location: 0, length: 0))]
+                : safeRanges
         }
     }
 

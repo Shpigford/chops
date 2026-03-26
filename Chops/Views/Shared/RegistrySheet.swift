@@ -2,6 +2,9 @@ import SwiftUI
 
 struct RegistrySheet: View {
     @Environment(\.dismiss) private var dismiss
+    @AppStorage("registryEnabled") private var registryEnabled = false
+    @AppStorage("registryURL") private var registryURL = "https://skills.sh/api/search"
+    @State private var pendingURL = ""
     @State private var registry = SkillRegistry()
     @State private var searchText = ""
     @State private var results: [SkillRegistry.RegistrySkill] = []
@@ -21,8 +24,15 @@ struct RegistrySheet: View {
     }
 
     var body: some View {
+        if registryEnabled {
+            enabledBody
+        } else {
+            registryGateView
+        }
+    }
+
+    private var enabledBody: some View {
         VStack(spacing: 0) {
-            // Header
             HStack {
                 if selectedSkill != nil {
                     Button {
@@ -65,12 +75,97 @@ struct RegistrySheet: View {
         }
         .frame(width: 560, height: 500)
         .onAppear {
-            // Pre-select all installed agents
             selectedAgents = Set(installedAgents.map(\.id))
         }
         .onDisappear {
             searchTask?.cancel()
             contentTask?.cancel()
+        }
+    }
+
+    private var registryGateView: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Spacer()
+                Text("Skills Registry")
+                    .font(.title3)
+                    .fontWeight(.semibold)
+                Spacer()
+                Button("Cancel") { dismiss() }
+                    .keyboardShortcut(.cancelAction)
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 20)
+            .padding(.bottom, 12)
+
+            Divider()
+
+            Spacer()
+
+            VStack(spacing: 20) {
+                Image(systemName: "globe")
+                    .font(.system(size: 36))
+                    .foregroundStyle(.secondary)
+
+                VStack(spacing: 6) {
+                    Text("Registry Search is Disabled")
+                        .font(.headline)
+                    Text("Browse and install skills from the open agent skills ecosystem.")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                }
+
+                VStack(alignment: .leading, spacing: 10) {
+                    Label("Privacy Notice", systemImage: "lock.shield")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+
+                    Text("When searching, your query is sent to the registry URL below. The service operator may log search terms and IP addresses.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    HStack(spacing: 8) {
+                        Text("Registry URL")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .frame(width: 85, alignment: .trailing)
+                        TextField("https://skills.sh/api/search", text: $pendingURL)
+                            .textFieldStyle(.roundedBorder)
+                            .font(.system(.caption, design: .monospaced))
+                    }
+
+                    Text("You can point this to a self-hosted registry instead.")
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+                }
+                .padding(14)
+                .background(.quaternary.opacity(0.4))
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+            }
+            .padding(.horizontal, 32)
+
+            Spacer()
+
+            Divider()
+
+            HStack {
+                Button("Cancel") { dismiss() }
+                    .keyboardShortcut(.cancelAction)
+                Spacer()
+                Button("Enable Registry") {
+                    registryURL = pendingURL.isEmpty ? "https://skills.sh/api/search" : pendingURL
+                    registryEnabled = true
+                }
+                .keyboardShortcut(.defaultAction)
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 14)
+        }
+        .frame(width: 560, height: 500)
+        .onAppear {
+            pendingURL = registryURL.isEmpty ? "https://skills.sh/api/search" : registryURL
         }
     }
 
@@ -356,9 +451,9 @@ struct RegistrySheet: View {
             NotificationCenter.default.post(name: .customScanPathsChanged, object: nil)
 
             // Auto-dismiss after brief delay
-            Task {
+            Task { @MainActor in
                 try? await Task.sleep(for: .milliseconds(800))
-                await MainActor.run { dismiss() }
+                dismiss()
             }
         } catch {
             self.error = error.localizedDescription

@@ -34,10 +34,19 @@ final class SkillRegistry {
     }
 
     func search(query: String) async throws -> [RegistrySkill] {
+        guard UserDefaults.standard.bool(forKey: "registryEnabled") else {
+            throw RegistryError.disabled
+        }
         guard query.count >= 2 else { return [] }
 
+        let baseURL = {
+            let stored = UserDefaults.standard.string(forKey: "registryURL") ?? ""
+            return stored.isEmpty ? "https://skills.sh/api/search" : stored
+        }()
         let encoded = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? query
-        let url = URL(string: "https://skills.sh/api/search?q=\(encoded)&limit=30")!
+        guard let url = URL(string: "\(baseURL)?q=\(encoded)&limit=30") else {
+            throw RegistryError.invalidURL
+        }
 
         let (data, response) = try await URLSession.shared.data(from: url)
         guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
@@ -196,6 +205,8 @@ final class SkillRegistry {
     // MARK: - Errors
 
     enum RegistryError: LocalizedError {
+        case disabled
+        case invalidURL
         case searchFailed
         case treeFetchFailed
         case rateLimited
@@ -205,6 +216,8 @@ final class SkillRegistry {
 
         var errorDescription: String? {
             switch self {
+            case .disabled: "Skills Registry is disabled. Enable it in Settings → Registry."
+            case .invalidURL: "Invalid registry URL. Check the URL in Settings → Registry."
             case .searchFailed: "Search request failed"
             case .treeFetchFailed: "Could not fetch repository contents"
             case .rateLimited: "GitHub API rate limit reached — try again in a few minutes"

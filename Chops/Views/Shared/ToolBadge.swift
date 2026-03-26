@@ -36,6 +36,8 @@ struct ToolIcon: View {
 extension ToolSource {
     var shortLabel: String {
         switch self {
+        case .global: "GL"
+        case .augment: "AU"
         case .claude: "CC"
         case .cursor: "CU"
         case .windsurf: "WS"

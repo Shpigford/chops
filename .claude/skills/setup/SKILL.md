@@ -57,6 +57,15 @@ Share this architecture overview:
 
 **Views:** Three-column NavigationSplitView (Sidebar → List → Detail). Editor wraps NSTextView for native text editing. Cmd+S save via FocusedValues.
 
+**ACP Integration (AI-assisted composition):**
+- `Chops/Services/ACP/ACPClient.swift` — `@Observable @MainActor` client + `NonBlockingTransport` + `ChopsClient`
+- `Chops/Services/ACP/ACPLogger.swift` — file logger (daily log in `~/Library/Application Support/Chops/Logs/`)
+- `Chops/Views/Shared/ComposePanel.swift` — bottom panel shown in edit mode
+- `Chops/Views/Shared/DiffReviewPanel.swift` — LCS diff with Accept/Reject
+- `Chops/Views/Shared/ACPLogViewer.swift` — debug log popover (🐞 button)
+- SDK: `aptove/swift-sdk` v0.1.16; agent tested: `auggie --acp`
+- See `.claude/features/acp/README.md` for full feature docs
+
 **Key design decisions:**
 - No sandbox — the app needs unrestricted filesystem access to read dotfiles across ~/
 - Symlink dedup — same file in multiple tool dirs shows as one skill with multiple tool badges

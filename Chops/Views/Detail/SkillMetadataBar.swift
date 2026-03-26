@@ -9,12 +9,44 @@ struct SkillMetadataBar: View {
 
     var body: some View {
         HStack(spacing: 16) {
+            if skill.isBase {
+                Label("Base", systemImage: "circle.fill")
+                    .font(.caption)
+                    .foregroundStyle(.blue)
+                    .labelStyle(.titleAndIcon)
+
+                Divider().frame(height: 16)
+            }
+
             HStack(spacing: 6) {
+                let broken = skill.brokenLinkedTools
+                let linked = skill.linkedTools
                 ForEach(skill.toolSources) { tool in
+                    let isLinked = linked.contains(tool)
+                    let isBroken = broken.contains(tool)
                     ToolIcon(tool: tool, size: 14)
+                        .overlay(alignment: .bottomTrailing) {
+                            if isBroken {
+                                Image(systemName: "exclamationmark.circle.fill")
+                                    .font(.system(size: 7))
+                                    .foregroundStyle(.orange)
+                                    .background(Circle().fill(Color(.windowBackgroundColor)))
+                            } else if isLinked {
+                                Image(systemName: "link.circle.fill")
+                                    .font(.system(size: 7))
+                                    .foregroundStyle(.blue)
+                                    .background(Circle().fill(Color(.windowBackgroundColor)))
+                            }
+                        }
+                        .help(
+                            isBroken
+                                ? "\(tool.displayName): broken symlink — run Symlink to repair"
+                                : isLinked
+                                    ? "Linked: \(tool.displayName)"
+                                    : tool.displayName
+                        )
                 }
             }
-            .help(installedPathsSummary)
 
             Divider().frame(height: 16)
 

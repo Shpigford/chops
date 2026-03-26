@@ -13,7 +13,10 @@ final class AppState {
 enum SidebarFilter: Hashable {
     case all
     case favorites
+    case category(SkillCategory)
     case tool(ToolSource)
+    case toolCategory(ToolSource, SkillCategory)
     case collection(String)
     case server(String)
+    case wizardTemplate(WizardTemplateType)
 }

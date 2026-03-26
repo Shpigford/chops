@@ -1,5 +1,5 @@
 {
-  "originHash" : "d0e9b55e5a1f995aa86a208c3c1677dc39f38b65031258ce388e8453d06a06c8",
+  "originHash" : "c795c0e843813969f377712b31b912ca4d006d17e0b86fd66ebd910c4e166bc4",
   "pins" : [
     {
       "identity" : "highlightr",
@@ -38,12 +38,39 @@
       }
     },
     {
+      "identity" : "swift-collections",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-collections.git",
+      "state" : {
+        "revision" : "6675bc0ff86e61436e615df6fc5174e043e57924",
+        "version" : "1.4.1"
+      }
+    },
+    {
+      "identity" : "swift-log",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-log.git",
+      "state" : {
+        "revision" : "bbd81b6725ae874c69e9b8c8804d462356b55523",
+        "version" : "1.10.1"
+      }
+    },
+    {
       "identity" : "swift-markdown-ui",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/gonzalezreal/swift-markdown-ui",
       "state" : {
         "revision" : "5f613358148239d0292c0cef674a3c2314737f9e",
         "version" : "2.4.1"
+      }
+    },
+    {
+      "identity" : "swift-sdk",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/aptove/swift-sdk",
+      "state" : {
+        "revision" : "f38606f7bb43a12122b8338b2bb694084ededf94",
+        "version" : "0.1.16"
       }
     }
   ],
