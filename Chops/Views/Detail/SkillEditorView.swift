@@ -227,163 +227,145 @@ extension Notification.Name {
 
 struct HighlightedTextEditor: NSViewRepresentable {
     @Binding var text: String
+    @Environment(\.colorScheme) private var colorScheme
 
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
     }
 
     func makeNSView(context: Context) -> NSScrollView {
-        let scrollView = NSTextView.scrollableTextView()
-        let textView = scrollView.documentView as! NSTextView
+        let scrollView = NSScrollView()
+        scrollView.hasVerticalScroller = true
+        scrollView.hasHorizontalScroller = false
+        scrollView.drawsBackground = false
+        scrollView.autohidesScrollers = true
 
-        textView.font = NSFont.monospacedSystemFont(ofSize: 13, weight: .regular)
-        textView.isEditable = true
-        textView.isSelectable = true
-        textView.allowsUndo = true
+        let textView = ChopsTextView()
         textView.isRichText = false
-        textView.usesFindBar = true
-        textView.isIncrementalSearchingEnabled = true
+        textView.allowsUndo = true
+        textView.usesFindPanel = true
         textView.isAutomaticQuoteSubstitutionEnabled = false
         textView.isAutomaticDashSubstitutionEnabled = false
         textView.isAutomaticTextReplacementEnabled = false
         textView.isAutomaticSpellingCorrectionEnabled = false
-        textView.textContainerInset = NSSize(width: 12, height: 12)
+
+        // Font & colors
+        textView.font = EditorTheme.editorFont
+        textView.textColor = EditorTheme.textColor
         textView.backgroundColor = .clear
 
-        textView.delegate = context.coordinator
+        // Line height with baseline centering
+        let paragraph = NSMutableParagraphStyle()
+        paragraph.minimumLineHeight = EditorTheme.editorLineHeight
+        paragraph.maximumLineHeight = EditorTheme.editorLineHeight
+        textView.defaultParagraphStyle = paragraph
+        textView.typingAttributes = [
+            .font: EditorTheme.editorFont,
+            .foregroundColor: EditorTheme.textColor,
+            .paragraphStyle: paragraph,
+            .baselineOffset: EditorTheme.editorBaselineOffset
+        ]
+
+        // Insets
+        textView.textContainerInset = NSSize(width: EditorTheme.editorInsetX, height: EditorTheme.editorInsetTop)
+        textView.textContainer?.lineFragmentPadding = 0
+
+        // Layout
+        textView.isVerticallyResizable = true
+        textView.isHorizontallyResizable = false
+        textView.autoresizingMask = [.width]
+        textView.textContainer?.widthTracksTextView = true
+        textView.layoutManager?.allowsNonContiguousLayout = true
+
+        textView.insertionPointColor = EditorTheme.textColor
+
+        // Set up highlighter and coordinator
+        let highlighter = MarkdownSyntaxHighlighter()
+        context.coordinator.highlighter = highlighter
         context.coordinator.textView = textView
 
+        // Set text BEFORE attaching delegate to avoid triggering textDidChange during setup
         textView.string = text
-        MarkdownHighlighter.highlight(textView)
+        textView.delegate = context.coordinator
+
+        scrollView.documentView = textView
+
+        // Initial highlight
+        highlighter.highlightAll(textView.textStorage!)
 
         return scrollView
     }
 
     func updateNSView(_ scrollView: NSScrollView, context: Context) {
-        let textView = scrollView.documentView as! NSTextView
-        if textView.string != text {
+        guard let textView = scrollView.documentView as? ChopsTextView else { return }
+
+        context.coordinator.parent = self
+
+        // Re-highlight on appearance change
+        let currentScheme = colorScheme
+        if context.coordinator.lastColorScheme != currentScheme {
+            context.coordinator.lastColorScheme = currentScheme
+            textView.insertionPointColor = EditorTheme.textColor
+
+            let paragraph = NSMutableParagraphStyle()
+            paragraph.minimumLineHeight = EditorTheme.editorLineHeight
+            paragraph.maximumLineHeight = EditorTheme.editorLineHeight
+            textView.typingAttributes = [
+                .font: EditorTheme.editorFont,
+                .foregroundColor: EditorTheme.textColor,
+                .paragraphStyle: paragraph,
+                .baselineOffset: EditorTheme.editorBaselineOffset
+            ]
+
+            context.coordinator.isHighlightingInProgress = true
+            context.coordinator.highlighter?.highlightAll(textView.textStorage!)
+            context.coordinator.isHighlightingInProgress = false
+        }
+
+        // Only update text if it changed externally (not from user typing)
+        if !context.coordinator.isUpdating && textView.string != text {
+            context.coordinator.isUpdating = true
             let selectedRanges = textView.selectedRanges
             textView.string = text
-            MarkdownHighlighter.highlight(textView)
+            context.coordinator.isHighlightingInProgress = true
+            context.coordinator.highlighter?.highlightAll(textView.textStorage!)
+            context.coordinator.isHighlightingInProgress = false
             textView.selectedRanges = selectedRanges
+            context.coordinator.isUpdating = false
         }
     }
 
+    // MARK: - Coordinator
+
     final class Coordinator: NSObject, NSTextViewDelegate {
         var parent: HighlightedTextEditor
-        weak var textView: NSTextView?
-        private var isUpdating = false
+        var isUpdating = false
+        var isHighlightingInProgress = false
+        var highlighter: MarkdownSyntaxHighlighter?
+        weak var textView: ChopsTextView?
+        var lastColorScheme: ColorScheme?
 
         init(_ parent: HighlightedTextEditor) {
             self.parent = parent
         }
 
         func textDidChange(_ notification: Notification) {
-            guard !isUpdating, let textView else { return }
-            isUpdating = true
-            parent.text = textView.string
-            MarkdownHighlighter.highlight(textView)
-            isUpdating = false
-        }
-    }
-}
+            guard let textView = notification.object as? NSTextView else { return }
+            if isUpdating { return }
 
-// MARK: - Markdown + YAML Frontmatter Highlighter
+            // Highlight synchronously so colors appear on the same frame
+            isHighlightingInProgress = true
+            highlighter?.highlightAll(textView.textStorage!)
+            isHighlightingInProgress = false
 
-enum MarkdownHighlighter {
-    private static let muted = NSColor.secondaryLabelColor
-    private static let faintBg = NSColor.quaternaryLabelColor
-    static func highlight(_ textView: NSTextView) {
-        let text = textView.string
-        let fullRange = NSRange(location: 0, length: (text as NSString).length)
-        guard let storage = textView.textStorage else { return }
-
-        storage.beginEditing()
-
-        let baseFont = NSFont.monospacedSystemFont(ofSize: 13, weight: .regular)
-        storage.setAttributes([
-            .font: baseFont,
-            .foregroundColor: NSColor.labelColor
-        ], range: fullRange)
-
-        let lines = text.components(separatedBy: "\n")
-        var offset = 0
-        var inFrontmatter = false
-        var inCodeBlock = false
-
-        for (index, line) in lines.enumerated() {
-            let lineRange = NSRange(location: offset, length: (line as NSString).length)
-
-            // Frontmatter — just dim the whole block
-            if line.trimmingCharacters(in: .whitespaces) == "---" {
-                if index == 0 {
-                    inFrontmatter = true
-                    storage.addAttribute(.foregroundColor, value: muted, range: lineRange)
-                    offset += line.count + 1
-                    continue
-                } else if inFrontmatter {
-                    inFrontmatter = false
-                    storage.addAttribute(.foregroundColor, value: muted, range: lineRange)
-                    offset += line.count + 1
-                    continue
-                }
+            // Update binding asynchronously to prevent re-entrant updateNSView
+            let newText = textView.string
+            DispatchQueue.main.async { [weak self] in
+                guard let self else { return }
+                self.isUpdating = true
+                self.parent.text = newText
+                self.isUpdating = false
             }
-
-            if inFrontmatter {
-                storage.addAttribute(.foregroundColor, value: muted, range: lineRange)
-                offset += line.count + 1
-                continue
-            }
-
-            // Code blocks — subtle background, no color change
-            if line.hasPrefix("```") {
-                inCodeBlock.toggle()
-                storage.addAttribute(.foregroundColor, value: muted, range: lineRange)
-                offset += line.count + 1
-                continue
-            }
-
-            if inCodeBlock {
-                storage.addAttribute(.backgroundColor, value: faintBg, range: lineRange)
-                offset += line.count + 1
-                continue
-            }
-
-            // Headings — just bold + sized, same color
-            if line.hasPrefix("#") {
-                let level = line.prefix(while: { $0 == "#" }).count
-                if level <= 6 && (line.count == level || line[line.index(line.startIndex, offsetBy: level)] == " ") {
-                    let size: CGFloat = [18, 16, 14, 13, 13, 13][min(level - 1, 5)]
-                    storage.addAttribute(.font, value: NSFont.monospacedSystemFont(ofSize: size, weight: .bold), range: lineRange)
-                    offset += line.count + 1
-                    continue
-                }
-            }
-
-            // Inline: bold gets bold, inline code gets faint bg, that's it
-            let nsLine = line as NSString
-            applyRegex(#"\*\*(.+?)\*\*"#, to: nsLine, lineOffset: lineRange.location, storage: storage, attrs: [
-                .font: NSFont.monospacedSystemFont(ofSize: 13, weight: .bold)
-            ])
-            applyRegex(#"__(.+?)__"#, to: nsLine, lineOffset: lineRange.location, storage: storage, attrs: [
-                .font: NSFont.monospacedSystemFont(ofSize: 13, weight: .bold)
-            ])
-            applyRegex(#"`([^`]+)`"#, to: nsLine, lineOffset: lineRange.location, storage: storage, attrs: [
-                .backgroundColor: faintBg
-            ])
-
-            offset += line.count + 1
-        }
-
-        storage.endEditing()
-    }
-
-    private static func applyRegex(_ pattern: String, to nsLine: NSString, lineOffset: Int, storage: NSTextStorage, attrs: [NSAttributedString.Key: Any]) {
-        guard let regex = try? NSRegularExpression(pattern: pattern) else { return }
-        let lineRange = NSRange(location: 0, length: nsLine.length)
-        for match in regex.matches(in: nsLine as String, range: lineRange) {
-            let matchRange = NSRange(location: lineOffset + match.range.location, length: match.range.length)
-            storage.addAttributes(attrs, range: matchRange)
         }
     }
 }
