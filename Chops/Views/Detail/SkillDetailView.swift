@@ -85,14 +85,14 @@ struct SkillDetailView: View {
                 } label: {
                     Image(systemName: "trash")
                 }
-                .help("Delete Skill")
+                .help("Delete \(skill.displayTypeName)")
             }
         }
         .alert(item: $activeAlert) { alert in
             switch alert {
             case .confirmDelete:
                 return Alert(
-                    title: Text("Delete Skill?"),
+                    title: Text("Delete \(skill.displayTypeName)?"),
                     message: Text("This will permanently delete \"\(skill.name)\" from disk."),
                     primaryButton: .destructive(Text("Delete")) {
                         deleteSkill()

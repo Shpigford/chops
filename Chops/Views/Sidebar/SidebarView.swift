@@ -26,9 +26,13 @@ struct SidebarView: View {
 
         List(selection: $appState.sidebarFilter) {
             Section("Library") {
-                Label("All Skills", systemImage: "tray.full")
-                    .badge(allSkills.count)
-                    .tag(SidebarFilter.all)
+                Label("All Skills", systemImage: "doc.text")
+                    .badge(allSkills.filter { $0.itemKind == .skill }.count)
+                    .tag(SidebarFilter.allSkills)
+
+                Label("All Agents", systemImage: "person.crop.rectangle")
+                    .badge(allSkills.filter { $0.itemKind == .agent }.count)
+                    .tag(SidebarFilter.allAgents)
 
                 Label("Favorites", systemImage: "star")
                     .badge(allSkills.filter(\.isFavorite).count)

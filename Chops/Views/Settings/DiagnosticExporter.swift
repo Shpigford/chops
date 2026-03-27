@@ -24,8 +24,12 @@ enum DiagnosticExporter {
         // Skill counts
         let descriptor = FetchDescriptor<Skill>()
         let skills = (try? modelContext.fetch(descriptor)) ?? []
-        lines.append("## Skills")
+        let skillsOnly = skills.filter { $0.itemKind == .skill }
+        let agentsOnly = skills.filter { $0.itemKind == .agent }
+        lines.append("## Items")
         lines.append("- Total: \(skills.count)")
+        lines.append("- Skills: \(skillsOnly.count)")
+        lines.append("- Agents: \(agentsOnly.count)")
         for tool in ToolSource.allCases {
             let count = skills.filter { $0.toolSources.contains(tool) }.count
             if count > 0 {

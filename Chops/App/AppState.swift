@@ -7,11 +7,13 @@ final class AppState {
     var searchText: String = ""
     var showingNewSkillSheet: Bool = false
     var showingRegistrySheet: Bool = false
-    var sidebarFilter: SidebarFilter = .all
+    var newItemKind: ItemKind = .skill
+    var sidebarFilter: SidebarFilter = .allSkills
 }
 
 enum SidebarFilter: Hashable {
-    case all
+    case allSkills
+    case allAgents
     case favorites
     case tool(ToolSource)
     case collection(String)

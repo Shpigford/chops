@@ -9,16 +9,24 @@ struct NewSkillSheet: View {
     @State private var selectedTool: ToolSource = .claude
     @State private var errorMessage: String?
 
-    private let creatableTools: [ToolSource] = [.claude, .agents, .cursor, .codex, .amp, .opencode, .pi, .antigravity]
+    private let skillCreatableTools: [ToolSource] = [.claude, .agents, .cursor, .codex, .amp, .opencode, .pi, .antigravity]
+    private let agentCreatableTools: [ToolSource] = [.claude, .cursor, .codex]
+
+    private var itemKind: ItemKind { appState.newItemKind }
+    private var isAgent: Bool { itemKind == .agent }
+
+    private var creatableTools: [ToolSource] {
+        isAgent ? agentCreatableTools : skillCreatableTools
+    }
 
     var body: some View {
         VStack(spacing: 20) {
-            Text("New Skill")
+            Text(isAgent ? "New Agent" : "New Skill")
                 .font(.title2)
                 .fontWeight(.bold)
 
             Form {
-                TextField("Skill name", text: $skillName)
+                TextField(isAgent ? "Agent name" : "Skill name", text: $skillName)
                     .textFieldStyle(.roundedBorder)
 
                 Picker("Tool", selection: $selectedTool) {
@@ -45,7 +53,7 @@ struct NewSkillSheet: View {
                 Spacer()
 
                 Button("Create") {
-                    createSkill()
+                    createItem()
                 }
                 .keyboardShortcut(.defaultAction)
                 .disabled(skillName.isEmpty)
@@ -53,9 +61,15 @@ struct NewSkillSheet: View {
         }
         .padding(24)
         .frame(width: 400)
+        .onAppear {
+            // Ensure selectedTool is valid for the current item kind
+            if !creatableTools.contains(selectedTool) {
+                selectedTool = creatableTools.first ?? .claude
+            }
+        }
     }
 
-    private func createSkill() {
+    private func createItem() {
         let fm = FileManager.default
         let configHome: String = {
             if let xdg = ProcessInfo.processInfo.environment["XDG_CONFIG_HOME"], !xdg.isEmpty {
@@ -69,78 +83,73 @@ struct NewSkillSheet: View {
             .filter { $0.isLetter || $0.isNumber || $0 == "-" }
 
         guard !sanitizedName.isEmpty else {
-            errorMessage = "Invalid skill name"
+            errorMessage = "Invalid name"
             return
         }
 
         let basePath: String
         let fileName: String
-        let isDirectory: Bool
 
-        switch selectedTool {
-        case .claude:
-            basePath = "\(fm.homeDirectoryForCurrentUser.path)/.claude/skills/\(sanitizedName)"
-            fileName = "SKILL.md"
-            isDirectory = true
-        case .agents:
-            basePath = "\(fm.homeDirectoryForCurrentUser.path)/.agents/skills/\(sanitizedName)"
-            fileName = "SKILL.md"
-            isDirectory = true
-        case .cursor:
-            basePath = "\(fm.homeDirectoryForCurrentUser.path)/.cursor/skills/\(sanitizedName)"
-            fileName = "SKILL.md"
-            isDirectory = true
-        case .codex:
-            basePath = "\(fm.homeDirectoryForCurrentUser.path)/.codex/skills/\(sanitizedName)"
-            fileName = "SKILL.md"
-            isDirectory = true
-        case .amp:
-            basePath = "\(configHome)/amp/skills/\(sanitizedName)"
-            fileName = "SKILL.md"
-            isDirectory = true
-        case .opencode:
-            basePath = "\(configHome)/opencode/skills/\(sanitizedName)"
-            fileName = "SKILL.md"
-            isDirectory = true
-        case .pi:
-            basePath = "\(fm.homeDirectoryForCurrentUser.path)/.pi/agent/skills/\(sanitizedName)"
-            fileName = "SKILL.md"
-            isDirectory = true
-        case .antigravity:
-            basePath = "\(fm.homeDirectoryForCurrentUser.path)/.gemini/antigravity/skills/\(sanitizedName)"
-            fileName = "SKILL.md"
-            isDirectory = true
-        default:
-            let firstPath = selectedTool.globalPaths.first ?? "\(fm.homeDirectoryForCurrentUser.path)/.claude/skills/\(sanitizedName)"
-            basePath = firstPath
-            fileName = "SKILL.md"
-            isDirectory = true
+        if isAgent {
+            // Agents go into the tool's agents/ directory
+            guard let agentDir = selectedTool.globalAgentPaths.first else {
+                errorMessage = "This tool doesn't support agents"
+                return
+            }
+            basePath = "\(agentDir)/\(sanitizedName)"
+            fileName = "\(sanitizedName).md"
+        } else {
+            // Skills use existing path logic
+            switch selectedTool {
+            case .claude:
+                basePath = "\(fm.homeDirectoryForCurrentUser.path)/.claude/skills/\(sanitizedName)"
+                fileName = "SKILL.md"
+            case .agents:
+                basePath = "\(fm.homeDirectoryForCurrentUser.path)/.agents/skills/\(sanitizedName)"
+                fileName = "SKILL.md"
+            case .cursor:
+                basePath = "\(fm.homeDirectoryForCurrentUser.path)/.cursor/skills/\(sanitizedName)"
+                fileName = "SKILL.md"
+            case .codex:
+                basePath = "\(fm.homeDirectoryForCurrentUser.path)/.codex/skills/\(sanitizedName)"
+                fileName = "SKILL.md"
+            case .amp:
+                basePath = "\(configHome)/amp/skills/\(sanitizedName)"
+                fileName = "SKILL.md"
+            case .opencode:
+                basePath = "\(configHome)/opencode/skills/\(sanitizedName)"
+                fileName = "SKILL.md"
+            case .pi:
+                basePath = "\(fm.homeDirectoryForCurrentUser.path)/.pi/agent/skills/\(sanitizedName)"
+                fileName = "SKILL.md"
+            case .antigravity:
+                basePath = "\(fm.homeDirectoryForCurrentUser.path)/.gemini/antigravity/skills/\(sanitizedName)"
+                fileName = "SKILL.md"
+            default:
+                let firstPath = selectedTool.globalPaths.first ?? "\(fm.homeDirectoryForCurrentUser.path)/.claude/skills/\(sanitizedName)"
+                basePath = firstPath
+                fileName = "SKILL.md"
+            }
         }
 
         do {
-            if isDirectory {
-                try fm.createDirectory(atPath: basePath, withIntermediateDirectories: true)
-            } else {
-                try fm.createDirectory(atPath: basePath, withIntermediateDirectories: true)
-            }
+            try fm.createDirectory(atPath: basePath, withIntermediateDirectories: true)
 
-            let filePath = isDirectory ? "\(basePath)/\(fileName)" : "\(basePath)/\(fileName)"
+            let filePath = "\(basePath)/\(fileName)"
 
-            // Don't overwrite existing files
             guard !fm.fileExists(atPath: filePath) else {
-                errorMessage = "A skill with this name already exists"
+                errorMessage = isAgent ? "An agent with this name already exists" : "A skill with this name already exists"
                 return
             }
 
             let boilerplate = generateBoilerplate(name: skillName, skillID: sanitizedName, tool: selectedTool)
             try boilerplate.write(toFile: filePath, atomically: true, encoding: .utf8)
 
-            // Insert into SwiftData
             let parsed = FrontmatterParser.parse(boilerplate)
             let skill = Skill(
                 filePath: filePath,
                 toolSource: selectedTool,
-                isDirectory: isDirectory,
+                isDirectory: true,
                 name: skillName,
                 skillDescription: parsed.description,
                 content: parsed.content,
@@ -148,7 +157,8 @@ struct NewSkillSheet: View {
                 fileModifiedDate: .now,
                 fileSize: boilerplate.count,
                 isGlobal: true,
-                resolvedPath: filePath
+                resolvedPath: filePath,
+                kind: itemKind
             )
             modelContext.insert(skill)
             try modelContext.save()
@@ -161,6 +171,21 @@ struct NewSkillSheet: View {
     }
 
     private func generateBoilerplate(name: String, skillID: String, tool: ToolSource) -> String {
+        if isAgent {
+            return """
+            ---
+            name: \(skillID)
+            description: \(name)
+            ---
+
+            # \(name)
+
+            ## Instructions
+
+            Add your agent instructions here.
+            """
+        }
+
         switch tool {
         case .claude, .cursor:
             return """

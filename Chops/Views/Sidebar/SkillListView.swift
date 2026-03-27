@@ -26,8 +26,10 @@ struct SkillListView: View {
         var result = allSkills
 
         switch appState.sidebarFilter {
-        case .all:
-            break
+        case .allSkills:
+            result = result.filter { $0.itemKind == .skill }
+        case .allAgents:
+            result = result.filter { $0.itemKind == .agent }
         case .favorites:
             result = result.filter { $0.isFavorite }
         case .tool(let tool):
@@ -53,12 +55,21 @@ struct SkillListView: View {
 
     private var title: String {
         switch appState.sidebarFilter {
-        case .all: "All Skills"
+        case .allSkills: "All Skills"
+        case .allAgents: "All Agents"
         case .favorites: "Favorites"
         case .tool(let tool): tool.displayName
         case .collection(let name): name
         case .server(let id):
-            allSkills.first(where: { $0.remoteServer?.id == id })?.remoteServer?.label ?? "Remote Skills"
+            allSkills.first(where: { $0.remoteServer?.id == id })?.remoteServer?.label ?? "Remote"
+        }
+    }
+
+    /// Whether the current filter shows mixed item types (skills and agents together)
+    private var showsTypeBadge: Bool {
+        switch appState.sidebarFilter {
+        case .allSkills, .allAgents: false
+        default: true
         }
     }
 
@@ -80,7 +91,7 @@ struct SkillListView: View {
 
         List(selection: $appState.selectedSkill) {
             ForEach(filteredSkills) { skill in
-                SkillRow(skill: skill)
+                SkillRow(skill: skill, showTypeBadge: showsTypeBadge)
                     .tag(skill)
                     .draggable(skill.resolvedPath)
                     .contextMenu {
@@ -125,7 +136,7 @@ struct SkillListView: View {
             switch alert {
             case .confirmDelete(let skill):
                 return Alert(
-                    title: Text("Delete Skill?"),
+                    title: Text("Delete \(skill.displayTypeName)?"),
                     message: Text("This will permanently delete \"\(skill.name)\" from disk."),
                     primaryButton: .destructive(Text("Delete")) {
                         deleteSkill(skill)
@@ -143,9 +154,11 @@ struct SkillListView: View {
         .overlay {
             if filteredSkills.isEmpty {
                 ContentUnavailableView(
-                    "No Skills",
-                    systemImage: "doc.text",
-                    description: Text("No skills match the current filter.")
+                    appState.sidebarFilter == .allAgents ? "No Agents" : "No Skills",
+                    systemImage: appState.sidebarFilter == .allAgents ? "person.crop.rectangle" : "doc.text",
+                    description: Text(appState.sidebarFilter == .allAgents
+                        ? "No agents match the current filter."
+                        : "No skills match the current filter.")
                 )
             }
         }
@@ -154,9 +167,16 @@ struct SkillListView: View {
 
 struct SkillRow: View {
     let skill: Skill
+    var showTypeBadge: Bool = false
 
     var body: some View {
         HStack(spacing: 6) {
+            if showTypeBadge {
+                Image(systemName: skill.itemKind == .agent ? "person.crop.rectangle" : "doc.text")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
+
             Text(skill.name)
                 .lineLimit(1)
 

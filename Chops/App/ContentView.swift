@@ -20,14 +20,23 @@ struct ContentView: View {
             if let skill = appState.selectedSkill {
                 SkillDetailView(skill: skill)
             } else {
-                ContentUnavailableView(
-                    "Select a Skill",
-                    systemImage: "doc.text",
-                    description: Text("Choose a skill from the sidebar to view and edit it.")
-                )
+                switch appState.sidebarFilter {
+                case .allAgents:
+                    ContentUnavailableView(
+                        "Select an Agent",
+                        systemImage: "person.crop.rectangle",
+                        description: Text("Choose an agent from the sidebar to view and edit it.")
+                    )
+                default:
+                    ContentUnavailableView(
+                        "Select a Skill",
+                        systemImage: "doc.text",
+                        description: Text("Choose a skill from the sidebar to view and edit it.")
+                    )
+                }
             }
         }
-        .searchable(text: $appState.searchText, prompt: "Search skills...")
+        .searchable(text: $appState.searchText, prompt: appState.sidebarFilter == .allAgents ? "Search agents..." : "Search skills...")
         .onAppear {
             startScanning()
         }
@@ -41,10 +50,18 @@ struct ContentView: View {
             ToolbarItem(placement: .primaryAction) {
                 Menu {
                     Button {
+                        appState.newItemKind = .skill
                         appState.showingNewSkillSheet = true
                     } label: {
-                        Label("New Skill", systemImage: "plus")
+                        Label("New Skill", systemImage: "doc.text")
                     }
+                    Button {
+                        appState.newItemKind = .agent
+                        appState.showingNewSkillSheet = true
+                    } label: {
+                        Label("New Agent", systemImage: "person.crop.rectangle")
+                    }
+                    Divider()
                     Button {
                         appState.showingRegistrySheet = true
                     } label: {
@@ -72,6 +89,7 @@ struct ContentView: View {
         var allPaths: [String] = []
         for tool in ToolSource.allCases {
             allPaths.append(contentsOf: tool.globalPaths)
+            allPaths.append(contentsOf: tool.globalAgentPaths)
         }
         let fm = FileManager.default
         let home = fm.homeDirectoryForCurrentUser.path

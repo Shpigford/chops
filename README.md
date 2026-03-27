@@ -4,7 +4,7 @@
 
 <h1 align="center">Chops</h1>
 
-<p align="center">Your AI agent skills, finally organized.</p>
+<p align="center">Your AI skills and agents, finally organized.</p>
 
 <p align="center">
   <a href="https://github.com/Shpigford/chops/releases/latest/download/Chops.dmg">Download</a> &middot;
@@ -16,17 +16,18 @@
   <img src="site/public/screenshot.png" width="720" alt="Chops screenshot" />
 </p>
 
-One macOS app to discover, organize, and edit coding agent skills across Claude Code, Cursor, Codex, Windsurf, and Amp. Stop digging through dotfiles.
+One macOS app to discover, organize, and edit coding agent skills and agents across Claude Code, Cursor, Codex, Windsurf, and Amp. Stop digging through dotfiles.
 
 ## Features
 
 - **Multi-tool support** — Claude Code, Cursor, Codex, Windsurf, Copilot, Aider, Amp
+- **Skills + Agents** — Discovers both skills and agents from each tool's directories
 - **Built-in editor** — Monospaced editor with Cmd+S save, frontmatter parsing
-- **Collections** — Organize skills without modifying source files
+- **Collections** — Organize skills and agents without modifying source files
 - **Real-time file watching** — FSEvents-based, instant updates on disk changes
 - **Full-text search** — Search across name, description, and content
-- **Create new skills** — Generates correct boilerplate per tool
-- **Remote skill servers** — Connect to servers like [OpenClaw](https://openclaw.ai) to discover, browse, and install skills
+- **Create new skills & agents** — Generates correct boilerplate per tool
+- **Remote servers** — Connect to servers like [OpenClaw](https://openclaw.ai) to discover, browse, and install skills
 
 ## Prerequisites
 
@@ -66,7 +67,7 @@ Chops/
 │   ├── AppState.swift         # @Observable singleton — filters, selection, search
 │   └── ContentView.swift      # Three-column NavigationSplitView, kicks off scanning
 ├── Models/
-│   ├── Skill.swift            # @Model — a discovered skill file
+│   ├── Skill.swift            # @Model — a discovered skill or agent file
 │   ├── Collection.swift       # @Model — user-created skill groupings
 │   └── ToolSource.swift       # Enum of supported tools, their paths and icons
 ├── Services/
@@ -78,7 +79,7 @@ Chops/
 │   ├── FrontmatterParser.swift  # Extracts YAML frontmatter from .md files
 │   └── MDCParser.swift          # Parses Cursor .mdc files
 ├── Views/
-│   ├── Sidebar/               # Tool filters, collection list
+│   ├── Sidebar/               # Tool filters, skills/agents lists, collections
 │   ├── Detail/                # Skill editor, metadata display
 │   ├── Settings/              # Preferences & update UI
 │   └── Shared/                # Reusable components (ToolBadge, NewSkillSheet)
@@ -122,18 +123,18 @@ Three-column `NavigationSplitView`:
 
 ## Supported Tools
 
-Chops scans these directories for skills:
+Chops scans these directories for skills and agents:
 
-| Tool | Global Paths |
-|------|-------------|
-| Claude Code | `~/.claude/skills/` |
-| Cursor | `~/.cursor/skills/`, `~/.cursor/rules` |
-| Windsurf | `~/.codeium/windsurf/memories/`, `~/.windsurf/rules` |
-| Codex | `~/.codex` |
-| Amp | `~/.config/amp` |
-| Global Agents | `~/.agents/skills/` |
+| Tool | Skills | Agents |
+|------|--------|--------|
+| Claude Code | `~/.claude/skills/` | `~/.claude/agents/` |
+| Cursor | `~/.cursor/skills/`, `~/.cursor/rules` | `~/.cursor/agents/` |
+| Windsurf | `~/.codeium/windsurf/memories/`, `~/.windsurf/rules` | — |
+| Codex | `~/.codex/skills/` | `~/.codex/agents/` |
+| Amp | `~/.config/amp/skills/` | — |
+| Global | `~/.agents/skills/` | — |
 
-Copilot and Aider are also supported but only detect project-level skills (no global paths). Custom paths can be added for any tool.
+Copilot and Aider are also supported but only detect project-level skills and agents (no global paths). Custom scan paths can be added for any tool.
 
 Tool definitions live in `Chops/Models/ToolSource.swift` — each enum case knows its display name, icon, color, and filesystem paths.
 

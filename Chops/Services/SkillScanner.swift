@@ -15,6 +15,7 @@ struct ScannedSkillData: Sendable {
     let frontmatter: [String: String]
     let modDate: Date
     let fileSize: Int
+    let kind: ItemKind
 }
 
 @Observable
@@ -47,15 +48,19 @@ final class SkillScanner {
     }
 
     /// Project-level paths to probe inside each project directory
-    private static let projectProbes: [(subpath: String, tool: ToolSource)] = [
-        (".claude/skills", .claude),
-        (".cursor/skills", .cursor),
-        (".cursor/rules", .cursor),
-        (".codex/skills", .codex),
-        (".windsurf/rules", .windsurf),
-        (".github", .copilot),
-        (".config/amp/skills", .amp),
-        (".opencode/skills", .opencode),
+    private static let projectProbes: [(subpath: String, tool: ToolSource, kind: ItemKind)] = [
+        (".claude/skills", .claude, .skill),
+        (".claude/agents", .claude, .agent),
+        (".cursor/skills", .cursor, .skill),
+        (".cursor/rules", .cursor, .skill),
+        (".cursor/agents", .cursor, .agent),
+        (".codex/skills", .codex, .skill),
+        (".codex/agents", .codex, .agent),
+        (".windsurf/rules", .windsurf, .skill),
+        (".github", .copilot, .skill),
+        (".github/agents", .copilot, .agent),
+        (".config/amp/skills", .amp, .skill),
+        (".opencode/skills", .opencode, .skill),
     ]
 
     func scanAll() {
@@ -92,7 +97,11 @@ final class SkillScanner {
             }
             for path in tool.globalPaths {
                 let url = URL(fileURLWithPath: path)
-                collectFromDirectory(url, toolSource: tool, isGlobal: true, into: &results)
+                collectFromDirectory(url, toolSource: tool, isGlobal: true, kind: .skill, into: &results)
+            }
+            for path in tool.globalAgentPaths {
+                let url = URL(fileURLWithPath: path)
+                collectFromDirectory(url, toolSource: tool, isGlobal: true, kind: .agent, into: &results)
             }
         }
 
@@ -132,21 +141,21 @@ final class SkillScanner {
                 let probePath = project.appendingPathComponent(probe.subpath)
                 guard fm.fileExists(atPath: probePath.path) else { continue }
 
-                if probe.tool == .copilot {
+                if probe.tool == .copilot && probe.kind == .skill {
                     let file = probePath.appendingPathComponent("copilot-instructions.md")
                     if fm.fileExists(atPath: file.path) {
-                        if let data = collectSkillData(at: file, toolSource: .copilot, isDirectory: false, isGlobal: false) {
+                        if let data = collectSkillData(at: file, toolSource: .copilot, isDirectory: false, isGlobal: false, kind: probe.kind) {
                             results.append(data)
                         }
                     }
                 } else {
-                    collectFromDirectory(probePath, toolSource: probe.tool, isGlobal: false, into: &results)
+                    collectFromDirectory(probePath, toolSource: probe.tool, isGlobal: false, kind: probe.kind, into: &results)
                 }
             }
         }
     }
 
-    private static func collectFromDirectory(_ directory: URL, toolSource: ToolSource, isGlobal: Bool, into results: inout [ScannedSkillData]) {
+    private static func collectFromDirectory(_ directory: URL, toolSource: ToolSource, isGlobal: Bool, kind: ItemKind = .skill, into results: inout [ScannedSkillData]) {
         let fm = FileManager.default
 
         var isDir: ObjCBool = false
@@ -170,21 +179,53 @@ final class SkillScanner {
                 let agentsFile = item.appendingPathComponent("AGENTS.md")
 
                 if fm.fileExists(atPath: skillFile.path) {
-                    if let data = collectSkillData(at: skillFile, toolSource: toolSource, isDirectory: true, isGlobal: isGlobal) {
+                    if let data = collectSkillData(at: skillFile, toolSource: toolSource, isDirectory: true, isGlobal: isGlobal, kind: kind) {
                         results.append(data)
                     }
                 } else if fm.fileExists(atPath: agentsFile.path) {
-                    if let data = collectSkillData(at: agentsFile, toolSource: toolSource, isDirectory: true, isGlobal: isGlobal) {
+                    if let data = collectSkillData(at: agentsFile, toolSource: toolSource, isDirectory: true, isGlobal: isGlobal, kind: kind) {
+                        results.append(data)
+                    }
+                } else if kind == .agent, let agentFile = preferredAgentFile(in: item) {
+                    if let data = collectSkillData(at: agentFile, toolSource: toolSource, isDirectory: true, isGlobal: isGlobal, kind: kind) {
                         results.append(data)
                     }
                 }
-            } else if item.pathExtension == "md" || item.pathExtension == "mdc" {
+            } else if item.pathExtension == "md" || item.pathExtension == "mdc" || item.pathExtension == "toml" {
                 guard !shouldIgnoreLooseMarkdownFile(named: item.lastPathComponent) else { continue }
-                if let data = collectSkillData(at: item, toolSource: toolSource, isDirectory: false, isGlobal: isGlobal) {
+                if let data = collectSkillData(at: item, toolSource: toolSource, isDirectory: false, isGlobal: isGlobal, kind: kind) {
                     results.append(data)
                 }
             }
         }
+    }
+
+    private static func preferredAgentFile(in directory: URL) -> URL? {
+        let fm = FileManager.default
+        guard let contents = try? fm.contentsOfDirectory(
+            at: directory,
+            includingPropertiesForKeys: [.isDirectoryKey],
+            options: [.skipsHiddenFiles]
+        ) else { return nil }
+
+        let candidates = contents.filter { item in
+            var isDir: ObjCBool = false
+            fm.fileExists(atPath: item.path, isDirectory: &isDir)
+            guard !isDir.boolValue else { return false }
+            guard ["md", "mdc", "toml"].contains(item.pathExtension) else { return false }
+            return !shouldIgnoreLooseMarkdownFile(named: item.lastPathComponent)
+        }
+
+        let directoryName = directory.lastPathComponent.lowercased()
+        if let matchingFile = candidates.first(where: { $0.deletingPathExtension().lastPathComponent.lowercased() == directoryName }) {
+            return matchingFile
+        }
+
+        if candidates.count == 1 {
+            return candidates[0]
+        }
+
+        return nil
     }
 
     /// For Claude Desktop plugin paths, produce a canonical identity that strips volatile
@@ -231,7 +272,7 @@ final class SkillScanner {
     }
 
     /// Read and parse a single skill file. Pure I/O, no SwiftData.
-    private static func collectSkillData(at fileURL: URL, toolSource: ToolSource, isDirectory: Bool, isGlobal: Bool) -> ScannedSkillData? {
+    private static func collectSkillData(at fileURL: URL, toolSource: ToolSource, isDirectory: Bool, isGlobal: Bool, kind: ItemKind = .skill) -> ScannedSkillData? {
         let fm = FileManager.default
         let resolved = canonicalResolvedPath(for: fileURL, toolSource: toolSource)
 
@@ -266,7 +307,8 @@ final class SkillScanner {
             content: parsed.content,
             frontmatter: parsed.frontmatter,
             modDate: modDate,
-            fileSize: fileSize
+            fileSize: fileSize,
+            kind: kind
         )
     }
 
@@ -385,6 +427,7 @@ final class SkillScanner {
                 existing.isGlobal = preferredData.isGlobal
                 existing.installedPaths = installedPaths
                 existing.toolSources = toolSources
+                existing.itemKind = preferredData.kind
             } else {
                 let skill = Skill(
                     filePath: primary.fileURL.path,
@@ -397,7 +440,8 @@ final class SkillScanner {
                     fileModifiedDate: primary.modDate,
                     fileSize: primary.fileSize,
                     isGlobal: primary.isGlobal,
-                    resolvedPath: primary.resolvedPath
+                    resolvedPath: primary.resolvedPath,
+                    kind: primary.kind
                 )
                 skill.installedPaths = installedPaths
                 skill.toolSources = toolSources

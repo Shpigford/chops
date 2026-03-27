@@ -222,7 +222,7 @@ private struct AddServerSheet: View {
                 TextField("Host", text: $host, prompt: Text("192.168.1.100"))
                 TextField("Port", text: $port, prompt: Text("22"))
                 TextField("Username", text: $username, prompt: Text("root"))
-                TextField("Skills Base Path", text: $basePath, prompt: Text("e.g. ~/.openclaw, ~/skills"))
+                TextField("Base Path", text: $basePath, prompt: Text("e.g. ~/.openclaw, ~/skills"))
                 TextField("SSH Key Path", text: $sshKeyPath, prompt: Text("Optional — e.g. ~/.ssh/id_ed25519"))
             }
             .formStyle(.grouped)
@@ -337,7 +337,7 @@ private struct EditServerSheet: View {
                 TextField("Host", text: $host, prompt: Text("192.168.1.100"))
                 TextField("Port", text: $port, prompt: Text("22"))
                 TextField("Username", text: $username, prompt: Text("root"))
-                TextField("Skills Base Path", text: $basePath, prompt: Text("e.g. ~/.openclaw, ~/skills"))
+                TextField("Base Path", text: $basePath, prompt: Text("e.g. ~/.openclaw, ~/skills"))
                 TextField("SSH Key Path", text: $sshKeyPath, prompt: Text("Optional — e.g. ~/.ssh/id_ed25519"))
             }
             .formStyle(.grouped)

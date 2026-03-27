@@ -208,9 +208,9 @@ final class SkillRegistry {
             case .searchFailed: "Search request failed"
             case .treeFetchFailed: "Could not fetch repository contents"
             case .rateLimited: "GitHub API rate limit reached — try again in a few minutes"
-            case .skillNotFound: "Skill file not found in repository"
-            case .invalidSkillName: "Invalid skill name"
-            case .skillAlreadyExists: "Skill is already installed for all selected agents"
+            case .skillNotFound: "File not found in repository"
+            case .invalidSkillName: "Invalid name"
+            case .skillAlreadyExists: "Already installed for all selected targets"
             }
         }
     }

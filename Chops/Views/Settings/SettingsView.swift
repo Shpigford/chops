@@ -40,7 +40,7 @@ struct SettingsView: View {
 
     private var generalSettings: some View {
         Form {
-            Picker("Default tool for new skills", selection: $defaultTool) {
+            Picker("Default tool", selection: $defaultTool) {
                 ForEach(ToolSource.allCases) { tool in
                     Text(tool.displayName).tag(tool)
                 }
@@ -55,7 +55,7 @@ struct SettingsView: View {
             Text("Custom Scan Directories")
                 .font(.headline)
 
-            Text("Add a parent directory (e.g. ~/Development) and Chops will scan each project inside it for tool-specific skills.")
+            Text("Add a parent directory (e.g. ~/Development) and Chops will scan each project inside it for tool-specific skills and agents.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
@@ -125,7 +125,7 @@ struct SettingsView: View {
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
 
-            Text("Your AI agent skills, finally organized.")
+            Text("Your AI skills and agents, finally organized.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
 

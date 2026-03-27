@@ -19,7 +19,7 @@ struct ToolFilterView: View {
         ForEach(activeSources) { tool in
             Button {
                 if appState.sidebarFilter == .tool(tool) {
-                    appState.sidebarFilter = .all
+                    appState.sidebarFilter = .allSkills
                 } else {
                     appState.sidebarFilter = .tool(tool)
                 }

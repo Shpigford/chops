@@ -30,7 +30,7 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
         case .openclaw: "OpenClaw"
         case .opencode: "OpenCode"
         case .pi: "Pi"
-        case .agents: "Global Agents"
+        case .agents: "Global"
         case .antigravity: "Antigravity"
         case .claudeDesktop: "Claude Desktop"
         case .custom: "Custom"
@@ -89,6 +89,16 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
         case .antigravity: .red
         case .claudeDesktop: .orange
         case .custom: .gray
+        }
+    }
+
+    var globalAgentPaths: [String] {
+        let home = FileManager.default.homeDirectoryForCurrentUser.path
+        switch self {
+        case .claude: return ["\(home)/.claude/agents"]
+        case .cursor: return ["\(home)/.cursor/agents"]
+        case .codex: return ["\(home)/.codex/agents"]
+        default: return []
         }
     }
 

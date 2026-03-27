@@ -1,6 +1,11 @@
 import SwiftData
 import Foundation
 
+enum ItemKind: String, Codable, CaseIterable {
+    case skill
+    case agent
+}
+
 @Model
 final class Skill {
     @Attribute(.unique) var resolvedPath: String
@@ -29,7 +34,19 @@ final class Skill {
     /// All file paths where this skill is installed (JSON-encoded array)
     var installedPathsData: Data?
 
+    /// Discriminator: "skill" or "agent"
+    var kind: String = ItemKind.skill.rawValue
+
     // MARK: - Computed
+
+    var itemKind: ItemKind {
+        get { ItemKind(rawValue: kind) ?? .skill }
+        set { kind = newValue.rawValue }
+    }
+
+    var displayTypeName: String {
+        itemKind == .agent ? "Agent" : "Skill"
+    }
 
     var toolSources: [ToolSource] {
         get {
@@ -102,7 +119,8 @@ final class Skill {
         fileModifiedDate: Date = .now,
         fileSize: Int = 0,
         isGlobal: Bool = true,
-        resolvedPath: String = ""
+        resolvedPath: String = "",
+        kind: ItemKind = .skill
     ) {
         self.resolvedPath = resolvedPath.isEmpty ? filePath : resolvedPath
         self.filePath = filePath
@@ -120,6 +138,7 @@ final class Skill {
         self.fileModifiedDate = fileModifiedDate
         self.fileSize = fileSize
         self.isGlobal = isGlobal
+        self.kind = kind.rawValue
     }
 
     // MARK: - Merge
