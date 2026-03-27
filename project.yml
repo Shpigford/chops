@@ -15,12 +15,12 @@ packages:
   Sparkle:
     url: https://github.com/sparkle-project/Sparkle
     from: "2.6.0"
-  MarkdownUI:
-    url: https://github.com/gonzalezreal/swift-markdown-ui
-    from: "2.4.0"
   Highlightr:
     url: https://github.com/raspu/Highlightr
     from: "2.2.1"
+  cmark-gfm:
+    url: https://github.com/brokenhandsio/cmark-gfm.git
+    from: "2.1.0"
 
 targets:
   Chops:
@@ -33,8 +33,9 @@ targets:
           - Info.plist
     dependencies:
       - package: Sparkle
-      - package: MarkdownUI
       - package: Highlightr
+      - package: cmark-gfm
+        product: cmark
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.joshpigford.Chops
