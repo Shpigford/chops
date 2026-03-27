@@ -1,0 +1,181 @@
+/* Navigation & Sidebar */
+"sidebar.library" = "资源库";
+"sidebar.allSkills" = "所有技能";
+"sidebar.allAgents" = "所有代理";
+"sidebar.favorites" = "收藏夹";
+"sidebar.tools" = "工具";
+"sidebar.servers" = "服务器";
+"sidebar.collections" = "合集";
+"sidebar.appTitle" = "Chops";
+"sidebar.syncFromServer" = "从服务器同步技能";
+
+/* Skill List & Actions */
+"skillList.noAgents" = "无代理";
+"skillList.noSkills" = "无技能";
+"skillList.noAgentsMatch" = "没有符合当前筛选条件的代理。";
+"skillList.noSkillsMatch" = "没有符合当前筛选条件的技能。";
+"skillList.unfavorite" = "取消收藏";
+"skillList.favorite" = "收藏";
+"skillList.collections" = "合集";
+"skillList.showInFinder" = "在访达中显示";
+"skillList.delete" = "删除";
+"skillList.deleteConfirmTitle" = "删除 %@？";
+"skillList.deleteConfirmMessage" = "这将永久从磁盘删除"%@"。";
+"skillList.deleteFailedTitle" = "删除失败";
+"skillList.ok" = "好";
+
+/* Detail View */
+"detail.showInFinder" = "在访达中显示";
+"detail.deleteSkill" = "删除技能";
+"detail.deleteAgent" = "删除代理";
+"detail.saveError" = "保存错误";
+
+/* Editor */
+"editor.loadingFromServer" = "正在从服务器加载...";
+"editor.saving" = "正在保存...";
+"editor.modified" = "已修改";
+
+/* Metadata Bar */
+"metadata.collections" = "合集";
+"metadata.noCollections" = "暂无合集";
+
+/* Collections */
+"collections.placeholder" = "合集名称";
+"collections.duplicateName" = "已存在同名合集";
+"collections.emptyName" = "合集名称不能为空";
+"collections.rename" = "重命名";
+"collections.delete" = "删除";
+"collections.new" = "新建合集";
+"collections.error" = "合集错误";
+"collections.cancel" = "取消";
+"collections.create" = "创建";
+
+/* Content View */
+"content.selectAgent" = "选择代理";
+"content.selectAgentDescription" = "从侧边栏选择一个代理以查看和编辑。";
+"content.selectSkill" = "选择技能";
+"content.selectSkillDescription" = "从侧边栏选择一个技能以查看和编辑。";
+"content.searchAgents" = "搜索代理...";
+"content.searchSkills" = "搜索技能...";
+"content.newSkill" = "新建技能";
+"content.newAgent" = "新建代理";
+"content.browseRegistry" = "浏览注册表";
+"content.add" = "添加";
+
+/* App Menu */
+"menu.save" = "保存";
+"menu.checkForUpdates" = "检查更新…";
+"menu.exportDiagnostic" = "导出诊断日志…";
+
+/* New Skill/Agent Sheet */
+"newSkill.titleAgent" = "新建代理";
+"newSkill.titleSkill" = "新建技能";
+"newSkill.agentName" = "代理名称";
+"newSkill.skillName" = "技能名称";
+"newSkill.tool" = "工具";
+"newSkill.invalidName" = "无效名称";
+"newSkill.duplicateAgent" = "已存在同名代理";
+"newSkill.duplicateSkill" = "已存在同名技能";
+"newSkill.noAgentSupport" = "此工具不支持代理";
+"newSkill.cancel" = "取消";
+"newSkill.create" = "创建";
+
+/* Registry Browser */
+"registry.back" = "返回";
+"registry.installSkill" = "安装技能";
+"registry.browseSkills" = "浏览技能";
+"registry.cancel" = "取消";
+"registry.searchPlaceholder" = "搜索技能（例如 react、testing、deploy）...";
+"registry.searchTitle" = "搜索技能注册表";
+"registry.searchDescription" = "从开放代理技能生态系统中查找并安装技能。";
+"registry.installTo" = "安装到：";
+"registry.selectAll" = "全选";
+"registry.deselectAll" = "取消全选";
+"registry.noAgentsDetected" = "此机器上未检测到支持的代理。";
+"registry.installsCount" = "%d 次安装";
+"registry.loadingContent" = "正在加载技能内容...";
+"registry.installed" = "已安装！";
+"registry.install" = "安装";
+
+/* Settings */
+"settings.general" = "通用";
+"settings.scanDirectories" = "扫描目录";
+"settings.servers" = "服务器";
+"settings.about" = "关于";
+"settings.defaultTool" = "默认工具";
+"settings.customScanDirectories" = "自定义扫描目录";
+"settings.scanDescription" = "添加一个父目录（例如 ~/Development），Chops 将扫描其中的每个项目以查找工具特定的技能和代理。";
+"settings.addDirectory" = "添加目录...";
+"settings.appName" = "Chops";
+"settings.version" = "版本 %@ (%@)";
+"settings.tagline" = "您的 AI 技能和代理，终于井然有序。";
+"settings.checkForUpdates" = "检查更新";
+"settings.website" = "网站";
+"settings.twitter" = "@Shpigford";
+"settings.github" = "GitHub";
+"settings.license" = "根据 MIT 许可证免费开源。";
+
+/* Remote Servers Settings */
+"remoteServers.header" = "远程服务器";
+"remoteServers.description" = "连接到远程服务器以通过 SSH 浏览和编辑技能。需要基于密钥的身份验证。";
+"remoteServers.addServer" = "添加服务器...";
+"remoteServers.path" = "路径：%@";
+"remoteServers.synced" = "已同步 %@";
+"remoteServers.test" = "测试";
+"remoteServers.sync" = "同步";
+"remoteServers.edit" = "编辑";
+"remoteServers.error" = "错误：%@";
+"remoteServers.addTitle" = "添加远程服务器";
+"remoteServers.label" = "标签";
+"remoteServers.labelPlaceholder" = "生产服务器";
+"remoteServers.host" = "主机";
+"remoteServers.hostPlaceholder" = "192.168.1.100";
+"remoteServers.port" = "端口";
+"remoteServers.portPlaceholder" = "22";
+"remoteServers.username" = "用户名";
+"remoteServers.usernamePlaceholder" = "root";
+"remoteServers.basePath" = "基础路径";
+"remoteServers.basePathPlaceholder" = "例如 ~/.openclaw、~/skills";
+"remoteServers.sshKeyPath" = "SSH 密钥路径";
+"remoteServers.sshKeyPathPlaceholder" = "可选 — 例如 ~/.ssh/id_ed25519";
+"remoteServers.connectionSuccessful" = "连接成功";
+"remoteServers.testConnection" = "测试连接";
+"remoteServers.add" = "添加";
+"remoteServers.editTitle" = "编辑服务器";
+"remoteServers.save" = "保存";
+
+/* Diagnostic Export */
+"diagnostic.title" = "Chops 诊断报告";
+"diagnostic.generated" = "生成时间：%@";
+"diagnostic.system" = "系统";
+"diagnostic.appVersion" = "应用版本：%@ (%@)";
+"diagnostic.macOS" = "macOS：%@";
+"diagnostic.memory" = "内存：%.1f GB";
+"diagnostic.items" = "项目";
+"diagnostic.total" = "总计：%d";
+"diagnostic.skills" = "技能：%d";
+"diagnostic.agents" = "代理：%d";
+"diagnostic.customScanPaths" = "自定义扫描路径";
+"diagnostic.none" = "（无）";
+"diagnostic.recentLogs" = "最近日志";
+"diagnostic.unableToCollectLogs" = "（无法收集日志）";
+"diagnostic.noLogEntries" = "（过去一小时内无日志条目）";
+
+/* Tool Display Names */
+"tool.claude" = "Claude Code";
+"tool.cursor" = "Cursor";
+"tool.windsurf" = "Windsurf";
+"tool.codex" = "Codex";
+"tool.copilot" = "Copilot";
+"tool.aider" = "Aider";
+"tool.amp" = "Amp";
+"tool.openclaw" = "OpenClaw";
+"tool.opencode" = "OpenCode";
+"tool.pi" = "Pi";
+"tool.global" = "Global";
+"tool.antigravity" = "Antigravity";
+"tool.claudeDesktop" = "Claude Desktop";
+"tool.custom" = "自定义";
+
+/* Common */
+"common.remote" = "远程";

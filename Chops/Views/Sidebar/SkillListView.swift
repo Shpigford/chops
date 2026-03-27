@@ -55,13 +55,13 @@ struct SkillListView: View {
 
     private var title: String {
         switch appState.sidebarFilter {
-        case .allSkills: "All Skills"
-        case .allAgents: "All Agents"
-        case .favorites: "Favorites"
+        case .allSkills: "sidebar.allSkills".localized
+        case .allAgents: "sidebar.allAgents".localized
+        case .favorites: "sidebar.favorites".localized
         case .tool(let tool): tool.displayName
         case .collection(let name): name
         case .server(let id):
-            allSkills.first(where: { $0.remoteServer?.id == id })?.remoteServer?.label ?? "Remote"
+            allSkills.first(where: { $0.remoteServer?.id == id })?.remoteServer?.label ?? "common.remote".localized
         }
     }
 
@@ -95,12 +95,12 @@ struct SkillListView: View {
                     .tag(skill)
                     .draggable(skill.resolvedPath)
                     .contextMenu {
-                        Button(skill.isFavorite ? "Unfavorite" : "Favorite") {
+                        Button(skill.isFavorite ? "skillList.unfavorite".localized : "skillList.favorite".localized) {
                             skill.isFavorite.toggle()
                             try? modelContext.save()
                         }
                         if !allCollections.isEmpty {
-                            Menu("Collections") {
+                            Menu("skillList.collections".localized) {
                                 ForEach(allCollections) { collection in
                                     let isAssigned = skill.collections.contains(where: { $0.name == collection.name })
                                     Button {
@@ -120,12 +120,12 @@ struct SkillListView: View {
                         }
                         if !skill.isRemote {
                             Divider()
-                            Button("Show in Finder") {
+                            Button("skillList.showInFinder".localized) {
                                 NSWorkspace.shared.selectFile(skill.filePath, inFileViewerRootedAtPath: "")
                             }
                         }
                         Divider()
-                        Button("Delete", role: .destructive) {
+                        Button("skillList.delete".localized, role: .destructive) {
                             activeAlert = .confirmDelete(skill)
                         }
                     }
@@ -136,29 +136,29 @@ struct SkillListView: View {
             switch alert {
             case .confirmDelete(let skill):
                 return Alert(
-                    title: Text("Delete \(skill.displayTypeName)?"),
-                    message: Text("This will permanently delete \"\(skill.name)\" from disk."),
-                    primaryButton: .destructive(Text("Delete")) {
+                    title: Text("skillList.deleteConfirmTitle".localized(skill.displayTypeName)),
+                    message: Text("skillList.deleteConfirmMessage".localized(skill.name)),
+                    primaryButton: .destructive(Text("skillList.delete".localized)) {
                         deleteSkill(skill)
                     },
                     secondaryButton: .cancel()
                 )
             case .deleteError(let message):
                 return Alert(
-                    title: Text("Delete Failed"),
+                    title: Text("skillList.deleteFailedTitle".localized),
                     message: Text(message),
-                    dismissButton: .default(Text("OK"))
+                    dismissButton: .default(Text("skillList.ok".localized))
                 )
             }
         }
         .overlay {
             if filteredSkills.isEmpty {
                 ContentUnavailableView(
-                    appState.sidebarFilter == .allAgents ? "No Agents" : "No Skills",
+                    appState.sidebarFilter == .allAgents ? "skillList.noAgents".localized : "skillList.noSkills".localized,
                     systemImage: appState.sidebarFilter == .allAgents ? "person.crop.rectangle" : "doc.text",
                     description: Text(appState.sidebarFilter == .allAgents
-                        ? "No agents match the current filter."
-                        : "No skills match the current filter.")
+                        ? "skillList.noAgentsMatch".localized
+                        : "skillList.noSkillsMatch".localized)
                 )
             }
         }

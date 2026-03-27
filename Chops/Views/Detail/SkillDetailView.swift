@@ -47,8 +47,8 @@ struct SkillDetailView: View {
         .onReceive(NotificationCenter.default.publisher(for: .saveCurrentSkill)) { _ in
             document.save(to: skill)
         }
-        .alert("Save Error", isPresented: $document.showingSaveError) {
-            Button("OK") {}
+        .alert("detail.saveError".localized, isPresented: $document.showingSaveError) {
+            Button("skillList.ok".localized) {}
         } message: {
             Text(document.saveErrorMessage)
         }
@@ -76,7 +76,7 @@ struct SkillDetailView: View {
                     } label: {
                         Image(systemName: "folder")
                     }
-                    .help("Show in Finder")
+                    .help("detail.showInFinder".localized)
                 }
             }
             ToolbarItem {
@@ -85,25 +85,25 @@ struct SkillDetailView: View {
                 } label: {
                     Image(systemName: "trash")
                 }
-                .help("Delete \(skill.displayTypeName)")
+                .help(skill.itemKind == .skill ? "detail.deleteSkill".localized : "detail.deleteAgent".localized)
             }
         }
         .alert(item: $activeAlert) { alert in
             switch alert {
             case .confirmDelete:
                 return Alert(
-                    title: Text("Delete \(skill.displayTypeName)?"),
-                    message: Text("This will permanently delete \"\(skill.name)\" from disk."),
-                    primaryButton: .destructive(Text("Delete")) {
+                    title: Text("skillList.deleteConfirmTitle".localized(skill.displayTypeName)),
+                    message: Text("skillList.deleteConfirmMessage".localized(skill.name)),
+                    primaryButton: .destructive(Text("skillList.delete".localized)) {
                         deleteSkill()
                     },
                     secondaryButton: .cancel()
                 )
             case .deleteError(let message):
                 return Alert(
-                    title: Text("Delete Failed"),
+                    title: Text("skillList.deleteFailedTitle".localized),
                     message: Text(message),
-                    dismissButton: .default(Text("OK"))
+                    dismissButton: .default(Text("skillList.ok".localized))
                 )
             }
         }

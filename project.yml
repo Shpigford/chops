@@ -31,6 +31,8 @@ targets:
         excludes:
           - "*.entitlements"
           - Info.plist
+    resources:
+      - path: Chops/Resources
     dependencies:
       - package: Sparkle
       - package: MarkdownUI

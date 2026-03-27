@@ -34,7 +34,7 @@ struct ChopsApp: App {
         .modelContainer(sharedModelContainer)
         .commands {
             CommandGroup(replacing: .saveItem) {
-                Button("Save") {
+                Button("menu.save".localized) {
                     NotificationCenter.default.post(name: .saveCurrentSkill, object: nil)
                 }
                 .keyboardShortcut("s", modifiers: .command)
@@ -44,7 +44,7 @@ struct ChopsApp: App {
                 CheckForUpdatesView(updater: updaterController.updater)
             }
             CommandGroup(after: .help) {
-                Button("Export Diagnostic Log…") {
+                Button("menu.exportDiagnostic".localized) {
                     let context = sharedModelContainer.mainContext
                     DiagnosticExporter.export(modelContext: context)
                 }
@@ -71,7 +71,7 @@ struct CheckForUpdatesView: View {
     }
 
     var body: some View {
-        Button("Check for Updates…") {
+        Button("menu.checkForUpdates".localized) {
             updater.checkForUpdates()
         }
         .disabled(!checkForUpdatesViewModel.canCheckForUpdates)

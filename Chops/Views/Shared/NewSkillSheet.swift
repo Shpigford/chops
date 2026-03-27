@@ -21,15 +21,15 @@ struct NewSkillSheet: View {
 
     var body: some View {
         VStack(spacing: 20) {
-            Text(isAgent ? "New Agent" : "New Skill")
+            Text(isAgent ? "newSkill.titleAgent".localized : "newSkill.titleSkill".localized)
                 .font(.title2)
                 .fontWeight(.bold)
 
             Form {
-                TextField(isAgent ? "Agent name" : "Skill name", text: $skillName)
+                TextField(isAgent ? "newSkill.agentName".localized : "newSkill.skillName".localized, text: $skillName)
                     .textFieldStyle(.roundedBorder)
 
-                Picker("Tool", selection: $selectedTool) {
+                Picker("newSkill.tool".localized, selection: $selectedTool) {
                     ForEach(creatableTools) { tool in
                         Label(tool.displayName, systemImage: tool.iconName)
                             .tag(tool)
@@ -45,14 +45,14 @@ struct NewSkillSheet: View {
             }
 
             HStack {
-                Button("Cancel") {
+                Button("newSkill.cancel".localized) {
                     dismiss()
                 }
                 .keyboardShortcut(.cancelAction)
 
                 Spacer()
 
-                Button("Create") {
+                Button("newSkill.create".localized) {
                     createItem()
                 }
                 .keyboardShortcut(.defaultAction)
@@ -83,7 +83,7 @@ struct NewSkillSheet: View {
             .filter { $0.isLetter || $0.isNumber || $0 == "-" }
 
         guard !sanitizedName.isEmpty else {
-            errorMessage = "Invalid name"
+            errorMessage = "newSkill.invalidName".localized
             return
         }
 
@@ -93,7 +93,7 @@ struct NewSkillSheet: View {
         if isAgent {
             // Agents go into the tool's agents/ directory
             guard let agentDir = selectedTool.globalAgentPaths.first else {
-                errorMessage = "This tool doesn't support agents"
+                errorMessage = "newSkill.noAgentSupport".localized
                 return
             }
             basePath = "\(agentDir)/\(sanitizedName)"
@@ -138,7 +138,7 @@ struct NewSkillSheet: View {
             let filePath = "\(basePath)/\(fileName)"
 
             guard !fm.fileExists(atPath: filePath) else {
-                errorMessage = isAgent ? "An agent with this name already exists" : "A skill with this name already exists"
+                errorMessage = isAgent ? "newSkill.duplicateAgent".localized : "newSkill.duplicateSkill".localized
                 return
             }
 

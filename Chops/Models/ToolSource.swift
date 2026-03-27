@@ -20,20 +20,20 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
 
     var displayName: String {
         switch self {
-        case .claude: "Claude Code"
-        case .cursor: "Cursor"
-        case .windsurf: "Windsurf"
-        case .codex: "Codex"
-        case .copilot: "Copilot"
-        case .aider: "Aider"
-        case .amp: "Amp"
-        case .openclaw: "OpenClaw"
-        case .opencode: "OpenCode"
-        case .pi: "Pi"
-        case .agents: "Global"
-        case .antigravity: "Antigravity"
-        case .claudeDesktop: "Claude Desktop"
-        case .custom: "Custom"
+        case .claude: "tool.claude".localized
+        case .cursor: "tool.cursor".localized
+        case .windsurf: "tool.windsurf".localized
+        case .codex: "tool.codex".localized
+        case .copilot: "tool.copilot".localized
+        case .aider: "tool.aider".localized
+        case .amp: "tool.amp".localized
+        case .openclaw: "tool.openclaw".localized
+        case .opencode: "tool.opencode".localized
+        case .pi: "tool.pi".localized
+        case .agents: "tool.global".localized
+        case .antigravity: "tool.antigravity".localized
+        case .claudeDesktop: "tool.claudeDesktop".localized
+        case .custom: "tool.custom".localized
         }
     }
 

@@ -25,21 +25,21 @@ struct SidebarView: View {
         @Bindable var appState = appState
 
         List(selection: $appState.sidebarFilter) {
-            Section("Library") {
-                Label("All Skills", systemImage: "doc.text")
+            Section("sidebar.library".localized) {
+                Label("sidebar.allSkills".localized, systemImage: "doc.text")
                     .badge(allSkills.filter { $0.itemKind == .skill }.count)
                     .tag(SidebarFilter.allSkills)
 
-                Label("All Agents", systemImage: "person.crop.rectangle")
+                Label("sidebar.allAgents".localized, systemImage: "person.crop.rectangle")
                     .badge(allSkills.filter { $0.itemKind == .agent }.count)
                     .tag(SidebarFilter.allAgents)
 
-                Label("Favorites", systemImage: "star")
+                Label("sidebar.favorites".localized, systemImage: "star")
                     .badge(allSkills.filter(\.isFavorite).count)
                     .tag(SidebarFilter.favorites)
             }
 
-            Section("Tools") {
+            Section("sidebar.tools".localized) {
                 ForEach(activeSources) { tool in
                     Label {
                         Text(tool.displayName)
@@ -52,7 +52,7 @@ struct SidebarView: View {
             }
 
             if !servers.isEmpty {
-                Section("Servers") {
+                Section("sidebar.servers".localized) {
                     ForEach(servers) { server in
                         HStack {
                             Label {
@@ -95,7 +95,7 @@ struct SidebarView: View {
                                 }
                             }
                             .buttonStyle(.plain)
-                            .help("Sync skills from server")
+                            .help("sidebar.syncFromServer".localized)
                             .disabled(syncingServerIDs.contains(server.id))
                         }
                         .badge(server.skills.count)
@@ -104,12 +104,12 @@ struct SidebarView: View {
                 }
             }
 
-            Section("Collections") {
+            Section("sidebar.collections".localized) {
                 CollectionListView()
             }
         }
         .listStyle(.sidebar)
-        .navigationTitle("Chops")
+        .navigationTitle("sidebar.appTitle".localized)
     }
 
     private func syncServer(_ server: RemoteServer) {

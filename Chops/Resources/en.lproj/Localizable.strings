@@ -1,0 +1,181 @@
+/* Navigation & Sidebar */
+"sidebar.library" = "Library";
+"sidebar.allSkills" = "All Skills";
+"sidebar.allAgents" = "All Agents";
+"sidebar.favorites" = "Favorites";
+"sidebar.tools" = "Tools";
+"sidebar.servers" = "Servers";
+"sidebar.collections" = "Collections";
+"sidebar.appTitle" = "Chops";
+"sidebar.syncFromServer" = "Sync skills from server";
+
+/* Skill List & Actions */
+"skillList.noAgents" = "No Agents";
+"skillList.noSkills" = "No Skills";
+"skillList.noAgentsMatch" = "No agents match the current filter.";
+"skillList.noSkillsMatch" = "No skills match the current filter.";
+"skillList.unfavorite" = "Unfavorite";
+"skillList.favorite" = "Favorite";
+"skillList.collections" = "Collections";
+"skillList.showInFinder" = "Show in Finder";
+"skillList.delete" = "Delete";
+"skillList.deleteConfirmTitle" = "Delete %@?";
+"skillList.deleteConfirmMessage" = "This will permanently delete \"%@\" from disk.";
+"skillList.deleteFailedTitle" = "Delete Failed";
+"skillList.ok" = "OK";
+
+/* Detail View */
+"detail.showInFinder" = "Show in Finder";
+"detail.deleteSkill" = "Delete Skill";
+"detail.deleteAgent" = "Delete Agent";
+"detail.saveError" = "Save Error";
+
+/* Editor */
+"editor.loadingFromServer" = "Loading from server...";
+"editor.saving" = "Saving...";
+"editor.modified" = "Modified";
+
+/* Metadata Bar */
+"metadata.collections" = "Collections";
+"metadata.noCollections" = "No collections yet";
+
+/* Collections */
+"collections.placeholder" = "Collection name";
+"collections.duplicateName" = "A collection with this name already exists";
+"collections.emptyName" = "Collection name can't be empty";
+"collections.rename" = "Rename";
+"collections.delete" = "Delete";
+"collections.new" = "New Collection";
+"collections.error" = "Collection Error";
+"collections.cancel" = "Cancel";
+"collections.create" = "Create";
+
+/* Content View */
+"content.selectAgent" = "Select an Agent";
+"content.selectAgentDescription" = "Choose an agent from the sidebar to view and edit it.";
+"content.selectSkill" = "Select a Skill";
+"content.selectSkillDescription" = "Choose a skill from the sidebar to view and edit it.";
+"content.searchAgents" = "Search agents...";
+"content.searchSkills" = "Search skills...";
+"content.newSkill" = "New Skill";
+"content.newAgent" = "New Agent";
+"content.browseRegistry" = "Browse Registry";
+"content.add" = "Add";
+
+/* App Menu */
+"menu.save" = "Save";
+"menu.checkForUpdates" = "Check for Updates…";
+"menu.exportDiagnostic" = "Export Diagnostic Log…";
+
+/* New Skill/Agent Sheet */
+"newSkill.titleAgent" = "New Agent";
+"newSkill.titleSkill" = "New Skill";
+"newSkill.agentName" = "Agent name";
+"newSkill.skillName" = "Skill name";
+"newSkill.tool" = "Tool";
+"newSkill.invalidName" = "Invalid name";
+"newSkill.duplicateAgent" = "An agent with this name already exists";
+"newSkill.duplicateSkill" = "A skill with this name already exists";
+"newSkill.noAgentSupport" = "This tool doesn't support agents";
+"newSkill.cancel" = "Cancel";
+"newSkill.create" = "Create";
+
+/* Registry Browser */
+"registry.back" = "Back";
+"registry.installSkill" = "Install Skill";
+"registry.browseSkills" = "Browse Skills";
+"registry.cancel" = "Cancel";
+"registry.searchPlaceholder" = "Search skills (e.g. react, testing, deploy)...";
+"registry.searchTitle" = "Search the Skills Registry";
+"registry.searchDescription" = "Find and install skills from the open agent skills ecosystem.";
+"registry.installTo" = "Install to:";
+"registry.selectAll" = "Select All";
+"registry.deselectAll" = "Deselect All";
+"registry.noAgentsDetected" = "No supported agents detected on this machine.";
+"registry.installsCount" = "%d installs";
+"registry.loadingContent" = "Loading skill content...";
+"registry.installed" = "Installed!";
+"registry.install" = "Install";
+
+/* Settings */
+"settings.general" = "General";
+"settings.scanDirectories" = "Scan Directories";
+"settings.servers" = "Servers";
+"settings.about" = "About";
+"settings.defaultTool" = "Default tool";
+"settings.customScanDirectories" = "Custom Scan Directories";
+"settings.scanDescription" = "Add a parent directory (e.g. ~/Development) and Chops will scan each project inside it for tool-specific skills and agents.";
+"settings.addDirectory" = "Add Directory...";
+"settings.appName" = "Chops";
+"settings.version" = "Version %@ (%@)";
+"settings.tagline" = "Your AI skills and agents, finally organized.";
+"settings.checkForUpdates" = "Check for Updates";
+"settings.website" = "Website";
+"settings.twitter" = "@Shpigford";
+"settings.github" = "GitHub";
+"settings.license" = "Free and open source under the MIT License.";
+
+/* Remote Servers Settings */
+"remoteServers.header" = "Remote Servers";
+"remoteServers.description" = "Connect to remote servers to browse and edit skills via SSH. Requires key-based authentication.";
+"remoteServers.addServer" = "Add Server...";
+"remoteServers.path" = "Path: %@";
+"remoteServers.synced" = "Synced %@";
+"remoteServers.test" = "Test";
+"remoteServers.sync" = "Sync";
+"remoteServers.edit" = "Edit";
+"remoteServers.error" = "Error: %@";
+"remoteServers.addTitle" = "Add Remote Server";
+"remoteServers.label" = "Label";
+"remoteServers.labelPlaceholder" = "Production Server";
+"remoteServers.host" = "Host";
+"remoteServers.hostPlaceholder" = "192.168.1.100";
+"remoteServers.port" = "Port";
+"remoteServers.portPlaceholder" = "22";
+"remoteServers.username" = "Username";
+"remoteServers.usernamePlaceholder" = "root";
+"remoteServers.basePath" = "Base Path";
+"remoteServers.basePathPlaceholder" = "e.g. ~/.openclaw, ~/skills";
+"remoteServers.sshKeyPath" = "SSH Key Path";
+"remoteServers.sshKeyPathPlaceholder" = "Optional — e.g. ~/.ssh/id_ed25519";
+"remoteServers.connectionSuccessful" = "Connection successful";
+"remoteServers.testConnection" = "Test Connection";
+"remoteServers.add" = "Add";
+"remoteServers.editTitle" = "Edit Server";
+"remoteServers.save" = "Save";
+
+/* Diagnostic Export */
+"diagnostic.title" = "Chops Diagnostic Report";
+"diagnostic.generated" = "Generated: %@";
+"diagnostic.system" = "System";
+"diagnostic.appVersion" = "App Version: %@ (%@)";
+"diagnostic.macOS" = "macOS: %@";
+"diagnostic.memory" = "Memory: %.1f GB";
+"diagnostic.items" = "Items";
+"diagnostic.total" = "Total: %d";
+"diagnostic.skills" = "Skills: %d";
+"diagnostic.agents" = "Agents: %d";
+"diagnostic.customScanPaths" = "Custom Scan Paths";
+"diagnostic.none" = "(none)";
+"diagnostic.recentLogs" = "Recent Logs";
+"diagnostic.unableToCollectLogs" = "(Unable to collect logs)";
+"diagnostic.noLogEntries" = "(No log entries in the last hour)";
+
+/* Tool Display Names */
+"tool.claude" = "Claude Code";
+"tool.cursor" = "Cursor";
+"tool.windsurf" = "Windsurf";
+"tool.codex" = "Codex";
+"tool.copilot" = "Copilot";
+"tool.aider" = "Aider";
+"tool.amp" = "Amp";
+"tool.openclaw" = "OpenClaw";
+"tool.opencode" = "OpenCode";
+"tool.pi" = "Pi";
+"tool.global" = "Global";
+"tool.antigravity" = "Antigravity";
+"tool.claudeDesktop" = "Claude Desktop";
+"tool.custom" = "Custom";
+
+/* Common */
+"common.remote" = "Remote";

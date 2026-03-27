@@ -23,20 +23,20 @@ struct ContentView: View {
                 switch appState.sidebarFilter {
                 case .allAgents:
                     ContentUnavailableView(
-                        "Select an Agent",
+                        "content.selectAgent".localized,
                         systemImage: "person.crop.rectangle",
-                        description: Text("Choose an agent from the sidebar to view and edit it.")
+                        description: Text("content.selectAgentDescription".localized)
                     )
                 default:
                     ContentUnavailableView(
-                        "Select a Skill",
+                        "content.selectSkill".localized,
                         systemImage: "doc.text",
-                        description: Text("Choose a skill from the sidebar to view and edit it.")
+                        description: Text("content.selectSkillDescription".localized)
                     )
                 }
             }
         }
-        .searchable(text: $appState.searchText, prompt: appState.sidebarFilter == .allAgents ? "Search agents..." : "Search skills...")
+        .searchable(text: $appState.searchText, prompt: appState.sidebarFilter == .allAgents ? "content.searchAgents".localized : "content.searchSkills".localized)
         .onAppear {
             startScanning()
         }
@@ -53,22 +53,22 @@ struct ContentView: View {
                         appState.newItemKind = .skill
                         appState.showingNewSkillSheet = true
                     } label: {
-                        Label("New Skill", systemImage: "doc.text")
+                        Label("content.newSkill".localized, systemImage: "doc.text")
                     }
                     Button {
                         appState.newItemKind = .agent
                         appState.showingNewSkillSheet = true
                     } label: {
-                        Label("New Agent", systemImage: "person.crop.rectangle")
+                        Label("content.newAgent".localized, systemImage: "person.crop.rectangle")
                     }
                     Divider()
                     Button {
                         appState.showingRegistrySheet = true
                     } label: {
-                        Label("Browse Registry", systemImage: "globe")
+                        Label("content.browseRegistry".localized, systemImage: "globe")
                     }
                 } label: {
-                    Label("Add", systemImage: "plus")
+                    Label("content.add".localized, systemImage: "plus")
                 }
                 .menuIndicator(.hidden)
             }

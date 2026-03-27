@@ -36,7 +36,7 @@ struct CollectionListView: View {
             return
         }
         guard !hasDuplicateName(trimmed, excluding: collection.persistentModelID) else {
-            errorMessage = "A collection with this name already exists"
+            errorMessage = "collections.duplicateName".localized
             return
         }
         let oldName = collection.name
@@ -56,11 +56,11 @@ struct CollectionListView: View {
         errorMessage = nil
         let trimmed = normalizedName(newCollectionName)
         guard !trimmed.isEmpty else {
-            errorMessage = "Collection name can't be empty"
+            errorMessage = "collections.emptyName".localized
             return
         }
         guard !hasDuplicateName(trimmed) else {
-            errorMessage = "A collection with this name already exists"
+            errorMessage = "collections.duplicateName".localized
             return
         }
 
@@ -129,13 +129,13 @@ struct CollectionListView: View {
                         handleDrop(resolvedPaths, onto: collection)
                     }
                     .contextMenu {
-                        Button("Rename") {
+                        Button("collections.rename".localized) {
                             errorMessage = nil
                             editingName = collection.name
                             editingCollectionID = collection.persistentModelID
                         }
                         Divider()
-                        Button("Delete", role: .destructive) {
+                        Button("collections.delete".localized, role: .destructive) {
                             modelContext.delete(collection)
                             try? modelContext.save()
                         }
@@ -147,13 +147,13 @@ struct CollectionListView: View {
             errorMessage = nil
             showingNewCollection = true
         } label: {
-            Label("New Collection", systemImage: "plus.circle")
+            Label("collections.new".localized, systemImage: "plus.circle")
                 .foregroundStyle(.secondary)
         }
         .buttonStyle(.plain)
         .popover(isPresented: $showingNewCollection) {
             VStack(spacing: 12) {
-                TextField("Collection name", text: $newCollectionName)
+                TextField("collections.placeholder".localized, text: $newCollectionName)
                     .textFieldStyle(.roundedBorder)
                     .submitLabel(.done)
                     .onSubmit(createCollection)
@@ -184,23 +184,23 @@ struct CollectionListView: View {
                 }
 
                 HStack {
-                    Button("Cancel") {
+                    Button("collections.cancel".localized) {
                         errorMessage = nil
                         showingNewCollection = false
                     }
                     Spacer()
-                    Button("Create", action: createCollection)
+                    Button("collections.create".localized, action: createCollection)
                     .disabled(normalizedName(newCollectionName).isEmpty)
                 }
             }
             .padding()
             .frame(width: 240)
         }
-        .alert("Collection Error", isPresented: Binding(
+        .alert("collections.error".localized, isPresented: Binding(
             get: { errorMessage != nil && !showingNewCollection },
             set: { if !$0 { errorMessage = nil } }
         )) {
-            Button("OK") {}
+            Button("skillList.ok".localized) {}
         } message: {
             Text(errorMessage ?? "")
         }

@@ -14,22 +14,22 @@ struct SettingsView: View {
         TabView {
             generalSettings
                 .tabItem {
-                    Label("General", systemImage: "gearshape")
+                    Label("settings.general".localized, systemImage: "gearshape")
                 }
 
             scanSettings
                 .tabItem {
-                    Label("Scan Directories", systemImage: "folder.badge.gearshape")
+                    Label("settings.scanDirectories".localized, systemImage: "folder.badge.gearshape")
                 }
 
             RemoteServersSettingsView()
                 .tabItem {
-                    Label("Servers", systemImage: "server.rack")
+                    Label("settings.servers".localized, systemImage: "server.rack")
                 }
 
             aboutView
                 .tabItem {
-                    Label("About", systemImage: "info.circle")
+                    Label("settings.about".localized, systemImage: "info.circle")
                 }
         }
         .frame(width: 480, height: 380)
@@ -40,7 +40,7 @@ struct SettingsView: View {
 
     private var generalSettings: some View {
         Form {
-            Picker("Default tool", selection: $defaultTool) {
+            Picker("settings.defaultTool".localized, selection: $defaultTool) {
                 ForEach(ToolSource.allCases) { tool in
                     Text(tool.displayName).tag(tool)
                 }
@@ -52,10 +52,10 @@ struct SettingsView: View {
 
     private var scanSettings: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Custom Scan Directories")
+            Text("settings.customScanDirectories".localized)
                 .font(.headline)
 
-            Text("Add a parent directory (e.g. ~/Development) and Chops will scan each project inside it for tool-specific skills and agents.")
+            Text("settings.scanDescription".localized)
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
@@ -83,7 +83,7 @@ struct SettingsView: View {
 
             HStack {
                 Spacer()
-                Button("Add Directory...") {
+                Button("settings.addDirectory".localized) {
                     let panel = NSOpenPanel()
                     panel.canChooseFiles = false
                     panel.canChooseDirectories = true
@@ -117,47 +117,52 @@ struct SettingsView: View {
                     }
                 }
 
-            Text("Chops")
+            Text("settings.appName".localized)
                 .font(.title)
                 .fontWeight(.bold)
 
-            Text("Version \(appVersion)")
+            Text("settings.version".localized(appVersionParts.version, appVersionParts.build))
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
 
-            Text("Your AI skills and agents, finally organized.")
+            Text("settings.tagline".localized)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
 
             HStack(spacing: 16) {
-                Button("Check for Updates") {
+                Button("settings.checkForUpdates".localized) {
                     updater.checkForUpdates()
                 }
 
-                Button("Website") {
+                Button("settings.website".localized) {
                     NSWorkspace.shared.open(URL(string: "https://chops.md")!)
                 }
 
-                Button("@Shpigford") {
+                Button("settings.twitter".localized) {
                     NSWorkspace.shared.open(URL(string: "https://x.com/Shpigford")!)
                 }
 
-                Button("GitHub") {
+                Button("settings.github".localized) {
                     NSWorkspace.shared.open(URL(string: "https://github.com/Shpigford/chops")!)
                 }
             }
 
-            Text("Free and open source under the MIT License.")
+            Text("settings.license".localized)
                 .font(.caption)
                 .foregroundStyle(.tertiary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
-    private var appVersion: String {
+    private var appVersionParts: (version: String, build: String) {
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
         let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "?"
-        return "\(version) (\(build))"
+        return (version, build)
+    }
+
+    private var appVersion: String {
+        let parts = appVersionParts
+        return "\(parts.version) (\(parts.build))"
     }
 
     private func loadCustomPaths() {
