@@ -211,14 +211,6 @@ struct SkillEditorView: View {
                         .foregroundStyle(.secondary)
                 }
 
-                if document.hasUnsavedChanges {
-                    Text("Modified")
-                        .font(.caption)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(.orange.opacity(0.2), in: Capsule())
-                        .foregroundStyle(.orange)
-                }
             }
             .padding(12)
         }

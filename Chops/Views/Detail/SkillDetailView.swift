@@ -22,6 +22,7 @@ struct SkillDetailView: View {
     @AppStorage("preferPreview") private var preferPreview = false
     @State private var document = SkillEditorDocument()
     @State private var activeAlert: ActiveAlert?
+    @State private var autoSaveTask: Task<Void, Never>?
 
     var body: some View {
         @Bindable var document = document
@@ -42,7 +43,19 @@ struct SkillDetailView: View {
             document.load(from: skill)
         }
         .onChange(of: skill.filePath) {
+            autoSaveTask?.cancel()
             document.load(from: skill)
+        }
+        .onChange(of: document.editorContent) {
+            autoSaveTask?.cancel()
+            autoSaveTask = Task {
+                try? await Task.sleep(for: .seconds(1))
+                guard !Task.isCancelled, document.hasUnsavedChanges else { return }
+                document.save(to: skill)
+            }
+        }
+        .onDisappear {
+            autoSaveTask?.cancel()
         }
         .onReceive(NotificationCenter.default.publisher(for: .saveCurrentSkill)) { _ in
             document.save(to: skill)
