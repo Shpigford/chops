@@ -1,0 +1,58 @@
+name: Bug Report
+description: Something isn't working right
+labels: ["bug"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Describe the bug and what you expected to happen instead.
+      placeholder: "When I do X, Y happens. I expected Z."
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: How can we see this bug?
+      placeholder: |
+        1. Open Chops...
+        2. Navigate to...
+        3. See...
+    validations:
+      required: true
+
+  - type: input
+    id: app-version
+    attributes:
+      label: App version
+      description: "Found in Chops → Settings → About"
+      placeholder: "e.g. 1.9.0"
+    validations:
+      required: true
+
+  - type: input
+    id: macos-version
+    attributes:
+      label: macOS version
+      description: "Found in  → About This Mac"
+      placeholder: "e.g. 15.3"
+    validations:
+      required: true
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: If applicable, drag and drop screenshots here.
+    validations:
+      required: false
+
+  - type: textarea
+    id: file
+    attributes:
+      label: Problematic skill file
+      description: If a specific skill file triggers the bug, paste its path or contents here.
+    validations:
+      required: false
