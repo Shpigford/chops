@@ -1,54 +1,324 @@
 import SwiftUI
-import MarkdownUI
+import WebKit
 
 struct SkillPreviewView: View {
     let content: String
 
     var body: some View {
-        let parsed = RawFrontmatterParser.parse(content)
-
-        ScrollView {
-            VStack(alignment: .leading, spacing: 0) {
-                if let frontmatter = parsed?.frontmatter {
-                    FrontmatterBlockView(frontmatter: frontmatter)
-                        .padding(.bottom, 24)
-                }
-
-                Markdown(parsed?.content ?? content)
-                    .markdownTheme(.clearly)
-                    .markdownCodeSyntaxHighlighter(HighlightrSyntaxHighlighter())
-                    .textSelection(.enabled)
-            }
-            .padding(24)
-            .frame(maxWidth: 672, alignment: .leading)
-            .frame(maxWidth: .infinity)
-        }
-        .background(Color.clearlyBackground)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        MarkdownWebView(content: content)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
-// MARK: - Frontmatter Block
+// MARK: - WKWebView Wrapper
 
-private struct FrontmatterBlockView: View {
-    let frontmatter: String
+private struct MarkdownWebView: NSViewRepresentable {
+    let content: String
+    @Environment(\.colorScheme) private var colorScheme
 
-    var body: some View {
-        Text(frontmatter)
-            .font(.system(size: 12, design: .monospaced))
-            .foregroundStyle(Color.clearlyFmValue)
-            .textSelection(.enabled)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color.clearlyFmBg)
-            .overlay(
-                RoundedRectangle(cornerRadius: 6)
-                    .stroke(Color.clearlyFmBorder, lineWidth: 1)
-            )
-            .clipShape(RoundedRectangle(cornerRadius: 6))
+    private var contentHash: Int {
+        var hasher = Hasher()
+        hasher.combine(content)
+        hasher.combine(colorScheme)
+        return hasher.finalize()
     }
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator()
+    }
+
+    func makeNSView(context: Context) -> WKWebView {
+        let config = WKWebViewConfiguration()
+        config.preferences.isElementFullscreenEnabled = false
+        config.defaultWebpagePreferences.allowsContentJavaScript = false
+        let webView = WKWebView(frame: .zero, configuration: config)
+        webView.navigationDelegate = context.coordinator
+        webView.underPageBackgroundColor = Self.dynamicBgColor
+        loadHTML(in: webView, context: context)
+        return webView
+    }
+
+    private static let dynamicBgColor = NSColor(name: nil) { appearance in
+        appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+            ? NSColor(red: 0x1A/255.0, green: 0x1A/255.0, blue: 0x1A/255.0, alpha: 1)
+            : NSColor(red: 0xFA/255.0, green: 0xFA/255.0, blue: 0xFA/255.0, alpha: 1)
+    }
+
+    func updateNSView(_ webView: WKWebView, context: Context) {
+        webView.underPageBackgroundColor = Self.dynamicBgColor
+        if context.coordinator.lastContentHash != contentHash {
+            loadHTML(in: webView, context: context)
+        }
+    }
+
+    private func loadHTML(in webView: WKWebView, context: Context) {
+        context.coordinator.lastContentHash = contentHash
+        let parsed = RawFrontmatterParser.parse(content)
+        let isDarkMode = colorScheme == .dark
+        let markdownHTML = MarkdownRenderer.renderHTML(parsed?.content ?? content, isDarkMode: isDarkMode)
+        let themeCSS = MarkdownRenderer.themeCSS(isDarkMode: isDarkMode)
+
+        var bodyHTML = ""
+        if let fm = parsed?.frontmatter {
+            let escaped = fm
+                .replacingOccurrences(of: "&", with: "&amp;")
+                .replacingOccurrences(of: "<", with: "&lt;")
+                .replacingOccurrences(of: ">", with: "&gt;")
+            bodyHTML += "<pre class=\"frontmatter\">\(escaped)</pre>"
+        }
+        bodyHTML += markdownHTML
+
+        let html = """
+        <!DOCTYPE html>
+        <html>
+        <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data:;">
+        <style>\(themeCSS)
+        \(Self.css)</style>
+        </head>
+        <body>\(bodyHTML)</body>
+        </html>
+        """
+        webView.loadHTMLString(html, baseURL: nil)
+    }
+
+    final class Coordinator: NSObject, WKNavigationDelegate {
+        var lastContentHash: Int?
+
+        func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+            if navigationAction.navigationType == .linkActivated,
+               let url = navigationAction.request.url {
+                NSWorkspace.shared.open(url)
+                decisionHandler(.cancel)
+            } else {
+                decisionHandler(.allow)
+            }
+        }
+    }
+
+    // MARK: - CSS
+
+    private static let css = """
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+        font-size: 16px;
+        line-height: 1.6;
+        max-width: 672px;
+        margin: 0 auto;
+        padding: 24px 24px 40px;
+        color: #222222;
+        background-color: #FAFAFA;
+        -webkit-font-smoothing: antialiased;
+        -webkit-user-select: text;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        body {
+            color: #E0E0E0;
+            background-color: #1A1A1A;
+        }
+        a { color: #6699CC; }
+        code {
+            background-color: #2A2A2A !important;
+            color: #E07070 !important;
+        }
+        pre {
+            background-color: #2A2A2A !important;
+            border-color: #333333 !important;
+            color: #E0E0E0 !important;
+        }
+        pre code {
+            background: none !important;
+            color: #E0E0E0 !important;
+        }
+        blockquote {
+            border-left-color: #444444;
+            color: #999999;
+        }
+        table th {
+            background-color: #2A2A2A;
+            border-color: #444444;
+        }
+        table td {
+            border-color: #333333;
+        }
+        table tr:nth-child(even) {
+            background-color: #222222;
+        }
+        hr {
+            border-color: #333333;
+        }
+        pre.frontmatter {
+            color: #999999;
+            background-color: #222222;
+            border-color: #333333;
+        }
+        pre.highlighted-code code.hljs {
+            border-color: #333333;
+        }
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        font-weight: 700;
+        line-height: 1.3;
+        margin-top: 1.5em;
+        margin-bottom: 0.5em;
+    }
+
+    body > *:first-child {
+        margin-top: 0;
+    }
+
+    h1 { font-size: 2em; }
+    h2 { font-size: 1.5em; }
+    h3 { font-size: 1.25em; }
+    h4 { font-size: 1.1em; }
+
+    p {
+        margin-bottom: 1em;
+    }
+
+    a {
+        color: #3366AA;
+        text-decoration: none;
+    }
+    a:hover {
+        text-decoration: underline;
+    }
+
+    code {
+        font-family: "SF Mono", SFMono-Regular, Menlo, monospace;
+        font-size: 0.85em;
+        background-color: #F0F0F0;
+        color: #CC3333;
+        padding: 0.15em 0.35em;
+        border-radius: 3px;
+    }
+
+    pre {
+        background-color: #F5F5F5;
+        border: 1px solid #E0E0E0;
+        border-radius: 4px;
+        padding: 1em;
+        margin-bottom: 1em;
+        overflow-x: auto;
+    }
+
+    pre code {
+        background: none;
+        color: inherit;
+        padding: 0;
+        font-size: 0.85em;
+    }
+
+    pre.highlighted-code {
+        background: none;
+        border: none;
+        padding: 0;
+    }
+
+    pre.highlighted-code code.hljs {
+        border: 1px solid #E0E0E0;
+        border-radius: 4px;
+        font-size: 0.85em;
+    }
+
+    blockquote {
+        border-left: 3px solid #CCCCCC;
+        padding-left: 1em;
+        margin-left: 0;
+        margin-bottom: 1em;
+        color: #666666;
+        font-style: italic;
+    }
+
+    ul, ol {
+        margin-bottom: 1em;
+        padding-left: 1.5em;
+    }
+
+    li {
+        margin-bottom: 0.25em;
+    }
+
+    ul.contains-task-list {
+        list-style: none;
+        padding-left: 0;
+    }
+
+    li.task-list-item {
+        display: flex;
+        align-items: baseline;
+        gap: 0.5em;
+    }
+
+    li.task-list-item input[type="checkbox"] {
+        margin: 0;
+    }
+
+    table {
+        border-collapse: collapse;
+        width: 100%;
+        margin-bottom: 1em;
+    }
+
+    th, td {
+        text-align: left;
+        padding: 0.5em 0.75em;
+    }
+
+    th {
+        font-weight: 600;
+        background-color: #F5F5F5;
+        border-bottom: 2px solid #DDDDDD;
+    }
+
+    td {
+        border-bottom: 1px solid #EEEEEE;
+    }
+
+    tr:nth-child(even) {
+        background-color: #FAFAFA;
+    }
+
+    del {
+        text-decoration: line-through;
+        opacity: 0.6;
+    }
+
+    hr {
+        border: none;
+        border-top: 1px solid #DDDDDD;
+        margin: 2em 0;
+    }
+
+    img {
+        max-width: 100%;
+        height: auto;
+    }
+
+    pre.frontmatter {
+        font-family: "SF Mono", SFMono-Regular, Menlo, monospace;
+        font-size: 12px;
+        line-height: 1.5;
+        color: #333333;
+        background-color: #F0F0F0;
+        border: 1px solid transparent;
+        border-radius: 6px;
+        padding: 10px 12px;
+        margin-bottom: 24px;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+    }
+    """
 }
 
 private enum RawFrontmatterParser {
@@ -81,201 +351,4 @@ private enum RawFrontmatterParser {
 
         return nil
     }
-}
-
-// MARK: - Clearly Theme
-
-extension Theme {
-    static let clearly = Theme()
-        .text {
-            ForegroundColor(.clearlyText)
-            BackgroundColor(.clearlyBackground)
-            FontSize(16)
-        }
-        .code {
-            FontFamilyVariant(.monospaced)
-            FontSize(.em(0.85))
-            ForegroundColor(.clearlyCode)
-            BackgroundColor(.clearlyInlineCodeBg)
-        }
-        .strong {
-            FontWeight(.bold)
-        }
-        .link {
-            ForegroundColor(.clearlyLink)
-        }
-        .heading1 { configuration in
-            configuration.label
-                .relativeLineSpacing(.em(0.15))
-                .markdownMargin(top: .em(1.5), bottom: .em(0.5))
-                .markdownTextStyle {
-                    FontWeight(.bold)
-                    FontSize(.em(2))
-                }
-        }
-        .heading2 { configuration in
-            configuration.label
-                .relativeLineSpacing(.em(0.15))
-                .markdownMargin(top: .em(1.5), bottom: .em(0.5))
-                .markdownTextStyle {
-                    FontWeight(.bold)
-                    FontSize(.em(1.5))
-                }
-        }
-        .heading3 { configuration in
-            configuration.label
-                .relativeLineSpacing(.em(0.15))
-                .markdownMargin(top: .em(1.5), bottom: .em(0.5))
-                .markdownTextStyle {
-                    FontWeight(.bold)
-                    FontSize(.em(1.25))
-                }
-        }
-        .heading4 { configuration in
-            configuration.label
-                .relativeLineSpacing(.em(0.15))
-                .markdownMargin(top: .em(1.5), bottom: .em(0.5))
-                .markdownTextStyle {
-                    FontWeight(.bold)
-                    FontSize(.em(1.1))
-                }
-        }
-        .heading5 { configuration in
-            configuration.label
-                .relativeLineSpacing(.em(0.15))
-                .markdownMargin(top: .em(1.5), bottom: .em(0.5))
-                .markdownTextStyle {
-                    FontWeight(.bold)
-                }
-        }
-        .heading6 { configuration in
-            configuration.label
-                .relativeLineSpacing(.em(0.15))
-                .markdownMargin(top: .em(1.5), bottom: .em(0.5))
-                .markdownTextStyle {
-                    FontWeight(.bold)
-                    FontSize(.em(0.85))
-                    ForegroundColor(.clearlyBlockquoteText)
-                }
-        }
-        .paragraph { configuration in
-            configuration.label
-                .fixedSize(horizontal: false, vertical: true)
-                .relativeLineSpacing(.em(0.3))
-                .markdownMargin(top: 0, bottom: 16)
-        }
-        .blockquote { configuration in
-            HStack(spacing: 0) {
-                RoundedRectangle(cornerRadius: 1.5)
-                    .fill(Color.clearlyBlockquoteBorder)
-                    .frame(width: 3)
-                configuration.label
-                    .markdownTextStyle {
-                        ForegroundColor(.clearlyBlockquoteText)
-                        FontStyle(.italic)
-                    }
-                    .relativePadding(.horizontal, length: .em(1))
-            }
-            .fixedSize(horizontal: false, vertical: true)
-        }
-        .codeBlock { configuration in
-            ScrollView(.horizontal) {
-                configuration.label
-                    .fixedSize(horizontal: false, vertical: true)
-                    .relativeLineSpacing(.em(0.225))
-                    .markdownTextStyle {
-                        FontFamilyVariant(.monospaced)
-                        FontSize(.em(0.85))
-                    }
-                    .padding(16)
-            }
-            .background(Color.clearlyCodeBlockBg)
-            .overlay(
-                RoundedRectangle(cornerRadius: 6)
-                    .stroke(Color.clearlyCodeBlockBorder, lineWidth: 1)
-            )
-            .clipShape(RoundedRectangle(cornerRadius: 6))
-            .markdownMargin(top: 0, bottom: 16)
-        }
-        .listItem { configuration in
-            configuration.label
-                .markdownMargin(top: .em(0.25))
-        }
-        .table { configuration in
-            configuration.label
-                .fixedSize(horizontal: false, vertical: true)
-                .markdownTableBorderStyle(.init(color: .clearlyTableBorder))
-                .markdownTableBackgroundStyle(
-                    .alternatingRows(Color.clearlyBackground, Color.clearlyTableAltRow)
-                )
-                .markdownMargin(top: 0, bottom: 16)
-        }
-        .tableCell { configuration in
-            configuration.label
-                .markdownTextStyle {
-                    if configuration.row == 0 {
-                        FontWeight(.semibold)
-                    }
-                    BackgroundColor(nil)
-                }
-                .fixedSize(horizontal: false, vertical: true)
-                .padding(.vertical, 6)
-                .padding(.horizontal, 13)
-                .relativeLineSpacing(.em(0.25))
-        }
-        .thematicBreak {
-            Divider()
-                .overlay(Color.clearlyHr)
-                .markdownMargin(top: .em(2), bottom: .em(2))
-        }
-}
-
-// MARK: - Color Palette
-
-private extension Color {
-    static let clearlyText = Color(
-        light: Color(rgba: 0x2222_22ff), dark: Color(rgba: 0xE0E0_E0ff)
-    )
-    static let clearlyBackground = Color(
-        light: Color(rgba: 0xFAFA_FAff), dark: Color(rgba: 0x1A1A_1Aff)
-    )
-    static let clearlyCode = Color(
-        light: Color(rgba: 0xCC33_33ff), dark: Color(rgba: 0xE070_70ff)
-    )
-    static let clearlyCodeBlockBg = Color(
-        light: Color(rgba: 0xF5F5_F5ff), dark: Color(rgba: 0x2A2A_2Aff)
-    )
-    static let clearlyCodeBlockBorder = Color(
-        light: Color(rgba: 0xE0E0_E0ff), dark: Color(rgba: 0x3333_33ff)
-    )
-    static let clearlyInlineCodeBg = Color(
-        light: Color(rgba: 0xF0F0_F0ff), dark: Color(rgba: 0x2A2A_2Aff)
-    )
-    static let clearlyLink = Color(
-        light: Color(rgba: 0x3366_AAff), dark: Color(rgba: 0x6699_CCff)
-    )
-    static let clearlyBlockquoteText = Color(
-        light: Color(rgba: 0x6666_66ff), dark: Color(rgba: 0x9999_99ff)
-    )
-    static let clearlyBlockquoteBorder = Color(
-        light: Color(rgba: 0xCCCC_CCff), dark: Color(rgba: 0x4444_44ff)
-    )
-    static let clearlyHr = Color(
-        light: Color(rgba: 0xDDDD_DDff), dark: Color(rgba: 0x3333_33ff)
-    )
-    static let clearlyTableBorder = Color(
-        light: Color(rgba: 0xE0E0_E0ff), dark: Color(rgba: 0x3333_33ff)
-    )
-    static let clearlyTableAltRow = Color(
-        light: Color(rgba: 0xF5F5_F5ff), dark: Color(rgba: 0x2222_22ff)
-    )
-    static let clearlyFmBg = Color(
-        light: Color(rgba: 0xF0F0_F0ff), dark: Color(rgba: 0x2222_22ff)
-    )
-    static let clearlyFmBorder = Color(
-        light: .clear, dark: Color(rgba: 0x3333_33ff)
-    )
-    static let clearlyFmValue = Color(
-        light: Color(rgba: 0x3333_33ff), dark: Color(rgba: 0x9999_99ff)
-    )
 }

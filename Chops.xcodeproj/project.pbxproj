@@ -18,17 +18,16 @@
 		60A6711BAB0C3B8A3ACBF985 /* SkillParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5155D141EF812A3FE9ADF59C /* SkillParser.swift */; };
 		6A8E0927D95BB14C9F377F4E /* SkillScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6A5B26D335C1AFB6CDE8207 /* SkillScanner.swift */; };
 		71E92A838AB4D1D6DC6174AF /* NewSkillSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = F02A00F80E4712872205EA7B /* NewSkillSheet.swift */; };
-		791AA125E9170DBA81BCBE62 /* MarkdownUI in Frameworks */ = {isa = PBXBuildFile; productRef = B79B2B9912FC7D2ADEA22F84 /* MarkdownUI */; };
+		791AA125E9170DBA81BCBE62 /* Highlightr in Frameworks */ = {isa = PBXBuildFile; productRef = 704A14702546BFBD29BE27A8 /* Highlightr */; };
 		7A17C99C5EFAE3AA9E788D50 /* Collection.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9AFE1AF02B0F8057791C2A9 /* Collection.swift */; };
 		7EC6156934D559226BC78859 /* CollectionListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CA102A49ACFB23BC15794F8 /* CollectionListView.swift */; };
 		7FD1DE6640F9339D5E97E09A /* MDCParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A4F680B33C74A38FCF5ADD5 /* MDCParser.swift */; };
-		801A39D725B59A2F2BAF5DF2 /* Highlightr in Frameworks */ = {isa = PBXBuildFile; productRef = 704A14702546BFBD29BE27A8 /* Highlightr */; };
+		801A39D725B59A2F2BAF5DF2 /* cmark in Frameworks */ = {isa = PBXBuildFile; productRef = 9F4BE66CFE1E8401894FEF1F /* cmark */; };
 		846B58F3B105D1734DC6FA75 /* SkillRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FC9D3E83D8640CC258CF361 /* SkillRegistry.swift */; };
 		87A469B631CC80C89B14B1C7 /* SkillMetadataBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C812515FD8DC222B89745F2 /* SkillMetadataBar.swift */; };
 		95163AEB7980654C901EC693 /* Skill.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27D6ED655F951177D2152351 /* Skill.swift */; };
 		98434D3DDFEEC7239F6F7B79 /* RegistrySheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FCD6C2A8BE68F553A9CA392 /* RegistrySheet.swift */; };
 		99EE8F6124FE91AC9576D6FD /* FileWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD26AA4787A2E0CDC86AADC /* FileWatcher.swift */; };
-		9ED88D6237B36693ABE5CE85 /* HighlightrSyntaxHighlighter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D57F2C41F08F6E1BEFC5ADD4 /* HighlightrSyntaxHighlighter.swift */; };
 		A99BA179E0520DCDC98E1382 /* AppLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = F45D5C8E8C732B2F4A867E43 /* AppLogger.swift */; };
 		AAC4A3CBF2A9B4DF50608948 /* SSHService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6797D4AC1970DB9ACB5ACA73 /* SSHService.swift */; };
 		AFDC3DAB708B352A7606F119 /* DiagnosticExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5D3C2567FBF8DBA4DE957B3 /* DiagnosticExporter.swift */; };
@@ -41,6 +40,7 @@
 		CECE9BEEC1D933C543B66A4E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 17F7FE50C96124BA4EE43A6F /* Assets.xcassets */; };
 		D4C107BE303FC07CAF9C66AF /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60E0F71982C4AF0045962380 /* ContentView.swift */; };
 		E6F4E1CF50F2F78F5BA9BAC9 /* SkillPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E332B9970E6E3D00DCFBA3 /* SkillPreviewView.swift */; };
+		E7ED248D6F94C1B1DEF1E8BA /* MarkdownRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 372FA72F2C179B79470DF86A /* MarkdownRenderer.swift */; };
 		E98F7490B18A194F82ED2C0E /* SkillListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA64A368BBF950CD36C4F495 /* SkillListView.swift */; };
 		F98B1E8579B139FD2A801650 /* SearchService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC47BDE92105F4736B379F /* SearchService.swift */; };
 		FB295303DD30AED03290C726 /* SkillEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31B4DB87833D5160A11E39C9 /* SkillEditorView.swift */; };
@@ -57,6 +57,7 @@
 		2CF7822031FD82A28978D9C5 /* SidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarView.swift; sourceTree = "<group>"; };
 		31B4DB87833D5160A11E39C9 /* SkillEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillEditorView.swift; sourceTree = "<group>"; };
 		3314080A44DEB895223E36D5 /* RemoteServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteServer.swift; sourceTree = "<group>"; };
+		372FA72F2C179B79470DF86A /* MarkdownRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownRenderer.swift; sourceTree = "<group>"; };
 		3A4F680B33C74A38FCF5ADD5 /* MDCParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MDCParser.swift; sourceTree = "<group>"; };
 		4CA102A49ACFB23BC15794F8 /* CollectionListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionListView.swift; sourceTree = "<group>"; };
 		5155D141EF812A3FE9ADF59C /* SkillParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillParser.swift; sourceTree = "<group>"; };
@@ -78,7 +79,6 @@
 		B3F5CF5BB1FC8455FDDB004A /* Chops.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Chops.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C9AFE1AF02B0F8057791C2A9 /* Collection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Collection.swift; sourceTree = "<group>"; };
 		CAD26AA4787A2E0CDC86AADC /* FileWatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileWatcher.swift; sourceTree = "<group>"; };
-		D57F2C41F08F6E1BEFC5ADD4 /* HighlightrSyntaxHighlighter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HighlightrSyntaxHighlighter.swift; sourceTree = "<group>"; };
 		D5D3C2567FBF8DBA4DE957B3 /* DiagnosticExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiagnosticExporter.swift; sourceTree = "<group>"; };
 		E684304D1723CA691F40335B /* RemoteServersSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteServersSettingsView.swift; sourceTree = "<group>"; };
 		E6A5B26D335C1AFB6CDE8207 /* SkillScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillScanner.swift; sourceTree = "<group>"; };
@@ -92,8 +92,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				331F55021A7E6C9F0B666514 /* Sparkle in Frameworks */,
-				791AA125E9170DBA81BCBE62 /* MarkdownUI in Frameworks */,
-				801A39D725B59A2F2BAF5DF2 /* Highlightr in Frameworks */,
+				791AA125E9170DBA81BCBE62 /* Highlightr in Frameworks */,
+				801A39D725B59A2F2BAF5DF2 /* cmark in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -104,7 +104,7 @@
 			isa = PBXGroup;
 			children = (
 				7C77C5B30E6C885B39444E5B /* FrontmatterParser.swift */,
-				D57F2C41F08F6E1BEFC5ADD4 /* HighlightrSyntaxHighlighter.swift */,
+				372FA72F2C179B79470DF86A /* MarkdownRenderer.swift */,
 				3A4F680B33C74A38FCF5ADD5 /* MDCParser.swift */,
 			);
 			path = Utilities;
@@ -256,8 +256,8 @@
 			name = Chops;
 			packageProductDependencies = (
 				4338FC540625A275BBC9AAC9 /* Sparkle */,
-				B79B2B9912FC7D2ADEA22F84 /* MarkdownUI */,
 				704A14702546BFBD29BE27A8 /* Highlightr */,
+				9F4BE66CFE1E8401894FEF1F /* cmark */,
 			);
 			productName = Chops;
 			productReference = B3F5CF5BB1FC8455FDDB004A /* Chops.app */;
@@ -285,8 +285,8 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				7FA62842E4E9A8FD27AE24AF /* XCRemoteSwiftPackageReference "Highlightr" */,
-				7F6181572A727350272D9BEC /* XCRemoteSwiftPackageReference "swift-markdown-ui" */,
 				FD1D69AB767CC40E2CE9FED9 /* XCRemoteSwiftPackageReference "Sparkle" */,
+				05A6F59368DE6489DCD607F1 /* XCRemoteSwiftPackageReference "cmark-gfm" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = D3558033A0A7B4EE7E7234CE /* Products */;
@@ -325,8 +325,8 @@
 				AFDC3DAB708B352A7606F119 /* DiagnosticExporter.swift in Sources */,
 				99EE8F6124FE91AC9576D6FD /* FileWatcher.swift in Sources */,
 				CBD8FECF1C5A453C8B021665 /* FrontmatterParser.swift in Sources */,
-				9ED88D6237B36693ABE5CE85 /* HighlightrSyntaxHighlighter.swift in Sources */,
 				7FD1DE6640F9339D5E97E09A /* MDCParser.swift in Sources */,
+				E7ED248D6F94C1B1DEF1E8BA /* MarkdownRenderer.swift in Sources */,
 				71E92A838AB4D1D6DC6174AF /* NewSkillSheet.swift in Sources */,
 				98434D3DDFEEC7239F6F7B79 /* RegistrySheet.swift in Sources */,
 				5B81DED237A60776ADB04134 /* RemoteServer.swift in Sources */,
@@ -622,12 +622,12 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		7F6181572A727350272D9BEC /* XCRemoteSwiftPackageReference "swift-markdown-ui" */ = {
+		05A6F59368DE6489DCD607F1 /* XCRemoteSwiftPackageReference "cmark-gfm" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/gonzalezreal/swift-markdown-ui";
+			repositoryURL = "https://github.com/brokenhandsio/cmark-gfm.git";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 2.4.0;
+				minimumVersion = 2.1.0;
 			};
 		};
 		7FA62842E4E9A8FD27AE24AF /* XCRemoteSwiftPackageReference "Highlightr" */ = {
@@ -659,10 +659,10 @@
 			package = 7FA62842E4E9A8FD27AE24AF /* XCRemoteSwiftPackageReference "Highlightr" */;
 			productName = Highlightr;
 		};
-		B79B2B9912FC7D2ADEA22F84 /* MarkdownUI */ = {
+		9F4BE66CFE1E8401894FEF1F /* cmark */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 7F6181572A727350272D9BEC /* XCRemoteSwiftPackageReference "swift-markdown-ui" */;
-			productName = MarkdownUI;
+			package = 05A6F59368DE6489DCD607F1 /* XCRemoteSwiftPackageReference "cmark-gfm" */;
+			productName = cmark;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
