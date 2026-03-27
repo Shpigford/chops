@@ -33,6 +33,7 @@ struct ChopsApp: App {
         }
         .modelContainer(sharedModelContainer)
         .commands {
+            TextEditingCommands()
             CommandGroup(replacing: .saveItem) {
                 Button("Save") {
                     NotificationCenter.default.post(name: .saveCurrentSkill, object: nil)
