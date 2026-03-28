@@ -3,6 +3,20 @@
   <channel>
     <title>Chops</title>
     <item>
+      <title>Version 1.10.0</title>
+      <sparkle:version>1.10.0</sparkle:version>
+      <sparkle:shortVersionString>1.10.0</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
+      <pubDate>Fri, 27 Mar 2026 23:59:11 +0000</pubDate>
+      <description><![CDATA[<ul><li>Native markdown editor with syntax highlighting and formatting shortcuts (bold, italic, headings, links, lists)</li><li>Select and copy text from the skill preview</li><li>Find bar in the skill editor (Cmd+F)</li><li>Auto-save skill files after 1 second of inactivity</li></ul>]]></description>
+      <enclosure
+        url="https://github.com/Shpigford/chops/releases/download/v1.10.0/Chops.dmg"
+        sparkle:edSignature="/mNmqpaHj33NSPue4AHFXyuLqxwUpfr/7lVFY3b9EZkrnPOGbLwLGD2D/CrRsfmeXX3ohloopq4JOsk2JqxuDQ=="
+        length="4529350"
+        type="application/octet-stream"
+      />
+    </item>
+    <item>
       <title>Version 1.9.0</title>
       <sparkle:version>1.9.0</sparkle:version>
       <sparkle:shortVersionString>1.9.0</sparkle:shortVersionString>

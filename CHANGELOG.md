@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [1.10.0] - 2026-03-27
+
+- Native markdown editor with syntax highlighting and formatting shortcuts (bold, italic, headings, links, lists)
+- Select and copy text from the skill preview
+- Find bar in the skill editor (Cmd+F)
+- Auto-save skill files after 1 second of inactivity
+
 ## [1.9.0] - 2026-03-27
 
 - Scan and display agents alongside skills
