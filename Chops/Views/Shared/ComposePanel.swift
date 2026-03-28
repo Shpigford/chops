@@ -605,27 +605,38 @@ struct ComposePanel: View {
                 .clipShape(RoundedRectangle(cornerRadius: 8))
                 .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.secondary.opacity(0.25)))
 
-            Button {
-                sendMessage()
-            } label: {
-                Group {
-                    if isProcessing {
-                        ProgressView().controlSize(.small)
-                    } else {
-                        Image(systemName: "paperplane.fill")
-                    }
+            if isProcessing {
+                Button {
+                    acpClient?.cancelPrompt()
+                } label: {
+                    Image(systemName: "stop.fill")
+                        .font(.body)
+                        .foregroundStyle(.white)
+                        .frame(width: 36)
+                        .frame(maxHeight: .infinity)
+                        .background(Color.red.opacity(0.8))
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
                 }
-                .font(.body)
-                .foregroundStyle(.white)
-                .frame(width: 36)
-                .frame(maxHeight: .infinity)
-                .background(sendDisabled ? Color.accentColor.opacity(0.4) : Color.accentColor)
-                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .buttonStyle(.plain)
+                .help("Stop (⌘.)")
+                .keyboardShortcut(".", modifiers: .command)
+            } else {
+                Button {
+                    sendMessage()
+                } label: {
+                    Image(systemName: "paperplane.fill")
+                        .font(.body)
+                        .foregroundStyle(.white)
+                        .frame(width: 36)
+                        .frame(maxHeight: .infinity)
+                        .background(sendDisabled ? Color.accentColor.opacity(0.4) : Color.accentColor)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                }
+                .buttonStyle(.plain)
+                .disabled(sendDisabled)
+                .keyboardShortcut(.return, modifiers: .command)
+                .help("Send (⌘↩)")
             }
-            .buttonStyle(.plain)
-            .disabled(sendDisabled)
-            .keyboardShortcut(.return, modifiers: .command)
-            .help("Send (⌘↩)")
         }
         .fixedSize(horizontal: false, vertical: true)
         .padding(.horizontal, 12)
@@ -755,7 +766,7 @@ struct ComposePanel: View {
                     return
                 }
                 let prompt = buildPrompt(text: text, originalContent: original)
-                try await client.prompt(prompt)  // agent sets isProcessing true → false via defer
+                try await client.prompt(prompt)
                 isFirstTurn = false
 
                 let raw = client.responseText

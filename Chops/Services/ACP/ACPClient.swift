@@ -226,6 +226,18 @@ open class BaseACPAgent: ClientDelegate {
 
     func clearPendingWrites() { pendingWrites = [] }
 
+    /// Sends a session/cancel notification to the agent to interrupt the current turn.
+    func cancelPrompt() {
+        guard let client = acpClient, let sid = sessionId else { return }
+        Task {
+            do {
+                try await client.cancelSession(sessionId: sid)
+            } catch {
+                acpLog.error("Cancel failed: \(error.localizedDescription)")
+            }
+        }
+    }
+
     // MARK: - Permission
 
     func parkPermissionRequest(title: String, options: [PermissionOption]) async throws -> RequestPermissionResponse {
