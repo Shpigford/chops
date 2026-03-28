@@ -5,6 +5,7 @@ struct SkillListView: View {
     private enum ActiveAlert: Identifiable {
         case confirmDelete(Skill)
         case deleteError(String)
+        case copyError(String)
 
         var id: String {
             switch self {
@@ -12,6 +13,8 @@ struct SkillListView: View {
                 return "confirm-delete-\(skill.filePath)"
             case .deleteError(let message):
                 return "delete-error-\(message)"
+            case .copyError(let message):
+                return "copy-error-\(message)"
             }
         }
     }
@@ -123,6 +126,27 @@ struct SkillListView: View {
                         }
                         if !skill.isRemote {
                             Divider()
+                            
+                            // Copy to Agent menu - show only tools that have skills
+                            let availableTools = ToolSource.allCases.filter { tool in
+                                allSkills.contains { $0.toolSources.contains(tool) } && !skill.toolSources.contains(tool)
+                            }
+                            
+                            if !availableTools.isEmpty {
+                                Menu("Copy to Agent") {
+                                    ForEach(availableTools) { tool in
+                                        Button(tool.displayName) {
+                                            do {
+                                                try skill.copyToTool(tool)
+                                                try modelContext.save()
+                                            } catch {
+                                                activeAlert = .copyError(error.localizedDescription)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            
                             Button("Show in Finder") {
                                 NSWorkspace.shared.selectFile(skill.filePath, inFileViewerRootedAtPath: "")
                             }
@@ -149,6 +173,12 @@ struct SkillListView: View {
             case .deleteError(let message):
                 return Alert(
                     title: Text("Delete Failed"),
+                    message: Text(message),
+                    dismissButton: .default(Text("OK"))
+                )
+            case .copyError(let message):
+                return Alert(
+                    title: Text("Copy Failed"),
                     message: Text(message),
                     dismissButton: .default(Text("OK"))
                 )
