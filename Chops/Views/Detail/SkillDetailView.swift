@@ -23,6 +23,7 @@ struct SkillDetailView: View {
     @State private var document = SkillEditorDocument()
     @State private var activeAlert: ActiveAlert?
     @State private var autoSaveTask: Task<Void, Never>?
+    @State private var showingComposePanel = false
 
     var body: some View {
         @Bindable var document = document
@@ -32,6 +33,21 @@ struct SkillDetailView: View {
                 SkillPreviewView(content: document.editorContent)
             } else {
                 SkillEditorView(document: document)
+            }
+
+            // Inline compose panel
+            if showingComposePanel {
+                ComposePanel(
+                    content: $document.editorContent,
+                    isVisible: $showingComposePanel,
+                    skillName: skill.name,
+                    skillDescription: skill.skillDescription,
+                    frontmatter: skill.frontmatter,
+                    filePath: skill.filePath,
+                    workingDirectory: URL(fileURLWithPath: skill.filePath).deletingLastPathComponent(),
+                    templateType: .skill,
+                    onAccept: { document.save(to: skill) }
+                )
             }
 
             Divider()
@@ -67,11 +83,29 @@ struct SkillDetailView: View {
         }
         .toolbar {
             ToolbarItem {
+                Button {
+                    document.save(to: skill)
+                } label: {
+                    Label("Save", systemImage: "square.and.arrow.down")
+                }
+                .buttonStyle(.bordered)
+                .disabled(!document.hasUnsavedChanges)
+                .help("Save (⌘S)")
+            }
+            ToolbarItem {
                 Picker("Mode", selection: $preferPreview) {
                     Image(systemName: "pencil").tag(false)
                     Image(systemName: "eye").tag(true)
                 }
                 .pickerStyle(.segmented)
+            }
+            ToolbarItemGroup {
+                Button {
+                    showingComposePanel.toggle()
+                } label: {
+                    Image(systemName: showingComposePanel ? "sparkles.rectangle.stack.fill" : "sparkles")
+                }
+                .help(showingComposePanel ? "Hide Compose Panel" : "Compose with AI")
             }
             ToolbarItem {
                 Button {

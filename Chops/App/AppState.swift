@@ -18,4 +18,5 @@ enum SidebarFilter: Hashable {
     case tool(ToolSource)
     case collection(String)
     case server(String)
+    case wizardTemplate(WizardTemplateType)
 }

@@ -15,6 +15,9 @@ packages:
   Sparkle:
     url: https://github.com/sparkle-project/Sparkle
     from: "2.6.0"
+  ACP:
+    url: https://github.com/wiedymi/swift-acp
+    branch: main
   Highlightr:
     url: https://github.com/raspu/Highlightr
     from: "2.2.1"
@@ -36,6 +39,12 @@ targets:
       - package: Highlightr
       - package: cmark-gfm
         product: cmark
+      - package: ACP
+        product: ACP
+      - package: ACP
+        product: ACPModel
+      - package: ACP
+        product: ACPRegistry
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.joshpigford.Chops

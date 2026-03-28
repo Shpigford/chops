@@ -163,31 +163,49 @@ final class SkillScanner {
 
         guard isDir.boolValue else { return }
 
+        // Enumerate through the resolved directory so symlinked directories are traversed.
+        let resolvedDirectory = directory.resolvingSymlinksInPath()
+
         guard let contents = try? fm.contentsOfDirectory(
-            at: directory,
+            at: resolvedDirectory,
             includingPropertiesForKeys: [.isDirectoryKey, .isSymbolicLinkKey, .contentModificationDateKey, .fileSizeKey],
             options: [.skipsHiddenFiles]
         ) else { return }
 
-        for item in contents {
+        // Track both bases so each entry can be remapped back to the canonical path for storage.
+        let originalBase = directory.path
+        let resolvedBase = resolvedDirectory.path
+
+        for rawItem in contents {
             guard !Task.isCancelled else { return }
+            // Remap to canonical path for storage; use rawItem for filesystem operations.
+            let item: URL
+            if originalBase != resolvedBase, rawItem.path.hasPrefix(resolvedBase + "/") {
+                let suffix = String(rawItem.path.dropFirst(resolvedBase.count))
+                item = URL(fileURLWithPath: originalBase + suffix)
+            } else {
+                item = rawItem
+            }
             var itemIsDir: ObjCBool = false
-            fm.fileExists(atPath: item.path, isDirectory: &itemIsDir)
+            fm.fileExists(atPath: rawItem.path, isDirectory: &itemIsDir)
 
             if itemIsDir.boolValue {
                 let skillFile = item.appendingPathComponent("SKILL.md")
                 let agentsFile = item.appendingPathComponent("AGENTS.md")
+                let rawSkillFile = rawItem.appendingPathComponent("SKILL.md")
+                let rawAgentsFile = rawItem.appendingPathComponent("AGENTS.md")
 
-                if fm.fileExists(atPath: skillFile.path) {
+                if fm.fileExists(atPath: rawSkillFile.path) {
                     if let data = collectSkillData(at: skillFile, toolSource: toolSource, isDirectory: true, isGlobal: isGlobal, kind: kind) {
                         results.append(data)
                     }
-                } else if fm.fileExists(atPath: agentsFile.path) {
+                } else if fm.fileExists(atPath: rawAgentsFile.path) {
                     if let data = collectSkillData(at: agentsFile, toolSource: toolSource, isDirectory: true, isGlobal: isGlobal, kind: kind) {
                         results.append(data)
                     }
-                } else if kind == .agent, let agentFile = preferredAgentFile(in: item) {
-                    if let data = collectSkillData(at: agentFile, toolSource: toolSource, isDirectory: true, isGlobal: isGlobal, kind: kind) {
+                } else if kind == .agent, let agentFile = preferredAgentFile(in: rawItem) {
+                    let remappedAgentFile = item.appendingPathComponent(agentFile.lastPathComponent)
+                    if let data = collectSkillData(at: remappedAgentFile, toolSource: toolSource, isDirectory: true, isGlobal: isGlobal, kind: kind) {
                         results.append(data)
                     }
                 }
@@ -276,15 +294,16 @@ final class SkillScanner {
         let fm = FileManager.default
         let resolved = canonicalResolvedPath(for: fileURL, toolSource: toolSource)
 
-        guard let parsed = SkillParser.parse(fileURL: fileURL, toolSource: toolSource) else {
+        // Resolve symlinks for the actual read — fileURL may be a remapped canonical path
+        // that does not physically exist when a parent directory is a symlink.
+        let physicalURL = fileURL.resolvingSymlinksInPath()
+        guard let parsed = SkillParser.parse(fileURL: physicalURL, toolSource: toolSource) else {
             AppLogger.scanning.warning("Failed to parse: \(fileURL.path)")
             return nil
         }
 
-        // Use the actual filesystem path for attributes (resolved may be a canonical identifier)
-        let attrPath = fileURL.resolvingSymlinksInPath().path
-        let attrs = try? fm.attributesOfItem(atPath: attrPath)
-        let modDate = (attrs?[.modificationDate] as? Date) ?? .now
+        let attrs = try? fm.attributesOfItem(atPath: physicalURL.path)
+        let modDate  = (attrs?[.modificationDate] as? Date) ?? .now
         let fileSize = (attrs?[.size] as? Int) ?? 0
 
         let name: String

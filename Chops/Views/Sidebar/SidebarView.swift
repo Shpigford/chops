@@ -5,7 +5,6 @@ struct SidebarView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Skill.name) private var allSkills: [Skill]
-    @Query(sort: \SkillCollection.sortOrder) private var collections: [SkillCollection]
     @Query(sort: \RemoteServer.label) private var servers: [RemoteServer]
     @State private var syncingServerIDs: Set<String> = []
     @State private var serverErrors: [String: String] = [:]
@@ -13,7 +12,8 @@ struct SidebarView: View {
 
     private var activeSources: [ToolSource] {
         ToolSource.allCases.filter { tool in
-            allSkills.contains { $0.toolSources.contains(tool) }
+            guard tool.listable else { return false }
+            return allSkills.contains { $0.toolSources.contains(tool) }
         }
     }
 
@@ -27,12 +27,8 @@ struct SidebarView: View {
         List(selection: $appState.sidebarFilter) {
             Section("Library") {
                 Label("All Skills", systemImage: "doc.text")
-                    .badge(allSkills.filter { $0.itemKind == .skill }.count)
+                    .badge(allSkills.count)
                     .tag(SidebarFilter.allSkills)
-
-                Label("All Agents", systemImage: "person.crop.rectangle")
-                    .badge(allSkills.filter { $0.itemKind == .agent }.count)
-                    .tag(SidebarFilter.allAgents)
 
                 Label("Favorites", systemImage: "star")
                     .badge(allSkills.filter(\.isFavorite).count)
@@ -48,6 +44,13 @@ struct SidebarView: View {
                     }
                     .badge(toolCount(tool))
                     .tag(SidebarFilter.tool(tool))
+                }
+            }
+
+            Section("Wizard Templates") {
+                ForEach(WizardTemplateType.allCases) { templateType in
+                    Label(templateType.displayName, systemImage: templateType.icon)
+                        .tag(SidebarFilter.wizardTemplate(templateType))
                 }
             }
 
@@ -115,14 +118,13 @@ struct SidebarView: View {
     private func syncServer(_ server: RemoteServer) {
         syncingServerIDs.insert(server.id)
         serverErrors.removeValue(forKey: server.id)
-        Task {
-            let scanner = SkillScanner(modelContext: modelContext)
+        let context = modelContext
+        Task { @MainActor in
+            let scanner = SkillScanner(modelContext: context)
             await scanner.scanRemoteServer(server)
-            await MainActor.run {
-                syncingServerIDs.remove(server.id)
-                if let error = server.lastSyncError {
-                    serverErrors[server.id] = error
-                }
+            syncingServerIDs.remove(server.id)
+            if let error = server.lastSyncError {
+                serverErrors[server.id] = error
             }
         }
     }

@@ -5,6 +5,7 @@ import Sparkle
 @main
 struct ChopsApp: App {
     @State private var appState = AppState()
+    @AppStorage("ACPDebugLogging") private var debugLoggingEnabled = false
     private let updaterController: SPUStandardUpdaterController
 
     init() {
@@ -45,6 +46,8 @@ struct ChopsApp: App {
                 CheckForUpdatesView(updater: updaterController.updater)
             }
             CommandGroup(after: .help) {
+                Toggle("Enable Debug Logging", isOn: $debugLoggingEnabled)
+                Divider()
                 Button("Export Diagnostic Log…") {
                     let context = sharedModelContainer.mainContext
                     DiagnosticExporter.export(modelContext: context)

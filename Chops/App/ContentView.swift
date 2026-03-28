@@ -17,26 +17,19 @@ struct ContentView: View {
         } content: {
             SkillListView()
         } detail: {
-            if let skill = appState.selectedSkill {
+            if case .wizardTemplate(let templateType) = appState.sidebarFilter {
+                TemplateDetailView(templateType: templateType)
+            } else if let skill = appState.selectedSkill {
                 SkillDetailView(skill: skill)
             } else {
-                switch appState.sidebarFilter {
-                case .allAgents:
-                    ContentUnavailableView(
-                        "Select an Agent",
-                        systemImage: "person.crop.rectangle",
-                        description: Text("Choose an agent from the sidebar to view and edit it.")
-                    )
-                default:
-                    ContentUnavailableView(
-                        "Select a Skill",
-                        systemImage: "doc.text",
-                        description: Text("Choose a skill from the sidebar to view and edit it.")
-                    )
-                }
+                ContentUnavailableView(
+                    "Select a Skill",
+                    systemImage: "doc.text",
+                    description: Text("Choose a skill from the sidebar to view and edit it.")
+                )
             }
         }
-        .searchable(text: $appState.searchText, prompt: appState.sidebarFilter == .allAgents ? "Search agents..." : "Search skills...")
+        .searchable(text: $appState.searchText, prompt: "Search skills...")
         .onAppear {
             startScanning()
         }
@@ -54,12 +47,6 @@ struct ContentView: View {
                         appState.showingNewSkillSheet = true
                     } label: {
                         Label("New Skill", systemImage: "doc.text")
-                    }
-                    Button {
-                        appState.newItemKind = .agent
-                        appState.showingNewSkillSheet = true
-                    } label: {
-                        Label("New Agent", systemImage: "person.crop.rectangle")
                     }
                     Divider()
                     Button {

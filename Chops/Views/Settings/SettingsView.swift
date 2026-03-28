@@ -6,6 +6,8 @@ extension Notification.Name {
 }
 
 struct SettingsView: View {
+    private static let logger = AppLogger.settings
+
     let updater: SPUUpdater
     @State private var customPaths: [String] = []
     @State private var defaultTool: ToolSource = .claude
@@ -15,6 +17,11 @@ struct SettingsView: View {
             generalSettings
                 .tabItem {
                     Label("General", systemImage: "gearshape")
+                }
+
+            ACPSettingsView()
+                .tabItem {
+                    Label("AI Assist", systemImage: "sparkles")
                 }
 
             scanSettings
@@ -32,7 +39,7 @@ struct SettingsView: View {
                     Label("About", systemImage: "info.circle")
                 }
         }
-        .frame(width: 480, height: 380)
+        .frame(minWidth: 480, minHeight: 550, idealHeight: 600)
         .onAppear {
             loadCustomPaths()
         }

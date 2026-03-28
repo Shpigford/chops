@@ -49,8 +49,13 @@ No test suite exists. Validate manually by building and running.
 - `SkillScanner` — probes tool directories (~/.claude/skills/, ~/.cursor/rules/, etc.), parses frontmatter, upserts into SwiftData. Deduplicates via resolved symlink paths.
 - `FileWatcher` — FSEvents via `DispatchSourceFileSystemObject`, triggers re-scan on changes.
 - `SkillParser` → dispatches to `FrontmatterParser` (.md) or `MDCParser` (.mdc).
+- **ACP agent hierarchy** — `BaseACPAgent` owns all transport/session logic. Vendor subclasses override three hooks:
+  - `shouldFilter(JsonRpcMessage) → Bool` — drop messages before SDK decoding (e.g. Augment's `usage_update`)
+  - `postProcess(String) → String` — strip vendor-specific XML tags before text is stored
+  - `resolvePermission(title, options)` — present permission UI; hook for future session-wide allow-all
+  - `ACPAgentFactory.make(for: ToolSource)` instantiates the right subclass; `ComposePanel` holds `BaseACPAgent?`.
 
-**Views:** Three-column `NavigationSplitView` (Sidebar → List → Detail). Editor uses native `NSTextView` with markdown highlighting. Cmd+S save via `FocusedValues`.
+**Views:** Three-column `NavigationSplitView` (Sidebar → List → Detail). Editor uses native `NSTextView` with markdown highlighting. Cmd+S save via `FocusedValues`. Agent responses render via `MarkdownMessageView` (MarkdownUI `.gitHub` theme + syntax highlighting).
 
 **Tool sources** are defined in `ToolSource.swift` — each enum case knows its display name, icon, and filesystem paths to scan.
 
