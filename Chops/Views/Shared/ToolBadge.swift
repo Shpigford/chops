@@ -37,9 +37,12 @@ extension ToolSource {
     var shortLabel: String {
         switch self {
         case .claude: "CC"
+        case .claudeInternal: "CI"
         case .cursor: "CU"
         case .windsurf: "WS"
         case .codex: "CX"
+        case .codexInternal: "XI"
+        case .codebuddy: "CB"
         case .copilot: "CP"
         case .aider: "AI"
         case .amp: "AM"

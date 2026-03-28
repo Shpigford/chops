@@ -8,6 +8,7 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
     case windsurf
     case codex
     case codexInternal
+    case codebuddy
     case copilot
     case aider
     case amp
@@ -28,6 +29,7 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
         case .windsurf: "Windsurf"
         case .codex: "Codex"
         case .codexInternal: "Codex Internal"
+        case .codebuddy: "CodeBuddy"
         case .copilot: "Copilot"
         case .aider: "Aider"
         case .amp: "Amp"
@@ -50,6 +52,7 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
         case .windsurf: "wind"
         case .codex: "book.closed"
         case .codexInternal: "book.closed"
+        case .codebuddy: "hammer"
         case .copilot: "airplane"
         case .aider: "wrench.and.screwdriver"
         case .amp: "bolt.fill"
@@ -71,6 +74,7 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
         case .cursor: "tool-cursor"
         case .codex: "tool-codex"
         case .codexInternal: "tool-codex"
+        case .codebuddy: "tool-codebuddy"
         case .windsurf: "tool-windsurf"
         case .copilot: "tool-copilot"
         case .amp: "tool-amp"
@@ -89,6 +93,7 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
         case .windsurf: .teal
         case .codex: .green
         case .codexInternal: .mint
+        case .codebuddy: .blue
         case .copilot: .purple
         case .aider: .yellow
         case .amp: .pink
@@ -110,6 +115,7 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
         case .cursor: return ["\(home)/.cursor/agents"]
         case .codex: return ["\(home)/.codex/agents"]
         case .codexInternal: return ["\(home)/.codex-internal/agents"]
+        case .codebuddy: return ["\(home)/.codebuddy/agents"]
         default: return []
         }
     }
@@ -129,6 +135,7 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
         case .windsurf: return ["\(home)/.codeium/windsurf/memories", "\(home)/.windsurf/rules"]
         case .codex: return ["\(home)/.codex/skills"]
         case .codexInternal: return ["\(home)/.codex-internal/skills"]
+        case .codebuddy: return ["\(home)/.codebuddy/skills"]
         case .copilot: return ["\(home)/.copilot/skills"]
         case .aider: return []
         case .amp: return ["\(configHome)/amp/skills"]
@@ -173,6 +180,10 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
             return fm.fileExists(atPath: "\(home)/.codex-internal/config.toml")
                 || fm.fileExists(atPath: "\(home)/.codex-internal/auth.json")
                 || Self.cliBinaryExists("codex-internal")
+        case .codebuddy:
+            return fm.fileExists(atPath: "\(home)/.codebuddy/settings.json")
+                || fm.fileExists(atPath: "\(home)/.codebuddy/CODEBUDDY.md")
+                || Self.cliBinaryExists("codebuddy")
         case .amp:
             let configHome = ProcessInfo.processInfo.environment["XDG_CONFIG_HOME"]
                 .flatMap { $0.isEmpty ? nil : $0 } ?? "\(home)/.config"

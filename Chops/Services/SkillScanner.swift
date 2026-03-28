@@ -56,6 +56,8 @@ final class SkillScanner {
         (".cursor/agents", .cursor, .agent),
         (".codex/skills", .codex, .skill),
         (".codex/agents", .codex, .agent),
+        (".codebuddy/skills", .codebuddy, .skill),
+        (".codebuddy/agents", .codebuddy, .agent),
         (".windsurf/rules", .windsurf, .skill),
         (".github", .copilot, .skill),
         (".github/agents", .copilot, .agent),

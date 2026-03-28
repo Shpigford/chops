@@ -9,8 +9,8 @@ struct NewSkillSheet: View {
     @State private var selectedTool: ToolSource = .claude
     @State private var errorMessage: String?
 
-    private let skillCreatableTools: [ToolSource] = [.claude, .agents, .cursor, .codex, .amp, .opencode, .pi, .antigravity]
-    private let agentCreatableTools: [ToolSource] = [.claude, .cursor, .codex]
+    private let skillCreatableTools: [ToolSource] = [.claude, .agents, .cursor, .codex, .codebuddy, .amp, .opencode, .pi, .antigravity]
+    private let agentCreatableTools: [ToolSource] = [.claude, .cursor, .codex, .codebuddy]
 
     private var itemKind: ItemKind { appState.newItemKind }
     private var isAgent: Bool { itemKind == .agent }
@@ -113,6 +113,9 @@ struct NewSkillSheet: View {
             case .codex:
                 basePath = "\(fm.homeDirectoryForCurrentUser.path)/.codex/skills/\(sanitizedName)"
                 fileName = "SKILL.md"
+            case .codebuddy:
+                basePath = "\(fm.homeDirectoryForCurrentUser.path)/.codebuddy/skills/\(sanitizedName)"
+                fileName = "SKILL.md"
             case .amp:
                 basePath = "\(configHome)/amp/skills/\(sanitizedName)"
                 fileName = "SKILL.md"
@@ -204,7 +207,7 @@ struct NewSkillSheet: View {
 
             Add your skill instructions here.
             """
-        case .codex, .amp, .opencode, .pi, .agents, .antigravity:
+        case .codex, .codebuddy, .amp, .opencode, .pi, .agents, .antigravity:
             return """
             ---
             name: \(skillID)
