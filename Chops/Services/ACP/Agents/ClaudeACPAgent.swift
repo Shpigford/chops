@@ -140,14 +140,20 @@ final class ClaudeACPAgent: BaseACPAgent {
             for prefix in ["</\(tag)", "<\(tag)"] {
                 var i = result.startIndex
                 while i < result.endIndex,
-                      let open = result.range(of: prefix, range: i ..< result.endIndex),
-                      let close = result.range(of: ">", range: open.lowerBound ..< result.endIndex) {
+                      let open = result.range(of: prefix, range: i ..< result.endIndex) {
+                    // Search for closing '>' starting after the tag prefix, not from its start.
+                    guard let close = result.range(of: ">", range: open.upperBound ..< result.endIndex) else {
+                        // No closing '>' — malformed tag, advance past prefix to avoid infinite loop.
+                        i = open.upperBound
+                        continue
+                    }
                     result.removeSubrange(open.lowerBound ... close.lowerBound)
                     i = open.lowerBound
                 }
             }
         }
-        while result.contains("\n\n\n") { result = result.replacingOccurrences(of: "\n\n\n", with: "\n\n") }
+        // Collapse runs of 3+ consecutive newlines down to 2.
+        result = result.replacingOccurrences(of: "\n{3,}", with: "\n\n", options: .regularExpression)
         return result.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 

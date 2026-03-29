@@ -45,6 +45,10 @@
 		A99BA179E0520DCDC98E1382 /* AppLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = F45D5C8E8C732B2F4A867E43 /* AppLogger.swift */; };
 		AAC4A3CBF2A9B4DF50608948 /* SSHService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6797D4AC1970DB9ACB5ACA73 /* SSHService.swift */; };
 		AFDC3DAB708B352A7606F119 /* DiagnosticExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5D3C2567FBF8DBA4DE957B3 /* DiagnosticExporter.swift */; };
+		B369400C2F78B5D8003BB200 /* ChopsSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = B369400B2F78B5D8003BB200 /* ChopsSettings.swift */; };
+		B369400E2F78B5EC003BB200 /* LibrarySettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B369400D2F78B5EC003BB200 /* LibrarySettingsView.swift */; };
+		B36940102F78BCB5003BB200 /* ToolKindPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B369400F2F78BCB5003BB200 /* ToolKindPickerView.swift */; };
+		B36940122F78C0F5003BB200 /* ComposerPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B36940112F78C0F5003BB200 /* ComposerPickerView.swift */; };
 		B4526ECE136AC044CD3C7603 /* EditorTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = D24B049638C76AC6248FD5D2 /* EditorTheme.swift */; };
 		B5B95B9DA63A734F25470FF5 /* SchemaVersions.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F8AA042D5D8A9F92F35CA3 /* SchemaVersions.swift */; };
 		BD584933CCE2B650345C4CF1 /* ToolSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5487D9027B97F7E9EE9A1F4A /* ToolSource.swift */; };
@@ -114,6 +118,10 @@
 		A924245DDDA4C6A59BE15567 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		AA64A368BBF950CD36C4F495 /* SkillListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillListView.swift; sourceTree = "<group>"; };
 		B1F8AA042D5D8A9F92F35CA3 /* SchemaVersions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SchemaVersions.swift; sourceTree = "<group>"; };
+		B369400B2F78B5D8003BB200 /* ChopsSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChopsSettings.swift; sourceTree = "<group>"; };
+		B369400D2F78B5EC003BB200 /* LibrarySettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibrarySettingsView.swift; sourceTree = "<group>"; };
+		B369400F2F78BCB5003BB200 /* ToolKindPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolKindPickerView.swift; sourceTree = "<group>"; };
+		B36940112F78C0F5003BB200 /* ComposerPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposerPickerView.swift; sourceTree = "<group>"; };
 		B3F5CF5BB1FC8455FDDB004A /* Chops.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Chops.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B955C8B935BD62ED4811FCA2 /* DiffReviewPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiffReviewPanel.swift; sourceTree = "<group>"; };
 		C9AFE1AF02B0F8057791C2A9 /* Collection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Collection.swift; sourceTree = "<group>"; };
@@ -210,6 +218,7 @@
 				D5D3C2567FBF8DBA4DE957B3 /* DiagnosticExporter.swift */,
 				E684304D1723CA691F40335B /* RemoteServersSettingsView.swift */,
 				A924245DDDA4C6A59BE15567 /* SettingsView.swift */,
+				B369400D2F78B5EC003BB200 /* LibrarySettingsView.swift */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -262,6 +271,7 @@
 				27D6ED655F951177D2152351 /* Skill.swift */,
 				5487D9027B97F7E9EE9A1F4A /* ToolSource.swift */,
 				181FD0056E54DEB3957FB4DC /* WizardTemplate.swift */,
+				B369400B2F78B5D8003BB200 /* ChopsSettings.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -282,6 +292,8 @@
 				2CF7822031FD82A28978D9C5 /* SidebarView.swift */,
 				AA64A368BBF950CD36C4F495 /* SkillListView.swift */,
 				9A5774429CCE83C2AFBE046C /* ToolFilterView.swift */,
+				B369400F2F78BCB5003BB200 /* ToolKindPickerView.swift */,
+				B36940112F78C0F5003BB200 /* ComposerPickerView.swift */,
 			);
 			path = Sidebar;
 			sourceTree = "<group>";
@@ -353,8 +365,6 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
-				TargetAttributes = {
-				};
 			};
 			buildConfigurationList = 719777DE0F769FDB488A0FDB /* Build configuration list for PBXProject "Chops" */;
 			developmentRegion = en;
@@ -407,6 +417,7 @@
 				FD8D2544AE423F4AB2843C0F /* AgentTarget.swift in Sources */,
 				A99BA179E0520DCDC98E1382 /* AppLogger.swift in Sources */,
 				25A4FB387DB5BD96DB630C14 /* AppState.swift in Sources */,
+				B369400E2F78B5EC003BB200 /* LibrarySettingsView.swift in Sources */,
 				309B12E0B72A22C9772BBC99 /* ChopsApp.swift in Sources */,
 				91EA572FCA75A2EA848C3429 /* ChopsTextView.swift in Sources */,
 				62C6C8687D8A1E3C1EBBBC8C /* ClaudeACPAgent.swift in Sources */,
@@ -415,6 +426,7 @@
 				E46A2BA5FA20531A06AFB418 /* ComposeModel.swift in Sources */,
 				74045816B0CF10369DB51ADD /* ComposePanel.swift in Sources */,
 				D4C107BE303FC07CAF9C66AF /* ContentView.swift in Sources */,
+				B36940102F78BCB5003BB200 /* ToolKindPickerView.swift in Sources */,
 				C983C685C6296C2EF73CE57D /* CursorACPAgent.swift in Sources */,
 				AFDC3DAB708B352A7606F119 /* DiagnosticExporter.swift in Sources */,
 				6E02BA7498763274DD403CD0 /* DiffReviewPanel.swift in Sources */,
@@ -442,11 +454,13 @@
 				60A6711BAB0C3B8A3ACBF985 /* SkillParser.swift in Sources */,
 				E6F4E1CF50F2F78F5BA9BAC9 /* SkillPreviewView.swift in Sources */,
 				846B58F3B105D1734DC6FA75 /* SkillRegistry.swift in Sources */,
+				B369400C2F78B5D8003BB200 /* ChopsSettings.swift in Sources */,
 				6A8E0927D95BB14C9F377F4E /* SkillScanner.swift in Sources */,
 				08B4E2A065E192F17F2568B6 /* TemplateDetailView.swift in Sources */,
 				3F0ED402E77D8D25C600BAED /* TemplateManager.swift in Sources */,
 				038F5975DA97A3211EF4D448 /* ThinkingView.swift in Sources */,
 				53C393C13E30EC439317509F /* ToolBadge.swift in Sources */,
+				B36940122F78C0F5003BB200 /* ComposerPickerView.swift in Sources */,
 				C30BEAE03E54BD36F257A925 /* ToolFilterView.swift in Sources */,
 				BD584933CCE2B650345C4CF1 /* ToolSource.swift in Sources */,
 				F16A5D53C17EB72817E1282F /* WizardTemplate.swift in Sources */,

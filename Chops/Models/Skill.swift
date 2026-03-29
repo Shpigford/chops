@@ -4,6 +4,23 @@ import Foundation
 enum ItemKind: String, Codable, CaseIterable {
     case skill
     case agent
+    case rule
+
+    var displayName: String {
+        switch self {
+        case .skill: "Skills"
+        case .agent: "Agents"
+        case .rule: "Rules"
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .skill: "doc.text"
+        case .agent: "person.crop.rectangle"
+        case .rule: "list.bullet.rectangle"
+        }
+    }
 }
 
 @Model
@@ -34,7 +51,7 @@ final class Skill {
     /// All file paths where this skill is installed (JSON-encoded array)
     var installedPathsData: Data?
 
-    /// Discriminator: "skill" or "agent"
+    /// Raw `ItemKind` value. Defaults to `"skill"` for lightweight migration compatibility.
     var kind: String = ItemKind.skill.rawValue
 
     // MARK: - Computed
@@ -45,7 +62,11 @@ final class Skill {
     }
 
     var displayTypeName: String {
-        itemKind == .agent ? "Agent" : "Skill"
+        switch itemKind {
+        case .agent: "Agent"
+        case .rule: "Rule"
+        case .skill: "Skill"
+        }
     }
 
     var toolSources: [ToolSource] {
@@ -71,7 +92,11 @@ final class Skill {
             return (try? JSONDecoder().decode([String].self, from: data)) ?? [filePath]
         }
         set {
-            installedPathsData = try? JSONEncoder().encode(Array(Set(newValue)))
+            do {
+                installedPathsData = try JSONEncoder().encode(Array(Set(newValue)))
+            } catch {
+                AppLogger.fileIO.fault("Failed to encode installedPaths: \(error.localizedDescription)")
+            }
         }
     }
 
@@ -81,7 +106,11 @@ final class Skill {
             return (try? JSONDecoder().decode([String: String].self, from: data)) ?? [:]
         }
         set {
-            frontmatterData = try? JSONEncoder().encode(newValue)
+            do {
+                frontmatterData = try JSONEncoder().encode(newValue)
+            } catch {
+                AppLogger.fileIO.fault("Failed to encode frontmatter: \(error.localizedDescription)")
+            }
         }
     }
 
@@ -125,12 +154,12 @@ final class Skill {
         self.resolvedPath = resolvedPath.isEmpty ? filePath : resolvedPath
         self.filePath = filePath
         self.toolSourcesRaw = toolSource.rawValue
-        self.installedPathsData = try? JSONEncoder().encode([filePath])
+        self.installedPathsData = try? JSONEncoder().encode([filePath]) // [String] encode never throws
         self.isDirectory = isDirectory
         self.name = name
         self.skillDescription = skillDescription
         self.content = content
-        self.frontmatterData = try? JSONEncoder().encode(frontmatter)
+        self.frontmatterData = try? JSONEncoder().encode(frontmatter) // [String: String] encode never throws
 
         self.collections = collections
         self.isFavorite = isFavorite

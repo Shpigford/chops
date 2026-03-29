@@ -10,13 +10,18 @@ struct SettingsView: View {
 
     let updater: SPUUpdater
     @State private var customPaths: [String] = []
-    @State private var defaultTool: ToolSource = .claude
+    @AppStorage("defaultTool") private var defaultTool: ToolSource = .claude
 
     var body: some View {
         TabView {
             generalSettings
                 .tabItem {
                     Label("General", systemImage: "gearshape")
+                }
+
+            LibrarySettingsView()
+                .tabItem {
+                    Label("Library", systemImage: "books.vertical")
                 }
 
             ACPSettingsView()
@@ -142,15 +147,15 @@ struct SettingsView: View {
                 }
 
                 Button("Website") {
-                    NSWorkspace.shared.open(URL(string: "https://chops.md")!)
+                    if let url = URL(string: "https://chops.md") { NSWorkspace.shared.open(url) }
                 }
 
                 Button("@Shpigford") {
-                    NSWorkspace.shared.open(URL(string: "https://x.com/Shpigford")!)
+                    if let url = URL(string: "https://x.com/Shpigford") { NSWorkspace.shared.open(url) }
                 }
 
                 Button("GitHub") {
-                    NSWorkspace.shared.open(URL(string: "https://github.com/Shpigford/chops")!)
+                    if let url = URL(string: "https://github.com/Shpigford/chops") { NSWorkspace.shared.open(url) }
                 }
             }
 

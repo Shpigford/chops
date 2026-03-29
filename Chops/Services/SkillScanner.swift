@@ -52,11 +52,11 @@ final class SkillScanner {
         (".claude/skills", .claude, .skill),
         (".claude/agents", .claude, .agent),
         (".cursor/skills", .cursor, .skill),
-        (".cursor/rules", .cursor, .skill),
+        (".cursor/rules", .cursor, .rule),
         (".cursor/agents", .cursor, .agent),
         (".codex/skills", .codex, .skill),
         (".codex/agents", .codex, .agent),
-        (".windsurf/rules", .windsurf, .skill),
+        (".windsurf/rules", .windsurf, .rule),
         (".github", .copilot, .skill),
         (".github/agents", .copilot, .agent),
         (".config/amp/skills", .amp, .skill),
@@ -71,8 +71,9 @@ final class SkillScanner {
         scanGeneration += 1
         let generation = scanGeneration
         let customPaths = UserDefaults.standard.stringArray(forKey: "customScanPaths") ?? []
+        let includePlugins = ChopsSettings.includePluginSkills
         scanTask = Task.detached { [weak self] in
-            let results = Self.collectAllSkills(customPaths: customPaths)
+            let results = Self.collectAllSkills(customPaths: customPaths, includePlugins: includePlugins)
             guard !Task.isCancelled else { return }
             let elapsed = CFAbsoluteTimeGetCurrent() - start
             AppLogger.scanning.notice("File collection done: \(results.count) skills in \(String(format: "%.2f", elapsed))s")
@@ -87,7 +88,7 @@ final class SkillScanner {
     }
 
     /// Pure filesystem I/O — safe to run off main thread.
-    private static func collectAllSkills(customPaths: [String]) -> [ScannedSkillData] {
+    private static func collectAllSkills(customPaths: [String], includePlugins: Bool) -> [ScannedSkillData] {
         var results: [ScannedSkillData] = []
 
         for tool in ToolSource.allCases where tool != .custom {
@@ -103,16 +104,21 @@ final class SkillScanner {
                 let url = URL(fileURLWithPath: path)
                 collectFromDirectory(url, toolSource: tool, isGlobal: true, kind: .agent, into: &results)
             }
+            for path in tool.globalRulePaths {
+                let url = URL(fileURLWithPath: path)
+                collectFromDirectory(url, toolSource: tool, isGlobal: true, kind: .rule, into: &results)
+            }
         }
 
-        // CLI plugins (installed_plugins.json)
-        if ToolSource.claude.isInstalled {
-            collectFromCLIPlugins(into: &results)
-        }
-
-        // Claude Desktop/Cowork plugin skills
-        if ToolSource.claudeDesktop.isInstalled {
-            collectClaudeDesktopSkills(into: &results)
+        if includePlugins {
+            // CLI plugins (installed_plugins.json)
+            if ToolSource.claude.isInstalled {
+                collectFromCLIPlugins(into: &results)
+            }
+            // Claude Desktop/Cowork plugin skills
+            if ToolSource.claudeDesktop.isInstalled {
+                collectClaudeDesktopSkills(into: &results)
+            }
         }
 
         for path in customPaths {
@@ -472,11 +478,14 @@ final class SkillScanner {
             modelContext.delete(skill)
         }
 
-        try? modelContext.save()
+        do { try modelContext.save() } catch {
+            AppLogger.scanning.error("SwiftData save failed: \(error.localizedDescription)")
+        }
     }
 
     // MARK: - Remote Server Scanning
 
+    @MainActor
     func syncAllRemoteServers() async {
         let descriptor = FetchDescriptor<RemoteServer>()
         guard let servers = try? modelContext.fetch(descriptor) else { return }
@@ -486,6 +495,7 @@ final class SkillScanner {
     }
 
     /// Scans a remote server for skills. Sets lastSyncError on failure.
+    @MainActor
     func scanRemoteServer(_ server: RemoteServer) async {
         do {
             let remoteSkills = try await SSHService.findSkills(server)
@@ -502,8 +512,11 @@ final class SkillScanner {
                 } else {
                     // Derive name from parent directory
                     let components = path.components(separatedBy: "/")
-                    let skillDirIndex = components.lastIndex(of: "SKILL.md").map { components.index(before: $0) }
-                    name = skillDirIndex.map { components[$0] } ?? "Unknown"
+                    if let fileIndex = components.lastIndex(of: "SKILL.md"), fileIndex > 0 {
+                        name = components[fileIndex - 1]
+                    } else {
+                        name = "Unknown"
+                    }
                 }
 
                 let predicate = #Predicate<Skill> { $0.resolvedPath == resolvedPath }
@@ -546,13 +559,18 @@ final class SkillScanner {
 
             server.lastSyncDate = .now
             server.lastSyncError = nil
-            try? modelContext.save()
+            do { try modelContext.save() } catch {
+                AppLogger.scanning.error("SwiftData save failed after sync: \(error.localizedDescription)")
+            }
         } catch {
             server.lastSyncError = error.localizedDescription
-            try? modelContext.save()
+            do { try modelContext.save() } catch {
+                AppLogger.scanning.error("SwiftData save failed after sync error: \(error.localizedDescription)")
+            }
         }
     }
 
+    @MainActor
     func removeDeletedSkills() {
         let descriptor = FetchDescriptor<Skill>()
         guard let skills = try? modelContext.fetch(descriptor) else { return }
@@ -589,7 +607,9 @@ final class SkillScanner {
                 }
             }
         }
-        try? modelContext.save()
+        do { try modelContext.save() } catch {
+            AppLogger.scanning.error("SwiftData save failed: \(error.localizedDescription)")
+        }
     }
 
     deinit {

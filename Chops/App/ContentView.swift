@@ -15,9 +15,36 @@ struct ContentView: View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
             SidebarView()
         } content: {
-            SkillListView()
+            ZStack {
+                if case .tool(let tool) = appState.sidebarFilter, appState.selectedKindFilter == nil {
+                    ToolKindPickerView(tool: tool)
+                        .transition(.asymmetric(
+                            insertion: .move(edge: .leading),
+                            removal: .move(edge: .leading)
+                        ))
+                } else if appState.sidebarFilter == .composer {
+                    ComposerPickerView()
+                        .transition(.opacity)
+                } else {
+                    SkillListView()
+                        .transition(.asymmetric(
+                            insertion: .move(edge: .trailing),
+                            removal: .move(edge: .trailing)
+                        ))
+                }
+            }
+            .clipped()
+            .animation(.easeInOut(duration: 0.2), value: appState.selectedKindFilter)
+            .onChange(of: appState.sidebarFilter) { _, newFilter in
+                if case .tool = newFilter { } else {
+                    appState.selectedKindFilter = nil
+                }
+                if case .composer = newFilter { } else {
+                    appState.selectedTemplateType = nil
+                }
+            }
         } detail: {
-            if case .wizardTemplate(let templateType) = appState.sidebarFilter {
+            if let templateType = appState.selectedTemplateType {
                 TemplateDetailView(templateType: templateType)
             } else if let skill = appState.selectedSkill {
                 SkillDetailView(skill: skill)

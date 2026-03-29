@@ -30,17 +30,22 @@ struct SkillListView: View {
             result = result.filter { $0.itemKind == .skill }
         case .allAgents:
             result = result.filter { $0.itemKind == .agent }
+        case .allRules:
+            result = result.filter { $0.itemKind == .rule }
         case .favorites:
             result = result.filter { $0.isFavorite }
         case .tool(let tool):
             result = result.filter { $0.toolSources.contains(tool) }
+            if let kind = appState.selectedKindFilter {
+                result = result.filter { $0.itemKind == kind }
+            }
         case .collection(let collName):
             result = result.filter { skill in
                 skill.collections.contains { $0.name == collName }
             }
         case .server(let serverID):
             result = result.filter { $0.remoteServer?.id == serverID }
-        case .wizardTemplate:
+        case .composer:
             result = []
         }
 
@@ -57,22 +62,91 @@ struct SkillListView: View {
 
     private var title: String {
         switch appState.sidebarFilter {
-        case .allSkills: "All Skills"
-        case .allAgents: "All Agents"
+        case .allSkills: "Skills"
+        case .allAgents: "Agents"
+        case .allRules: "Rules"
         case .favorites: "Favorites"
         case .tool(let tool): tool.displayName
         case .collection(let name): name
         case .server(let id):
             allSkills.first(where: { $0.remoteServer?.id == id })?.remoteServer?.label ?? "Remote"
-        case .wizardTemplate(let templateType): templateType.displayName
+        case .composer: "Composer"
         }
     }
 
     /// Whether the current filter shows mixed item types (skills and agents together)
     private var showsTypeBadge: Bool {
         switch appState.sidebarFilter {
-        case .allSkills, .allAgents: false
+        case .allSkills, .allAgents, .allRules: false
+        case .tool: appState.selectedKindFilter == nil
         default: true
+        }
+    }
+
+    private var navigationSubtitle: String {
+        if case .tool = appState.sidebarFilter, let kind = appState.selectedKindFilter {
+            return kind.displayName
+        }
+        return ""
+    }
+
+    @ViewBuilder
+    private var emptyStateView: some View {
+        if let kind = appState.selectedKindFilter {
+            ContentUnavailableView(
+                "No \(kind.displayName)",
+                systemImage: kind.icon,
+                description: Text("No \(kind.displayName.lowercased()) match the current filter.")
+            )
+        } else {
+            switch appState.sidebarFilter {
+            case .allAgents:
+                ContentUnavailableView("No Agents", systemImage: "person.crop.rectangle",
+                    description: Text("No agents match the current filter."))
+            case .allRules:
+                ContentUnavailableView("No Rules", systemImage: "list.bullet.rectangle",
+                    description: Text("No rules match the current filter."))
+            default:
+                ContentUnavailableView("No Skills", systemImage: "doc.text",
+                    description: Text("No skills match the current filter."))
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func contextMenu(for skill: Skill) -> some View {
+        Button(skill.isFavorite ? "Unfavorite" : "Favorite") {
+            skill.isFavorite.toggle()
+            try? modelContext.save()
+        }
+        if !allCollections.isEmpty {
+            Menu("Collections") {
+                ForEach(allCollections) { collection in
+                    let isAssigned = skill.collections.contains(where: { $0.name == collection.name })
+                    Button {
+                        if isAssigned {
+                            skill.collections.removeAll { $0.name == collection.name }
+                        } else {
+                            skill.collections.append(collection)
+                        }
+                        try? modelContext.save()
+                    } label: {
+                        Toggle(isOn: .constant(isAssigned)) {
+                            Label(collection.name, systemImage: collection.icon)
+                        }
+                    }
+                }
+            }
+        }
+        if !skill.isRemote {
+            Divider()
+            Button("Show in Finder") {
+                NSWorkspace.shared.selectFile(skill.filePath, inFileViewerRootedAtPath: "")
+            }
+        }
+        Divider()
+        Button("Delete", role: .destructive) {
+            activeAlert = .confirmDelete(skill)
         }
     }
 
@@ -97,44 +171,24 @@ struct SkillListView: View {
                 SkillRow(skill: skill, showTypeBadge: showsTypeBadge)
                     .tag(skill)
                     .draggable(skill.resolvedPath)
-                    .contextMenu {
-                        Button(skill.isFavorite ? "Unfavorite" : "Favorite") {
-                            skill.isFavorite.toggle()
-                            try? modelContext.save()
-                        }
-                        if !allCollections.isEmpty {
-                            Menu("Collections") {
-                                ForEach(allCollections) { collection in
-                                    let isAssigned = skill.collections.contains(where: { $0.name == collection.name })
-                                    Button {
-                                        if isAssigned {
-                                            skill.collections.removeAll { $0.name == collection.name }
-                                        } else {
-                                            skill.collections.append(collection)
-                                        }
-                                        try? modelContext.save()
-                                    } label: {
-                                        Toggle(isOn: .constant(isAssigned)) {
-                                            Label(collection.name, systemImage: collection.icon)
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        if !skill.isRemote {
-                            Divider()
-                            Button("Show in Finder") {
-                                NSWorkspace.shared.selectFile(skill.filePath, inFileViewerRootedAtPath: "")
-                            }
-                        }
-                        Divider()
-                        Button("Delete", role: .destructive) {
-                            activeAlert = .confirmDelete(skill)
-                        }
-                    }
+                    .contextMenu { contextMenu(for: skill) }
             }
         }
         .navigationTitle(title)
+        .navigationSubtitle(navigationSubtitle)
+        .toolbar {
+            if case .tool = appState.sidebarFilter, appState.selectedKindFilter != nil {
+                ToolbarItem(placement: .navigation) {
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            appState.selectedKindFilter = nil
+                        }
+                    } label: {
+                        Label("Back", systemImage: "chevron.left")
+                    }
+                }
+            }
+        }
         .alert(item: $activeAlert) { alert in
             switch alert {
             case .confirmDelete(let skill):
@@ -155,15 +209,7 @@ struct SkillListView: View {
             }
         }
         .overlay {
-            if filteredSkills.isEmpty {
-                ContentUnavailableView(
-                    appState.sidebarFilter == .allAgents ? "No Agents" : "No Skills",
-                    systemImage: appState.sidebarFilter == .allAgents ? "person.crop.rectangle" : "doc.text",
-                    description: Text(appState.sidebarFilter == .allAgents
-                        ? "No agents match the current filter."
-                        : "No skills match the current filter.")
-                )
-            }
+            if filteredSkills.isEmpty { emptyStateView }
         }
     }
 }
@@ -175,7 +221,12 @@ struct SkillRow: View {
     var body: some View {
         HStack(spacing: 6) {
             if showTypeBadge {
-                Image(systemName: skill.itemKind == .agent ? "person.crop.rectangle" : "doc.text")
+                let kindIcon: String = switch skill.itemKind {
+                case .agent: "person.crop.rectangle"
+                case .rule: "list.bullet.rectangle"
+                case .skill: "doc.text"
+                }
+                Image(systemName: kindIcon)
                     .font(.caption2)
                     .foregroundStyle(.secondary)
             }

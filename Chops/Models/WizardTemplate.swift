@@ -5,11 +5,17 @@ import Foundation
 /// Types of wizard templates for AI-assisted composition
 enum WizardTemplateType: String, CaseIterable, Codable, Identifiable {
     case skill = "skill"
+    case agent = "agent"
+    case rule = "rule"
 
     var id: String { rawValue }
 
     var displayName: String {
-        "Skill Composer"
+        switch self {
+        case .skill: "Skills"
+        case .agent: "Agents"
+        case .rule: "Rules"
+        }
     }
 
     var fileName: String {
@@ -17,7 +23,11 @@ enum WizardTemplateType: String, CaseIterable, Codable, Identifiable {
     }
 
     var icon: String {
-        "doc.text.fill"
+        switch self {
+        case .skill: "doc.text"
+        case .agent: "person.crop.rectangle"
+        case .rule: "list.bullet.rectangle"
+        }
     }
 }
 
