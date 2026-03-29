@@ -260,12 +260,13 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
             return Self.appBundleExists("Claude")
         case .openclaw:
             return fm.fileExists(atPath: "\(home)/.openclaw")
-        case .shared:
-            guard let base = Self.sharedBase else { return false }
                 || Self.cliBinaryExists("openclaw")
                 || fm.fileExists(atPath: "/opt/homebrew/lib/node_modules/openclaw")
                 || fm.fileExists(atPath: "/usr/local/lib/node_modules/openclaw")
                 || globalPaths.contains { fm.fileExists(atPath: $0) }
+        case .shared:
+            guard let base = Self.sharedBase else { return false }
+            return fm.fileExists(atPath: base)
         case .aider, .custom:
             return true
         }
