@@ -3,34 +3,47 @@ import SwiftUI
 
 struct ACPSettingsView: View {
     @State private var configuration = ACPConfiguration.shared
+    @State private var templateManager = TemplateManager.shared
+    @State private var templateContents: [WizardTemplateType: String] = [:]
+    @State private var templateChanges: Set<WizardTemplateType> = []
+    @State private var showingResetConfirm: WizardTemplateType?
+    @State private var expandedTemplates: Set<WizardTemplateType> = []
 
     var body: some View {
-        Form {
-            Section {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
                 Text("Enable AI assistants to help compose and improve skills, agents, and rules.")
                     .font(.callout)
                     .foregroundStyle(.secondary)
-            }
 
-            agentListSection
+                agentListSection
 
-            Section {
-                Button("Refresh Registry") {
-                    Task { await configuration.refreshRegistry() }
+                HStack {
+                    Button("Refresh Registry") {
+                        Task { await configuration.refreshRegistry() }
+                    }
+                    .disabled(configuration.isLoadingRegistry)
                 }
-                .disabled(configuration.isLoadingRegistry)
+
+                Divider()
+
+                templateSection
             }
+            .padding()
         }
-        .formStyle(.grouped)
-        .padding()
+        .frame(maxHeight: 550)
         .task { await configuration.loadRegistryIfNeeded() }
+        .onAppear { loadAllTemplates() }
     }
 
     // MARK: - Agent List
 
     @ViewBuilder
     private var agentListSection: some View {
-        Section {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Agents")
+                .font(.headline)
+
             if configuration.isLoadingRegistry {
                 HStack {
                     ProgressView()
@@ -50,13 +63,156 @@ struct ACPSettingsView: View {
                 Text("No agents found.")
                     .foregroundStyle(.secondary)
             } else {
-                ForEach(configuration.registryAgents) { agent in
-                    AgentRow(agent: agent, configuration: configuration)
+                VStack(spacing: 0) {
+                    ForEach(configuration.registryAgents) { agent in
+                        AgentRow(agent: agent, configuration: configuration)
+                        if agent.id != configuration.registryAgents.last?.id {
+                            Divider()
+                        }
+                    }
+                }
+                .padding(8)
+                .background(Color(NSColor.controlBackgroundColor))
+                .clipShape(RoundedRectangle(cornerRadius: 6))
+            }
+        }
+    }
+
+    // MARK: - Wizard Templates
+
+    private var templateSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Chat Rules")
+                .font(.headline)
+
+            VStack(spacing: 0) {
+                ForEach(WizardTemplateType.allCases) { type in
+                    VStack(spacing: 0) {
+                        Button {
+                            withAnimation(.easeInOut(duration: 0.15)) {
+                                if expandedTemplates.contains(type) {
+                                    expandedTemplates.remove(type)
+                                } else {
+                                    expandedTemplates.insert(type)
+                                }
+                            }
+                        } label: {
+                            HStack {
+                                Image(systemName: "chevron.right")
+                                    .font(.caption2)
+                                    .rotationEffect(expandedTemplates.contains(type) ? .degrees(90) : .zero)
+                                Label(type.displayName, systemImage: type.icon)
+                                Spacer()
+                            }
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 8)
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+
+                        if expandedTemplates.contains(type) {
+                            templateEditor(for: type)
+                                .padding(.horizontal, 8)
+                                .padding(.bottom, 8)
+                        }
+                    }
+
+                    if type != WizardTemplateType.allCases.last {
+                        Divider()
+                    }
                 }
             }
-        } header: {
-            Text("Agents")
+            .padding(4)
+            .background(Color(NSColor.controlBackgroundColor))
+            .clipShape(RoundedRectangle(cornerRadius: 6))
         }
+    }
+
+    @ViewBuilder
+    private func templateEditor(for type: WizardTemplateType) -> some View {
+        let binding = Binding<String>(
+            get: { templateContents[type] ?? "" },
+            set: {
+                templateContents[type] = $0
+                templateChanges.insert(type)
+            }
+        )
+
+        VStack(alignment: .leading, spacing: 8) {
+            TextEditor(text: binding)
+                .font(.system(.caption, design: .monospaced))
+                .scrollContentBackground(.hidden)
+                .frame(height: 200)
+                .padding(6)
+                .background(Color(NSColor.textBackgroundColor))
+                .clipShape(RoundedRectangle(cornerRadius: 4))
+
+            HStack {
+                if templateChanges.contains(type) {
+                    Text("Unsaved changes")
+                        .font(.caption)
+                        .foregroundStyle(.orange)
+                }
+
+                Spacer()
+
+                Button("Reset to Default") {
+                    showingResetConfirm = type
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(.red)
+                .font(.caption)
+
+                Button("Save") {
+                    saveTemplate(type)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.small)
+                .disabled(!templateChanges.contains(type))
+            }
+        }
+        .confirmationDialog(
+            "Reset Template?",
+            isPresented: Binding(
+                get: { showingResetConfirm == type },
+                set: { if !$0 { showingResetConfirm = nil } }
+            ),
+            titleVisibility: .visible
+        ) {
+            Button("Reset to Default", role: .destructive) {
+                templateManager.resetToDefault(type)
+                loadTemplate(type)
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This will replace your custom template with the default version.")
+        }
+    }
+
+    // MARK: - Template Helpers
+
+    private func loadAllTemplates() {
+        for type in WizardTemplateType.allCases {
+            loadTemplate(type)
+        }
+    }
+
+    private func loadTemplate(_ type: WizardTemplateType) {
+        if let template = templateManager.template(for: type) {
+            templateContents[type] = template.content
+        }
+        templateChanges.remove(type)
+    }
+
+    private func saveTemplate(_ type: WizardTemplateType) {
+        guard let content = templateContents[type] else { return }
+        let template = WizardTemplate(
+            type: type,
+            content: content,
+            lastModified: Date()
+        )
+        templateManager.save(template)
+        templateChanges.remove(type)
     }
 }
 
@@ -86,7 +242,7 @@ private struct AgentRow: View {
             ))
             .labelsHidden()
         }
-        .padding(.vertical, 2)
+        .padding(.vertical, 4)
     }
 }
 
@@ -94,5 +250,5 @@ private struct AgentRow: View {
 
 #Preview {
     ACPSettingsView()
-        .frame(width: 500, height: 500)
+        .frame(width: 480)
 }

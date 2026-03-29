@@ -6,24 +6,17 @@ struct LibrarySettingsView: View {
     @AppStorage("includePluginSkills") private var includePluginSkills = false
 
     var body: some View {
-        Form {
-            Section {
-                DirectoryPickerRow(label: "Library Directory", path: $sotDir)
-            } header: {
-                Text("Source of Truth")
-            } footer: {
-                Text("Chops symlinks items from \(displayPath)/skills, /agents, and /rules into each tool's directory.")
-                    .foregroundStyle(.secondary)
-            }
-
-            Section {
+        VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: 4) {
                 Toggle("Include plugin skills", isOn: $includePluginSkills)
-            } footer: {
+                    .onChange(of: includePluginSkills) {
+                        NotificationCenter.default.post(name: .customScanPathsChanged, object: nil)
+                    }
                 Text("When enabled, skills installed by Claude CLI and Claude Desktop plugins are listed in the library. These are read-only and managed by the plugin.")
+                    .font(.caption)
                     .foregroundStyle(.secondary)
             }
         }
-        .formStyle(.grouped)
         .padding()
     }
 

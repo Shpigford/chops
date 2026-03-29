@@ -9,10 +9,8 @@ final class AppState {
     var showingRegistrySheet: Bool = false
     var newItemKind: ItemKind = .skill
     var sidebarFilter: SidebarFilter = .allSkills
-    /// Set when user drills into a specific kind within a tool filter. Nil shows the kind picker.
-    var selectedKindFilter: ItemKind?
-    /// Set when user picks a template type from ComposerPickerView.
-    var selectedTemplateType: WizardTemplateType?
+    /// Filter by item kind within a tool view (nil = show all)
+    var toolKindFilter: ItemKind?
 }
 
 enum SidebarFilter: Hashable {
@@ -23,5 +21,4 @@ enum SidebarFilter: Hashable {
     case tool(ToolSource)
     case collection(String)
     case server(String)
-    case composer
 }

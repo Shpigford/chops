@@ -15,38 +15,9 @@ struct ContentView: View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
             SidebarView()
         } content: {
-            ZStack {
-                if case .tool(let tool) = appState.sidebarFilter, appState.selectedKindFilter == nil {
-                    ToolKindPickerView(tool: tool)
-                        .transition(.asymmetric(
-                            insertion: .move(edge: .leading),
-                            removal: .move(edge: .leading)
-                        ))
-                } else if appState.sidebarFilter == .composer {
-                    ComposerPickerView()
-                        .transition(.opacity)
-                } else {
-                    SkillListView()
-                        .transition(.asymmetric(
-                            insertion: .move(edge: .trailing),
-                            removal: .move(edge: .trailing)
-                        ))
-                }
-            }
-            .clipped()
-            .animation(.easeInOut(duration: 0.2), value: appState.selectedKindFilter)
-            .onChange(of: appState.sidebarFilter) { _, newFilter in
-                if case .tool = newFilter { } else {
-                    appState.selectedKindFilter = nil
-                }
-                if case .composer = newFilter { } else {
-                    appState.selectedTemplateType = nil
-                }
-            }
+            SkillListView()
         } detail: {
-            if let templateType = appState.selectedTemplateType {
-                TemplateDetailView(templateType: templateType)
-            } else if let skill = appState.selectedSkill {
+            if let skill = appState.selectedSkill {
                 SkillDetailView(skill: skill)
             } else {
                 ContentUnavailableView(
@@ -66,26 +37,8 @@ struct ContentView: View {
         .sheet(isPresented: $appState.showingRegistrySheet) {
             RegistrySheet()
         }
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Menu {
-                    Button {
-                        appState.newItemKind = .skill
-                        appState.showingNewSkillSheet = true
-                    } label: {
-                        Label("New Skill", systemImage: "doc.text")
-                    }
-                    Divider()
-                    Button {
-                        appState.showingRegistrySheet = true
-                    } label: {
-                        Label("Browse Registry", systemImage: "globe")
-                    }
-                } label: {
-                    Label("Add", systemImage: "plus")
-                }
-                .menuIndicator(.hidden)
-            }
+        .onChange(of: appState.sidebarFilter) {
+            appState.toolKindFilter = nil
         }
         .frame(minWidth: 900, minHeight: 500)
         .onReceive(NotificationCenter.default.publisher(for: .customScanPathsChanged)) { _ in

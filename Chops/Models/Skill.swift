@@ -14,6 +14,14 @@ enum ItemKind: String, Codable, CaseIterable {
         }
     }
 
+    var singularName: String {
+        switch self {
+        case .skill: "Skill"
+        case .agent: "Agent"
+        case .rule: "Rule"
+        }
+    }
+
     var icon: String {
         switch self {
         case .skill: "doc.text"
@@ -44,6 +52,12 @@ final class Skill {
     var remotePath: String?
 
     var isRemote: Bool { remoteServer != nil }
+
+    var isPlugin: Bool {
+        filePath.contains("/.claude/plugins/") ||
+        filePath.contains("/local-agent-mode-sessions/") ||
+        toolSources.contains(.claudeDesktop)
+    }
 
     /// Comma-separated tool raw values (e.g. "claude,cursor,codex")
     var toolSourcesRaw: String

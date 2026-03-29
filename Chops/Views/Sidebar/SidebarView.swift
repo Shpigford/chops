@@ -55,11 +55,6 @@ struct SidebarView: View {
                 }
             }
 
-            Section("Wizard Templates") {
-                Label("Composer", systemImage: "wand.and.stars")
-                    .tag(SidebarFilter.composer)
-            }
-
             if !servers.isEmpty {
                 Section("Servers") {
                     ForEach(servers) { server in

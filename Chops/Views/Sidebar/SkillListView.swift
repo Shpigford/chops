@@ -36,7 +36,7 @@ struct SkillListView: View {
             result = result.filter { $0.isFavorite }
         case .tool(let tool):
             result = result.filter { $0.toolSources.contains(tool) }
-            if let kind = appState.selectedKindFilter {
+            if let kind = appState.toolKindFilter {
                 result = result.filter { $0.itemKind == kind }
             }
         case .collection(let collName):
@@ -45,8 +45,6 @@ struct SkillListView: View {
             }
         case .server(let serverID):
             result = result.filter { $0.remoteServer?.id == serverID }
-        case .composer:
-            result = []
         }
 
         if !appState.searchText.isEmpty {
@@ -70,7 +68,6 @@ struct SkillListView: View {
         case .collection(let name): name
         case .server(let id):
             allSkills.first(where: { $0.remoteServer?.id == id })?.remoteServer?.label ?? "Remote"
-        case .composer: "Composer"
         }
     }
 
@@ -78,21 +75,20 @@ struct SkillListView: View {
     private var showsTypeBadge: Bool {
         switch appState.sidebarFilter {
         case .allSkills, .allAgents, .allRules: false
-        case .tool: appState.selectedKindFilter == nil
+        case .tool: appState.toolKindFilter == nil
         default: true
         }
     }
 
-    private var navigationSubtitle: String {
-        if case .tool = appState.sidebarFilter, let kind = appState.selectedKindFilter {
-            return kind.displayName
-        }
-        return ""
+    private var availableKinds: [ItemKind] {
+        guard case .tool(let tool) = appState.sidebarFilter else { return [] }
+        let kinds = Set(allSkills.filter { $0.toolSources.contains(tool) }.map(\.itemKind))
+        return ItemKind.allCases.filter { kinds.contains($0) }
     }
 
     @ViewBuilder
     private var emptyStateView: some View {
-        if let kind = appState.selectedKindFilter {
+        if let kind = appState.toolKindFilter {
             ContentUnavailableView(
                 "No \(kind.displayName)",
                 systemImage: kind.icon,
@@ -175,17 +171,65 @@ struct SkillListView: View {
             }
         }
         .navigationTitle(title)
-        .navigationSubtitle(navigationSubtitle)
         .toolbar {
-            if case .tool = appState.sidebarFilter, appState.selectedKindFilter != nil {
-                ToolbarItem(placement: .navigation) {
-                    Button {
-                        withAnimation(.easeInOut(duration: 0.2)) {
-                            appState.selectedKindFilter = nil
+            ToolbarItem(placement: .primaryAction) {
+                HStack(spacing: 4) {
+                    if case .tool = appState.sidebarFilter, availableKinds.count > 1 {
+                        Menu {
+                            Button {
+                                appState.toolKindFilter = nil
+                            } label: {
+                                if appState.toolKindFilter == nil {
+                                    Label("All", systemImage: "checkmark")
+                                } else {
+                                    Text("All")
+                                }
+                            }
+                            Divider()
+                            ForEach(availableKinds, id: \.self) { kind in
+                                Button {
+                                    appState.toolKindFilter = kind
+                                } label: {
+                                    if appState.toolKindFilter == kind {
+                                        Label(kind.displayName, systemImage: "checkmark")
+                                    } else {
+                                        Text(kind.displayName)
+                                    }
+                                }
+                            }
+                        } label: {
+                            Image(systemName: appState.toolKindFilter != nil ? "ellipsis.circle.fill" : "ellipsis.circle")
+                        }
+                    }
+                    Menu {
+                        Button {
+                            appState.newItemKind = .skill
+                            appState.showingNewSkillSheet = true
+                        } label: {
+                            Label("New Skill", systemImage: "doc.text")
+                        }
+                        Button {
+                            appState.newItemKind = .agent
+                            appState.showingNewSkillSheet = true
+                        } label: {
+                            Label("New Agent", systemImage: "person.crop.rectangle")
+                        }
+                        Button {
+                            appState.newItemKind = .rule
+                            appState.showingNewSkillSheet = true
+                        } label: {
+                            Label("New Rule", systemImage: "list.bullet.rectangle")
+                        }
+                        Divider()
+                        Button {
+                            appState.showingRegistrySheet = true
+                        } label: {
+                            Label("Browse Registry", systemImage: "globe")
                         }
                     } label: {
-                        Label("Back", systemImage: "chevron.left")
+                        Image(systemName: "square.and.pencil")
                     }
+                    .menuIndicator(.hidden)
                 }
             }
         }
@@ -210,6 +254,13 @@ struct SkillListView: View {
         }
         .overlay {
             if filteredSkills.isEmpty { emptyStateView }
+        }
+        .onChange(of: appState.sidebarFilter) {
+            if let selected = appState.selectedSkill, filteredSkills.contains(selected) {
+                // Already selected something valid in this filter
+            } else {
+                appState.selectedSkill = filteredSkills.first
+            }
         }
     }
 }
