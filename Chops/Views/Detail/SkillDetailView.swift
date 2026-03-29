@@ -1,6 +1,64 @@
 import SwiftUI
 import SwiftData
 
+/// Transparent NSView overlay that intercepts AppKit hit-testing so it owns
+/// cursor management (pointing hand) and click handling, beating NSTextView's
+/// aggressive I-beam cursor.
+private struct ClickableCursorOverlay: NSViewRepresentable {
+    var action: () -> Void
+
+    func makeNSView(context: Context) -> OverlayNSView {
+        let view = OverlayNSView()
+        view.onTap = action
+        return view
+    }
+
+    func updateNSView(_ nsView: OverlayNSView, context: Context) {
+        nsView.onTap = action
+    }
+
+    final class OverlayNSView: NSView {
+        var onTap: (() -> Void)?
+        private var area: NSTrackingArea?
+
+        override func updateTrackingAreas() {
+            super.updateTrackingAreas()
+            if let area { removeTrackingArea(area) }
+            area = NSTrackingArea(
+                rect: bounds,
+                options: [.mouseEnteredAndExited, .cursorUpdate, .activeInKeyWindow],
+                owner: self
+            )
+            addTrackingArea(area!)
+        }
+
+        override func hitTest(_ point: NSPoint) -> NSView? {
+            let local = convert(point, from: superview)
+            return bounds.contains(local) ? self : nil
+        }
+
+        override func cursorUpdate(with event: NSEvent) {
+            NSCursor.pointingHand.set()
+        }
+
+        override func mouseEntered(with event: NSEvent) {
+            NSCursor.pointingHand.set()
+        }
+
+        override func mouseExited(with event: NSEvent) {
+            NSCursor.arrow.set()
+        }
+
+        override func mouseDown(with event: NSEvent) {
+            onTap?()
+        }
+
+        override func resetCursorRects() {
+            addCursorRect(bounds, cursor: .pointingHand)
+        }
+    }
+}
+
 struct SkillDetailView: View {
     private enum ActiveAlert: Identifiable {
         case confirmDelete
@@ -29,10 +87,16 @@ struct SkillDetailView: View {
         @Bindable var document = document
 
         VStack(spacing: 0) {
-            if preferPreview {
-                SkillPreviewView(content: document.editorContent)
-            } else {
-                SkillEditorView(document: document)
+            ZStack(alignment: .bottomTrailing) {
+                if preferPreview {
+                    SkillPreviewView(content: document.editorContent)
+                } else {
+                    SkillEditorView(document: document)
+                }
+
+                if !showingComposePanel {
+                    composeFloatingButton
+                }
             }
 
             // Inline compose panel
@@ -100,14 +164,6 @@ struct SkillDetailView: View {
                 }
                 .pickerStyle(.segmented)
             }
-            ToolbarItemGroup {
-                Button {
-                    showingComposePanel.toggle()
-                } label: {
-                    Image(systemName: showingComposePanel ? "sparkles.rectangle.stack.fill" : "sparkles")
-                }
-                .help(showingComposePanel ? "Hide Compose Panel" : "Compose with AI")
-            }
             ToolbarItem {
                 Button {
                     skill.isFavorite.toggle()
@@ -155,6 +211,18 @@ struct SkillDetailView: View {
                 )
             }
         }
+    }
+
+    private var composeFloatingButton: some View {
+        Image(systemName: "sparkles")
+            .font(.system(size: 14, weight: .semibold))
+            .foregroundStyle(.white)
+            .frame(width: 36, height: 36)
+            .background(Circle().fill(Color.accentColor))
+            .shadow(color: .black.opacity(0.25), radius: 4, y: 2)
+            .overlay(ClickableCursorOverlay(action: { [self] in showingComposePanel.toggle() }))
+            .help("Compose with AI")
+            .padding(16)
     }
 
     private func deleteSkill() {

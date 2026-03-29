@@ -4,6 +4,15 @@ final class ChopsTextView: NSTextView {
 
     // MARK: - Cursor
 
+    override func mouseMoved(with event: NSEvent) {
+        // If another view (e.g. a floating button) is in front at this point, don't set the I-beam.
+        if let hitView = window?.contentView?.hitTest(event.locationInWindow),
+           hitView !== self, !(hitView is NSClipView) {
+            return
+        }
+        super.mouseMoved(with: event)
+    }
+
     override func didAddSubview(_ subview: NSView) {
         super.didAddSubview(subview)
         if let indicator = subview as? NSTextInsertionIndicator {

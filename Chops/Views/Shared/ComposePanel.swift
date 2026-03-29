@@ -697,6 +697,8 @@ struct ComposePanel: View {
             isVisible = false
         } label: {
             Image(systemName: "xmark")
+                .frame(width: 28, height: 28)
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .foregroundStyle(.secondary)
