@@ -59,6 +59,10 @@ final class Skill {
         toolSources.contains(.claudeDesktop)
     }
 
+    var isReadOnly: Bool {
+        isPlugin || isBundledOpenClawSkill
+    }
+
     /// Comma-separated tool raw values (e.g. "claude,cursor,codex")
     var toolSourcesRaw: String
 
@@ -130,6 +134,11 @@ final class Skill {
 
     /// How many tools this skill is installed for
     var installCount: Int { toolSources.count }
+
+    private var isBundledOpenClawSkill: Bool {
+        filePath.hasPrefix("/opt/homebrew/lib/node_modules/openclaw/skills/")
+            || filePath.hasPrefix("/usr/local/lib/node_modules/openclaw/skills/")
+    }
 
     /// For project-level skills, extracts the project name from the path.
     /// e.g. ~/Development/every-expert/.claude/skills/foo/SKILL.md → "every-expert"
