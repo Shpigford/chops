@@ -1,27 +1,40 @@
 import SwiftUI
 import SwiftData
 
-/// Collapsible panel for linking/unlinking a skill to vendor directories.
+/// Collapsible panel for linking/unlinking a skill, agent, or rule to vendor directories.
 struct VendorLinkingPanel: View {
     let skill: Skill
     @Environment(\.modelContext) private var modelContext
     @State private var isExpanded = false
-    @State private var linkedToolRawValues: Set<String> = []
     @State private var errorMessage: String?
     @State private var showingError = false
+
+    @Query private var allSymlinks: [SymlinkTarget]
+
+    private var linkedToolRawValues: Set<String> {
+        Set(allSymlinks
+            .filter { $0.skillResolvedPath == skill.resolvedPath && !$0.isBroken }
+            .map(\.toolSource))
+    }
 
     private var eligibleTools: [ToolSource] {
         ToolSource.allCases.filter { tool in
             guard tool.isInstalled else { return false }
             let dirs = tool.globalDirs(for: skill.itemKind)
-            guard !dirs.isEmpty else { return false }
-
-            let isOrigin = dirs.contains { skill.resolvedPath.hasPrefix($0 + "/") || skill.resolvedPath.hasPrefix($0) }
-            let isHost = skill.toolSources.contains(tool)
             let hasRecord = linkedToolRawValues.contains(tool.rawValue)
 
-            // Exclude origin and host unless there's already a record (allows unlinking).
-            if (isOrigin || isHost) && !hasRecord { return false }
+            // Always include if there's an existing link — lets the user unlink even when
+            // the tool has no configured dirs for this kind.
+            guard !dirs.isEmpty || hasRecord else { return false }
+
+            let isOrigin = dirs.contains { skill.resolvedPath.hasPrefix($0 + "/") }
+
+            // Exclude the origin tool (skill physically lives there) unless already linked.
+            if isOrigin && !hasRecord { return false }
+
+            // Vendor-origin skills must not link to Shared (only unlink if a stale record exists).
+            if tool == .shared && !isOrigin && !hasRecord { return false }
+
             return true
         }
     }
@@ -69,8 +82,7 @@ struct VendorLinkingPanel: View {
                                 onError: { msg in
                                     errorMessage = msg
                                     showingError = true
-                                },
-                                onChanged: { refreshLinkedTools() }
+                                }
                             )
                             if index < tools.count - 1 {
                                 Divider().padding(.leading, 36)
@@ -81,7 +93,6 @@ struct VendorLinkingPanel: View {
                 }
             }
         }
-        .onAppear { refreshLinkedTools() }
         .alert("Link Error", isPresented: $showingError) {
             Button("OK") {}
         } message: {
@@ -89,36 +100,30 @@ struct VendorLinkingPanel: View {
         }
     }
 
-    private func refreshLinkedTools() {
-        linkedToolRawValues = Set(
-            SymlinkService.shared.targets(for: skill, context: modelContext).map(\.toolSource)
-        )
-    }
 }
 
 private struct VendorLinkRow: View {
     let skill: Skill
     let tool: ToolSource
+    let initiallyLinked: Bool
     let onError: (String) -> Void
-    let onChanged: () -> Void
 
     @Environment(\.modelContext) private var modelContext
     @State private var linked: Bool
     @State private var linkedPath: String?
+    @State private var isSyncingFromParent = false
 
     init(
         skill: Skill,
         tool: ToolSource,
         initiallyLinked: Bool,
-        onError: @escaping (String) -> Void,
-        onChanged: @escaping () -> Void
+        onError: @escaping (String) -> Void
     ) {
         self.skill = skill
         self.tool = tool
+        self.initiallyLinked = initiallyLinked
         self.onError = onError
-        self.onChanged = onChanged
         self._linked = State(initialValue: initiallyLinked)
-        self._linkedPath = State(initialValue: nil)
     }
 
     var body: some View {
@@ -142,7 +147,17 @@ private struct VendorLinkRow: View {
         .padding(.horizontal, 12)
         .padding(.vertical, 5)
         .onAppear { refreshLinkedPath() }
+        .onChange(of: initiallyLinked) { _, newValue in
+            guard linked != newValue else { return }
+            isSyncingFromParent = true
+            linked = newValue
+            refreshLinkedPath()
+        }
         .onChange(of: linked) { _, newValue in
+            guard !isSyncingFromParent else {
+                isSyncingFromParent = false
+                return
+            }
             do {
                 if newValue {
                     try SymlinkService.shared.link(skill, to: tool, context: modelContext)
@@ -150,7 +165,6 @@ private struct VendorLinkRow: View {
                     try SymlinkService.shared.unlink(skill, from: tool, context: modelContext)
                 }
                 refreshLinkedPath()
-                onChanged()
             } catch {
                 linked = !newValue
                 onError(error.localizedDescription)

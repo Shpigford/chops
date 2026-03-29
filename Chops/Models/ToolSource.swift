@@ -185,6 +185,8 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
     var globalRulePaths: [String] {
         let home = FileManager.default.homeDirectoryForCurrentUser.path
         switch self {
+        case .augment: return ["\(home)/.augment/rules"]
+        case .claude: return ["\(home)/.claude/rules"]
         case .cursor: return ["\(home)/.cursor/rules"]
         case .windsurf: return ["\(home)/.codeium/windsurf/memories", "\(home)/.windsurf/rules"]
         case .shared:
@@ -203,14 +205,12 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
 
         switch self {
         case .claude:
-            return fm.fileExists(atPath: "\(home)/.claude/settings.json")
-                || fm.fileExists(atPath: "\(home)/.claude/CLAUDE.md")
-                || fm.fileExists(atPath: "\(home)/.claude/plugins/installed_plugins.json")
+            return fm.fileExists(atPath: "\(home)/.claude")
                 || Self.cliBinaryExists("claude")
                 || globalPaths.contains { fm.fileExists(atPath: $0) }
         case .cursor:
             return fm.fileExists(atPath: "/Applications/Cursor.app")
-                || fm.fileExists(atPath: "\(home)/.cursor/argv.json")
+                || fm.fileExists(atPath: "\(home)/.cursor")
                 || globalPaths.contains { fm.fileExists(atPath: $0) }
         case .windsurf:
             return fm.fileExists(atPath: "/Applications/Windsurf.app")
@@ -218,8 +218,7 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
                 || globalPaths.contains { fm.fileExists(atPath: $0) }
                 || globalRulePaths.contains { fm.fileExists(atPath: $0) }
         case .codex:
-            return fm.fileExists(atPath: "\(home)/.codex/config.toml")
-                || fm.fileExists(atPath: "\(home)/.codex/auth.json")
+            return fm.fileExists(atPath: "\(home)/.codex")
                 || Self.cliBinaryExists("codex")
                 || globalPaths.contains { fm.fileExists(atPath: $0) }
         case .amp:
@@ -230,7 +229,8 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
                 || Self.cliBinaryExists("amp")
                 || globalPaths.contains { fm.fileExists(atPath: $0) }
         case .pi:
-            return Self.cliBinaryExists("pi")
+            return fm.fileExists(atPath: "\(home)/.pi")
+                || Self.cliBinaryExists("pi")
                 || globalPaths.contains { fm.fileExists(atPath: $0) }
         case .copilot:
             return fm.fileExists(atPath: "\(home)/.copilot")

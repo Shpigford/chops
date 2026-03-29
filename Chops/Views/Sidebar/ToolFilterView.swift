@@ -11,7 +11,8 @@ struct ToolFilterView: View {
 
     private var activeSources: [ToolSource] {
         ToolSource.allCases.filter { tool in
-            allSkills.contains { $0.toolSources.contains(tool) }
+            guard tool.listable else { return false }
+            return tool.isInstalled || allSkills.contains { $0.toolSources.contains(tool) }
         }
     }
 

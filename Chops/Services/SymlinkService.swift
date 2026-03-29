@@ -32,8 +32,7 @@ final class SymlinkService {
 
     // MARK: - Link
 
-    /// Creates a symlink inside the vendor's global directory pointing at `skill.resolvedPath`.
-    /// Inserts a `SymlinkTarget` record into `context`.
+    /// Creates a symlink in the vendor's global directory pointing at `skill.resolvedPath`.
     func link(_ skill: Skill, to tool: ToolSource, context: ModelContext) throws {
         let source = skill.resolvedPath
         guard fm.fileExists(atPath: source) else {
@@ -41,11 +40,11 @@ final class SymlinkService {
         }
 
         let targetDir = try vendorDirectory(for: tool, kind: skill.itemKind)
-        try fm.createDirectory(atPath: targetDir, withIntermediateDirectories: true)
-
-        let sourceURL = URL(fileURLWithPath: source)
+        let relativePath = relativePathFromScanBase(source: source, kind: skill.itemKind, toolSources: skill.toolSources)
         let destination = URL(fileURLWithPath: targetDir)
-            .appendingPathComponent(sourceURL.lastPathComponent).path
+            .appendingPathComponent(relativePath).path
+        let destinationParent = (destination as NSString).deletingLastPathComponent
+        try fm.createDirectory(atPath: destinationParent, withIntermediateDirectories: true)
 
         if fm.fileExists(atPath: destination) {
             if let existingTarget = try? fm.destinationOfSymbolicLink(atPath: destination) {
@@ -59,11 +58,23 @@ final class SymlinkService {
         }
 
         let targetID = "\(source)|\(tool.rawValue)"
-        let existing = FetchDescriptor<SymlinkTarget>(predicate: #Predicate { $0.id == targetID })
-        if (try? context.fetch(existing))?.isEmpty == false {
-            try context.save()
-            NotificationCenter.default.post(name: .customScanPathsChanged, object: nil)
-            return
+        let existingDescriptor = FetchDescriptor<SymlinkTarget>(predicate: #Predicate { $0.id == targetID })
+        if let existingRecord = try context.fetch(existingDescriptor).first {
+            if existingRecord.linkedPath == destination && existingRecord.kind == skill.itemKind.rawValue {
+                return
+            }
+            // Stale record (e.g. kind changed after a bug fix) — clean up the old symlink first.
+            if fm.fileExists(atPath: existingRecord.linkedPath) {
+                let attrs = try? fm.attributesOfItem(atPath: existingRecord.linkedPath)
+                if attrs?[.type] as? FileAttributeType == .typeSymbolicLink {
+                    do {
+                        try fm.removeItem(atPath: existingRecord.linkedPath)
+                    } catch {
+                        AppLogger.fileIO.error("SymlinkService: failed to remove stale symlink at \(existingRecord.linkedPath): \(error.localizedDescription)")
+                    }
+                }
+            }
+            context.delete(existingRecord)
         }
 
         context.insert(SymlinkTarget(
@@ -89,7 +100,6 @@ final class SymlinkService {
         let path = record.linkedPath
         let attrs = try? fm.attributesOfItem(atPath: path)
         if attrs == nil {
-            // File already gone — clean up the record without error.
             context.delete(record)
             try context.save()
             return
@@ -106,13 +116,27 @@ final class SymlinkService {
 
     // MARK: - Reconcile
 
-    /// Checks every `SymlinkTarget` and marks broken ones whose symlink target no longer resolves.
-    /// Called on app launch and after each full scan. Never triggers a rescan.
+    /// Validates every `SymlinkTarget`: removes records whose kind no longer matches the
+    /// parent skill, and marks records broken when the symlink file is missing.
     func reconcile(context: ModelContext) {
-        let descriptor = FetchDescriptor<SymlinkTarget>()
-        guard let records = try? context.fetch(descriptor) else { return }
+        guard let records = try? context.fetch(FetchDescriptor<SymlinkTarget>()) else { return }
+        let allSkills = (try? context.fetch(FetchDescriptor<Skill>())) ?? []
+        let skillsByPath = Dictionary(uniqueKeysWithValues: allSkills.map { ($0.resolvedPath, $0) })
+
         var dirty = false
         for record in records {
+            if let skill = skillsByPath[record.skillResolvedPath], skill.kind != record.kind {
+                if fm.fileExists(atPath: record.linkedPath) {
+                    let attrs = try? fm.attributesOfItem(atPath: record.linkedPath)
+                    if attrs?[.type] as? FileAttributeType == .typeSymbolicLink {
+                        try? fm.removeItem(atPath: record.linkedPath)
+                    }
+                }
+                context.delete(record)
+                dirty = true
+                continue
+            }
+
             let broken = !fm.fileExists(atPath: record.linkedPath)
             if record.isBroken != broken {
                 record.isBroken = broken
@@ -130,7 +154,6 @@ final class SymlinkService {
 
     // MARK: - Query
 
-    /// Returns all non-broken `SymlinkTarget` records for a given skill.
     func targets(for skill: Skill, context: ModelContext) -> [SymlinkTarget] {
         let path = skill.resolvedPath
         let descriptor = FetchDescriptor<SymlinkTarget>(
@@ -144,21 +167,20 @@ final class SymlinkService {
         }
     }
 
-    /// Returns true if a non-broken symlink exists for (skill, tool).
-    func isLinked(_ skill: Skill, to tool: ToolSource, context: ModelContext) -> Bool {
-        let targetID = "\(skill.resolvedPath)|\(tool.rawValue)"
-        let descriptor = FetchDescriptor<SymlinkTarget>(
-            predicate: #Predicate { $0.id == targetID && !$0.isBroken }
-        )
-        do {
-            return try !context.fetch(descriptor).isEmpty
-        } catch {
-            AppLogger.fileIO.error("SymlinkService.isLinked fetch failed: \(error.localizedDescription)")
-            return false
-        }
-    }
-
     // MARK: - Private
+
+    /// Returns `source` relative to its scan base, preserving subdirectory structure.
+    private func relativePathFromScanBase(source: String, kind: ItemKind, toolSources: [ToolSource]) -> String {
+        for toolSource in toolSources {
+            for base in toolSource.globalDirs(for: kind) {
+                let prefix = base.hasSuffix("/") ? base : base + "/"
+                if source.hasPrefix(prefix) {
+                    return String(source.dropFirst(prefix.count))
+                }
+            }
+        }
+        return URL(fileURLWithPath: source).lastPathComponent
+    }
 
     private func vendorDirectory(for tool: ToolSource, kind: ItemKind) throws -> String {
         guard let dir = tool.globalDirs(for: kind).first else {

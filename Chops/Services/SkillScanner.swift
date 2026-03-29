@@ -51,6 +51,7 @@ final class SkillScanner {
     private static let projectProbes: [(subpath: String, tool: ToolSource, kind: ItemKind)] = [
         (".claude/skills", .claude, .skill),
         (".claude/agents", .claude, .agent),
+        (".claude/rules", .claude, .rule),
         (".cursor/skills", .cursor, .skill),
         (".cursor/rules", .cursor, .rule),
         (".cursor/agents", .cursor, .agent),
@@ -441,6 +442,9 @@ final class SkillScanner {
                 let preferredPath = installedPaths.contains(existing.filePath) ? existing.filePath : primary.fileURL.path
                 let preferredData = installations.first(where: { $0.fileURL.path == preferredPath }) ?? primary
 
+                // Use the non-symlink installation's kind so symlinked copies don't override the source kind.
+                let authoritativeData = installations.first(where: { $0.fileURL.path == $0.resolvedPath }) ?? preferredData
+
                 existing.filePath = preferredPath
                 existing.isDirectory = preferredData.isDirectory
                 existing.name = preferredData.name
@@ -452,8 +456,10 @@ final class SkillScanner {
                 existing.isGlobal = preferredData.isGlobal
                 existing.installedPaths = installedPaths
                 existing.toolSources = toolSources
-                existing.itemKind = preferredData.kind
+                existing.itemKind = authoritativeData.kind
             } else {
+                let authoritativeData = installations.first(where: { $0.fileURL.path == $0.resolvedPath }) ?? primary
+
                 let skill = Skill(
                     filePath: primary.fileURL.path,
                     toolSource: primary.toolSource,
@@ -466,7 +472,7 @@ final class SkillScanner {
                     fileSize: primary.fileSize,
                     isGlobal: primary.isGlobal,
                     resolvedPath: primary.resolvedPath,
-                    kind: primary.kind
+                    kind: authoritativeData.kind
                 )
                 skill.installedPaths = installedPaths
                 skill.toolSources = toolSources
@@ -481,6 +487,8 @@ final class SkillScanner {
         do { try modelContext.save() } catch {
             AppLogger.scanning.error("SwiftData save failed: \(error.localizedDescription)")
         }
+
+        SymlinkService.shared.reconcile(context: modelContext)
     }
 
     // MARK: - Remote Server Scanning
