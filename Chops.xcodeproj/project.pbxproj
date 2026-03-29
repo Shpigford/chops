@@ -38,15 +38,17 @@
 		846B58F3B105D1734DC6FA75 /* SkillRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FC9D3E83D8640CC258CF361 /* SkillRegistry.swift */; };
 		87A469B631CC80C89B14B1C7 /* SkillMetadataBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C812515FD8DC222B89745F2 /* SkillMetadataBar.swift */; };
 		87AEE95EAD9793D3241D4387 /* ACP in Frameworks */ = {isa = PBXBuildFile; productRef = F642568B19B420E64E62307D /* ACP */; };
+		8EB9009F12904F22E7682DED /* ComposerPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE7E8A6E7D57051EAE69A849 /* ComposerPickerView.swift */; };
 		91EA572FCA75A2EA848C3429 /* ChopsTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A58EBE34E8A678FC897DFCB /* ChopsTextView.swift */; };
 		95163AEB7980654C901EC693 /* Skill.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27D6ED655F951177D2152351 /* Skill.swift */; };
 		98434D3DDFEEC7239F6F7B79 /* RegistrySheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FCD6C2A8BE68F553A9CA392 /* RegistrySheet.swift */; };
 		99EE8F6124FE91AC9576D6FD /* FileWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD26AA4787A2E0CDC86AADC /* FileWatcher.swift */; };
+		A0862ECC573FDC0AA7CB9950 /* LibrarySettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03AA4FA049E1DADB40552060 /* LibrarySettingsView.swift */; };
+		A500A6E37C3F2BF5B4428959 /* ChopsSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D9B5801101BA69BB84EE28D /* ChopsSettings.swift */; };
+		A8BB61269A4F541BAB4C8F97 /* ToolKindPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA30754C87BF034341CD0040 /* ToolKindPickerView.swift */; };
 		A99BA179E0520DCDC98E1382 /* AppLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = F45D5C8E8C732B2F4A867E43 /* AppLogger.swift */; };
 		AAC4A3CBF2A9B4DF50608948 /* SSHService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6797D4AC1970DB9ACB5ACA73 /* SSHService.swift */; };
 		AFDC3DAB708B352A7606F119 /* DiagnosticExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5D3C2567FBF8DBA4DE957B3 /* DiagnosticExporter.swift */; };
-		B369400C2F78B5D8003BB200 /* ChopsSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = B369400B2F78B5D8003BB200 /* ChopsSettings.swift */; };
-		B369400E2F78B5EC003BB200 /* LibrarySettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B369400D2F78B5EC003BB200 /* LibrarySettingsView.swift */; };
 		B4526ECE136AC044CD3C7603 /* EditorTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = D24B049638C76AC6248FD5D2 /* EditorTheme.swift */; };
 		B5B95B9DA63A734F25470FF5 /* SchemaVersions.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F8AA042D5D8A9F92F35CA3 /* SchemaVersions.swift */; };
 		BD584933CCE2B650345C4CF1 /* ToolSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5487D9027B97F7E9EE9A1F4A /* ToolSource.swift */; };
@@ -72,6 +74,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		03AA4FA049E1DADB40552060 /* LibrarySettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibrarySettingsView.swift; sourceTree = "<group>"; };
 		04C3C644B72DD508A7CBC403 /* ChopsIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = wrapper.icon; path = ChopsIcon.icon; sourceTree = "<group>"; };
 		07899C351E63B32277272A59 /* CursorACPAgent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CursorACPAgent.swift; sourceTree = "<group>"; };
 		12C5CD1627D4EFF58AEF4F71 /* TemplateManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateManager.swift; sourceTree = "<group>"; };
@@ -84,6 +87,7 @@
 		27D6ED655F951177D2152351 /* Skill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Skill.swift; sourceTree = "<group>"; };
 		2CF7822031FD82A28978D9C5 /* SidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarView.swift; sourceTree = "<group>"; };
 		2D07C2CD05E172DB71F63033 /* ThinkingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThinkingView.swift; sourceTree = "<group>"; };
+		2D9B5801101BA69BB84EE28D /* ChopsSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChopsSettings.swift; sourceTree = "<group>"; };
 		31B4DB87833D5160A11E39C9 /* SkillEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillEditorView.swift; sourceTree = "<group>"; };
 		3314080A44DEB895223E36D5 /* RemoteServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteServer.swift; sourceTree = "<group>"; };
 		372FA72F2C179B79470DF86A /* MarkdownRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownRenderer.swift; sourceTree = "<group>"; };
@@ -114,10 +118,9 @@
 		9FC9D3E83D8640CC258CF361 /* SkillRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillRegistry.swift; sourceTree = "<group>"; };
 		A7B6AE242CAD6A285DD57079 /* ToolBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolBadge.swift; sourceTree = "<group>"; };
 		A924245DDDA4C6A59BE15567 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		AA30754C87BF034341CD0040 /* ToolKindPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolKindPickerView.swift; sourceTree = "<group>"; };
 		AA64A368BBF950CD36C4F495 /* SkillListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillListView.swift; sourceTree = "<group>"; };
 		B1F8AA042D5D8A9F92F35CA3 /* SchemaVersions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SchemaVersions.swift; sourceTree = "<group>"; };
-		B369400B2F78B5D8003BB200 /* ChopsSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChopsSettings.swift; sourceTree = "<group>"; };
-		B369400D2F78B5EC003BB200 /* LibrarySettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibrarySettingsView.swift; sourceTree = "<group>"; };
 		B3F5CF5BB1FC8455FDDB004A /* Chops.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Chops.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B955C8B935BD62ED4811FCA2 /* DiffReviewPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiffReviewPanel.swift; sourceTree = "<group>"; };
 		C9AFE1AF02B0F8057791C2A9 /* Collection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Collection.swift; sourceTree = "<group>"; };
@@ -127,6 +130,7 @@
 		D946A13468984E6DEBC20B9A /* ACPConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ACPConfiguration.swift; sourceTree = "<group>"; };
 		E684304D1723CA691F40335B /* RemoteServersSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteServersSettingsView.swift; sourceTree = "<group>"; };
 		E6A5B26D335C1AFB6CDE8207 /* SkillScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillScanner.swift; sourceTree = "<group>"; };
+		EE7E8A6E7D57051EAE69A849 /* ComposerPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposerPickerView.swift; sourceTree = "<group>"; };
 		F02A00F80E4712872205EA7B /* NewSkillSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewSkillSheet.swift; sourceTree = "<group>"; };
 		F45D5C8E8C732B2F4A867E43 /* AppLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLogger.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -212,9 +216,9 @@
 			children = (
 				9C052B94D025127C9823E7BC /* ACPSettingsView.swift */,
 				D5D3C2567FBF8DBA4DE957B3 /* DiagnosticExporter.swift */,
+				03AA4FA049E1DADB40552060 /* LibrarySettingsView.swift */,
 				E684304D1723CA691F40335B /* RemoteServersSettingsView.swift */,
 				A924245DDDA4C6A59BE15567 /* SettingsView.swift */,
-				B369400D2F78B5EC003BB200 /* LibrarySettingsView.swift */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -261,13 +265,13 @@
 			children = (
 				D946A13468984E6DEBC20B9A /* ACPConfiguration.swift */,
 				907E59B064AB8366B60BF611 /* AgentTarget.swift */,
+				2D9B5801101BA69BB84EE28D /* ChopsSettings.swift */,
 				C9AFE1AF02B0F8057791C2A9 /* Collection.swift */,
 				3314080A44DEB895223E36D5 /* RemoteServer.swift */,
 				B1F8AA042D5D8A9F92F35CA3 /* SchemaVersions.swift */,
 				27D6ED655F951177D2152351 /* Skill.swift */,
 				5487D9027B97F7E9EE9A1F4A /* ToolSource.swift */,
 				181FD0056E54DEB3957FB4DC /* WizardTemplate.swift */,
-				B369400B2F78B5D8003BB200 /* ChopsSettings.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -285,9 +289,11 @@
 			isa = PBXGroup;
 			children = (
 				4CA102A49ACFB23BC15794F8 /* CollectionListView.swift */,
+				EE7E8A6E7D57051EAE69A849 /* ComposerPickerView.swift */,
 				2CF7822031FD82A28978D9C5 /* SidebarView.swift */,
 				AA64A368BBF950CD36C4F495 /* SkillListView.swift */,
 				9A5774429CCE83C2AFBE046C /* ToolFilterView.swift */,
+				AA30754C87BF034341CD0040 /* ToolKindPickerView.swift */,
 			);
 			path = Sidebar;
 			sourceTree = "<group>";
@@ -359,6 +365,8 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+				};
 			};
 			buildConfigurationList = 719777DE0F769FDB488A0FDB /* Build configuration list for PBXProject "Chops" */;
 			developmentRegion = en;
@@ -411,14 +419,15 @@
 				FD8D2544AE423F4AB2843C0F /* AgentTarget.swift in Sources */,
 				A99BA179E0520DCDC98E1382 /* AppLogger.swift in Sources */,
 				25A4FB387DB5BD96DB630C14 /* AppState.swift in Sources */,
-				B369400E2F78B5EC003BB200 /* LibrarySettingsView.swift in Sources */,
 				309B12E0B72A22C9772BBC99 /* ChopsApp.swift in Sources */,
+				A500A6E37C3F2BF5B4428959 /* ChopsSettings.swift in Sources */,
 				91EA572FCA75A2EA848C3429 /* ChopsTextView.swift in Sources */,
 				62C6C8687D8A1E3C1EBBBC8C /* ClaudeACPAgent.swift in Sources */,
 				7A17C99C5EFAE3AA9E788D50 /* Collection.swift in Sources */,
 				7EC6156934D559226BC78859 /* CollectionListView.swift in Sources */,
 				E46A2BA5FA20531A06AFB418 /* ComposeModel.swift in Sources */,
 				74045816B0CF10369DB51ADD /* ComposePanel.swift in Sources */,
+				8EB9009F12904F22E7682DED /* ComposerPickerView.swift in Sources */,
 				D4C107BE303FC07CAF9C66AF /* ContentView.swift in Sources */,
 				C983C685C6296C2EF73CE57D /* CursorACPAgent.swift in Sources */,
 				AFDC3DAB708B352A7606F119 /* DiagnosticExporter.swift in Sources */,
@@ -426,6 +435,7 @@
 				B4526ECE136AC044CD3C7603 /* EditorTheme.swift in Sources */,
 				99EE8F6124FE91AC9576D6FD /* FileWatcher.swift in Sources */,
 				CBD8FECF1C5A453C8B021665 /* FrontmatterParser.swift in Sources */,
+				A0862ECC573FDC0AA7CB9950 /* LibrarySettingsView.swift in Sources */,
 				7FD1DE6640F9339D5E97E09A /* MDCParser.swift in Sources */,
 				322C22C23073C29FC0C6098D /* MarkdownMessageView.swift in Sources */,
 				E7ED248D6F94C1B1DEF1E8BA /* MarkdownRenderer.swift in Sources */,
@@ -447,13 +457,13 @@
 				60A6711BAB0C3B8A3ACBF985 /* SkillParser.swift in Sources */,
 				E6F4E1CF50F2F78F5BA9BAC9 /* SkillPreviewView.swift in Sources */,
 				846B58F3B105D1734DC6FA75 /* SkillRegistry.swift in Sources */,
-				B369400C2F78B5D8003BB200 /* ChopsSettings.swift in Sources */,
 				6A8E0927D95BB14C9F377F4E /* SkillScanner.swift in Sources */,
 				08B4E2A065E192F17F2568B6 /* TemplateDetailView.swift in Sources */,
 				3F0ED402E77D8D25C600BAED /* TemplateManager.swift in Sources */,
 				038F5975DA97A3211EF4D448 /* ThinkingView.swift in Sources */,
 				53C393C13E30EC439317509F /* ToolBadge.swift in Sources */,
 				C30BEAE03E54BD36F257A925 /* ToolFilterView.swift in Sources */,
+				A8BB61269A4F541BAB4C8F97 /* ToolKindPickerView.swift in Sources */,
 				BD584933CCE2B650345C4CF1 /* ToolSource.swift in Sources */,
 				F16A5D53C17EB72817E1282F /* WizardTemplate.swift in Sources */,
 			);
