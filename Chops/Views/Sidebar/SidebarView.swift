@@ -26,9 +26,17 @@ struct SidebarView: View {
 
         List(selection: $appState.sidebarFilter) {
             Section("Library") {
-                Label("All Skills", systemImage: "doc.text")
-                    .badge(allSkills.count)
+                Label("Skills", systemImage: "doc.text")
+                    .badge(allSkills.filter { $0.itemKind == .skill }.count)
                     .tag(SidebarFilter.allSkills)
+
+                Label("Agents", systemImage: "person.crop.rectangle")
+                    .badge(allSkills.filter { $0.itemKind == .agent }.count)
+                    .tag(SidebarFilter.allAgents)
+
+                Label("Rules", systemImage: "list.bullet.rectangle")
+                    .badge(allSkills.filter { $0.itemKind == .rule }.count)
+                    .tag(SidebarFilter.allRules)
 
                 Label("Favorites", systemImage: "star")
                     .badge(allSkills.filter(\.isFavorite).count)
@@ -44,13 +52,6 @@ struct SidebarView: View {
                     }
                     .badge(toolCount(tool))
                     .tag(SidebarFilter.tool(tool))
-                }
-            }
-
-            Section("Wizard Templates") {
-                ForEach(WizardTemplateType.allCases) { templateType in
-                    Label(templateType.displayName, systemImage: templateType.icon)
-                        .tag(SidebarFilter.wizardTemplate(templateType))
                 }
             }
 
@@ -119,7 +120,7 @@ struct SidebarView: View {
         syncingServerIDs.insert(server.id)
         serverErrors.removeValue(forKey: server.id)
         let context = modelContext
-        Task { @MainActor in
+        Task {
             let scanner = SkillScanner(modelContext: context)
             await scanner.scanRemoteServer(server)
             syncingServerIDs.remove(server.id)

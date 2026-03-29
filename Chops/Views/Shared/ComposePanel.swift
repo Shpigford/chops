@@ -193,7 +193,7 @@ struct ComposePanel: View {
         }
     }
 
-    @State private var configuration = ACPConfiguration.shared
+    private let configuration = ACPConfiguration.shared
 
     private var noToolsConfiguredView: some View {
         ZStack(alignment: .topTrailing) {
@@ -279,7 +279,7 @@ struct ComposePanel: View {
                 .frame(maxWidth: 200)
             }
 
-            // RIGHT: Config options (when connected) + close
+            // RIGHT: config options (when connected) + close
             HStack(spacing: 8) {
                 inlineConfigOptions
                 closeButton
@@ -890,15 +890,23 @@ struct ComposePanel: View {
     nonisolated private static func revertDiffOnDisk(_ diff: ChatDiff) {
         let url = URL(fileURLWithPath: diff.path)
         if diff.existedBefore {
-            if let originalData = diff.originalData {
-                try? originalData.write(to: url)
-            } else if let original = diff.original {
-                try? original.write(to: url, atomically: true, encoding: .utf8)
-            } else {
-                acpLog.error("Reject failed: missing original snapshot for \(diff.path)")
+            do {
+                if let originalData = diff.originalData {
+                    try originalData.write(to: url)
+                } else if let original = diff.original {
+                    try original.write(to: url, atomically: true, encoding: .utf8)
+                } else {
+                    acpLog.error("Reject failed: missing original snapshot for \(diff.path)")
+                }
+            } catch {
+                acpLog.error("Reject failed writing \(diff.path): \(error.localizedDescription)")
             }
         } else {
-            try? FileManager.default.removeItem(at: url)
+            do {
+                try FileManager.default.removeItem(at: url)
+            } catch {
+                acpLog.error("Reject failed removing \(diff.path): \(error.localizedDescription)")
+            }
         }
     }
 

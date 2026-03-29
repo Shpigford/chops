@@ -128,8 +128,8 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
         switch self {
         case .augment: return ["\(home)/.augment/skills"]
         case .claude: return ["\(home)/.claude/skills"]
-        case .cursor: return ["\(home)/.cursor/skills", "\(home)/.cursor/rules"]
-        case .windsurf: return ["\(home)/.codeium/windsurf/memories", "\(home)/.windsurf/rules"]
+        case .cursor: return ["\(home)/.cursor/skills"]
+        case .windsurf: return []
         case .codex: return ["\(home)/.codex/skills"]
         case .copilot: return ["\(home)/.copilot/skills"]
         case .aider: return []
@@ -141,6 +141,15 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
         case .antigravity: return ["\(home)/.gemini/antigravity/skills"]
         case .claudeDesktop: return []
         case .custom: return []
+        }
+    }
+
+    var globalRulePaths: [String] {
+        let home = FileManager.default.homeDirectoryForCurrentUser.path
+        switch self {
+        case .cursor: return ["\(home)/.cursor/rules"]
+        case .windsurf: return ["\(home)/.codeium/windsurf/memories", "\(home)/.windsurf/rules"]
+        default: return []
         }
     }
 
@@ -166,6 +175,7 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
             return fm.fileExists(atPath: "/Applications/Windsurf.app")
                 || fm.fileExists(atPath: "\(home)/.codeium/windsurf/argv.json")
                 || globalPaths.contains { fm.fileExists(atPath: $0) }
+                || globalRulePaths.contains { fm.fileExists(atPath: $0) }
         case .codex:
             return fm.fileExists(atPath: "\(home)/.codex/config.toml")
                 || fm.fileExists(atPath: "\(home)/.codex/auth.json")

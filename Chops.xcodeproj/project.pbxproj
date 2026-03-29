@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		038F5975DA97A3211EF4D448 /* ThinkingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D07C2CD05E172DB71F63033 /* ThinkingView.swift */; };
-		08B4E2A065E192F17F2568B6 /* TemplateDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E792EE2E83B2068F8C5305F /* TemplateDetailView.swift */; };
 		09D3F065191A83BDEE922789 /* SkillDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 168E103488DEA623E712852B /* SkillDetailView.swift */; };
 		0DC3536F86CAA3C4680958AF /* ACPModel in Frameworks */ = {isa = PBXBuildFile; productRef = 86292938A0949F325E358FA5 /* ACPModel */; };
 		1BBEBC85C24BBC4E08AA1821 /* ACPLogViewer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F236C158C893B626A51E385 /* ACPLogViewer.swift */; };
@@ -42,6 +41,8 @@
 		95163AEB7980654C901EC693 /* Skill.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27D6ED655F951177D2152351 /* Skill.swift */; };
 		98434D3DDFEEC7239F6F7B79 /* RegistrySheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FCD6C2A8BE68F553A9CA392 /* RegistrySheet.swift */; };
 		99EE8F6124FE91AC9576D6FD /* FileWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD26AA4787A2E0CDC86AADC /* FileWatcher.swift */; };
+		A0862ECC573FDC0AA7CB9950 /* LibrarySettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03AA4FA049E1DADB40552060 /* LibrarySettingsView.swift */; };
+		A500A6E37C3F2BF5B4428959 /* ChopsSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D9B5801101BA69BB84EE28D /* ChopsSettings.swift */; };
 		A99BA179E0520DCDC98E1382 /* AppLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = F45D5C8E8C732B2F4A867E43 /* AppLogger.swift */; };
 		AAC4A3CBF2A9B4DF50608948 /* SSHService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6797D4AC1970DB9ACB5ACA73 /* SSHService.swift */; };
 		AFDC3DAB708B352A7606F119 /* DiagnosticExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5D3C2567FBF8DBA4DE957B3 /* DiagnosticExporter.swift */; };
@@ -70,6 +71,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		03AA4FA049E1DADB40552060 /* LibrarySettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibrarySettingsView.swift; sourceTree = "<group>"; };
 		04C3C644B72DD508A7CBC403 /* ChopsIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = wrapper.icon; path = ChopsIcon.icon; sourceTree = "<group>"; };
 		07899C351E63B32277272A59 /* CursorACPAgent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CursorACPAgent.swift; sourceTree = "<group>"; };
 		12C5CD1627D4EFF58AEF4F71 /* TemplateManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateManager.swift; sourceTree = "<group>"; };
@@ -82,6 +84,7 @@
 		27D6ED655F951177D2152351 /* Skill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Skill.swift; sourceTree = "<group>"; };
 		2CF7822031FD82A28978D9C5 /* SidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarView.swift; sourceTree = "<group>"; };
 		2D07C2CD05E172DB71F63033 /* ThinkingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThinkingView.swift; sourceTree = "<group>"; };
+		2D9B5801101BA69BB84EE28D /* ChopsSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChopsSettings.swift; sourceTree = "<group>"; };
 		31B4DB87833D5160A11E39C9 /* SkillEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillEditorView.swift; sourceTree = "<group>"; };
 		3314080A44DEB895223E36D5 /* RemoteServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteServer.swift; sourceTree = "<group>"; };
 		372FA72F2C179B79470DF86A /* MarkdownRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownRenderer.swift; sourceTree = "<group>"; };
@@ -95,7 +98,6 @@
 		5F236C158C893B626A51E385 /* ACPLogViewer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ACPLogViewer.swift; sourceTree = "<group>"; };
 		60E0F71982C4AF0045962380 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		6797D4AC1970DB9ACB5ACA73 /* SSHService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSHService.swift; sourceTree = "<group>"; };
-		6E792EE2E83B2068F8C5305F /* TemplateDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateDetailView.swift; sourceTree = "<group>"; };
 		77E332B9970E6E3D00DCFBA3 /* SkillPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillPreviewView.swift; sourceTree = "<group>"; };
 		7C77C5B30E6C885B39444E5B /* FrontmatterParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrontmatterParser.swift; sourceTree = "<group>"; };
 		7FCD6C2A8BE68F553A9CA392 /* RegistrySheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrySheet.swift; sourceTree = "<group>"; };
@@ -208,6 +210,7 @@
 			children = (
 				9C052B94D025127C9823E7BC /* ACPSettingsView.swift */,
 				D5D3C2567FBF8DBA4DE957B3 /* DiagnosticExporter.swift */,
+				03AA4FA049E1DADB40552060 /* LibrarySettingsView.swift */,
 				E684304D1723CA691F40335B /* RemoteServersSettingsView.swift */,
 				A924245DDDA4C6A59BE15567 /* SettingsView.swift */,
 			);
@@ -256,6 +259,7 @@
 			children = (
 				D946A13468984E6DEBC20B9A /* ACPConfiguration.swift */,
 				907E59B064AB8366B60BF611 /* AgentTarget.swift */,
+				2D9B5801101BA69BB84EE28D /* ChopsSettings.swift */,
 				C9AFE1AF02B0F8057791C2A9 /* Collection.swift */,
 				3314080A44DEB895223E36D5 /* RemoteServer.swift */,
 				B1F8AA042D5D8A9F92F35CA3 /* SchemaVersions.swift */,
@@ -296,7 +300,6 @@
 				31B4DB87833D5160A11E39C9 /* SkillEditorView.swift */,
 				8C812515FD8DC222B89745F2 /* SkillMetadataBar.swift */,
 				77E332B9970E6E3D00DCFBA3 /* SkillPreviewView.swift */,
-				6E792EE2E83B2068F8C5305F /* TemplateDetailView.swift */,
 			);
 			path = Detail;
 			sourceTree = "<group>";
@@ -408,6 +411,7 @@
 				A99BA179E0520DCDC98E1382 /* AppLogger.swift in Sources */,
 				25A4FB387DB5BD96DB630C14 /* AppState.swift in Sources */,
 				309B12E0B72A22C9772BBC99 /* ChopsApp.swift in Sources */,
+				A500A6E37C3F2BF5B4428959 /* ChopsSettings.swift in Sources */,
 				91EA572FCA75A2EA848C3429 /* ChopsTextView.swift in Sources */,
 				62C6C8687D8A1E3C1EBBBC8C /* ClaudeACPAgent.swift in Sources */,
 				7A17C99C5EFAE3AA9E788D50 /* Collection.swift in Sources */,
@@ -421,6 +425,7 @@
 				B4526ECE136AC044CD3C7603 /* EditorTheme.swift in Sources */,
 				99EE8F6124FE91AC9576D6FD /* FileWatcher.swift in Sources */,
 				CBD8FECF1C5A453C8B021665 /* FrontmatterParser.swift in Sources */,
+				A0862ECC573FDC0AA7CB9950 /* LibrarySettingsView.swift in Sources */,
 				7FD1DE6640F9339D5E97E09A /* MDCParser.swift in Sources */,
 				322C22C23073C29FC0C6098D /* MarkdownMessageView.swift in Sources */,
 				E7ED248D6F94C1B1DEF1E8BA /* MarkdownRenderer.swift in Sources */,
@@ -443,7 +448,6 @@
 				E6F4E1CF50F2F78F5BA9BAC9 /* SkillPreviewView.swift in Sources */,
 				846B58F3B105D1734DC6FA75 /* SkillRegistry.swift in Sources */,
 				6A8E0927D95BB14C9F377F4E /* SkillScanner.swift in Sources */,
-				08B4E2A065E192F17F2568B6 /* TemplateDetailView.swift in Sources */,
 				3F0ED402E77D8D25C600BAED /* TemplateManager.swift in Sources */,
 				038F5975DA97A3211EF4D448 /* ThinkingView.swift in Sources */,
 				53C393C13E30EC439317509F /* ToolBadge.swift in Sources */,

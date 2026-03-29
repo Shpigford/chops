@@ -276,12 +276,18 @@ open class BaseACPAgent: ClientDelegate {
         if !alreadyCaptured {
             let snapshot = await Task.detached {
                 let existedBefore = FileManager.default.fileExists(atPath: path)
-                let originalData = existedBefore ? try? Data(contentsOf: URL(fileURLWithPath: path)) : nil
-                return (
-                    existedBefore,
-                    originalData,
-                    Self.decodeText(from: originalData)
-                )
+                let originalData: Data?
+                if existedBefore {
+                    do {
+                        originalData = try Data(contentsOf: URL(fileURLWithPath: path))
+                    } catch {
+                        acpLog.error("Failed to read original for diff revert (\(path)): \(error.localizedDescription)")
+                        originalData = nil
+                    }
+                } else {
+                    originalData = nil
+                }
+                return (existedBefore, originalData, Self.decodeText(from: originalData))
             }.value
             pendingWrites.append(
                 PendingWrite(

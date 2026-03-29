@@ -189,6 +189,7 @@ final class SkillEditorDocument {
 
 struct SkillEditorView: View {
     @Bindable var document: SkillEditorDocument
+    var isEditable: Bool = true
 
     var body: some View {
         ZStack(alignment: .topTrailing) {
@@ -199,7 +200,7 @@ struct SkillEditorView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
-                HighlightedTextEditor(text: $document.editorContent)
+                HighlightedTextEditor(text: $document.editorContent, isEditable: isEditable)
             }
 
             HStack(spacing: 6) {
@@ -227,6 +228,7 @@ extension Notification.Name {
 
 struct HighlightedTextEditor: NSViewRepresentable {
     @Binding var text: String
+    var isEditable: Bool = true
     @Environment(\.colorScheme) private var colorScheme
 
     func makeCoordinator() -> Coordinator {
@@ -241,6 +243,7 @@ struct HighlightedTextEditor: NSViewRepresentable {
         scrollView.autohidesScrollers = true
 
         let textView = ChopsTextView()
+        textView.isEditable = isEditable
         textView.isRichText = false
         textView.allowsUndo = true
         textView.usesFindPanel = true
@@ -300,6 +303,7 @@ struct HighlightedTextEditor: NSViewRepresentable {
         guard let textView = scrollView.documentView as? ChopsTextView else { return }
 
         context.coordinator.parent = self
+        textView.isEditable = isEditable
 
         // Re-highlight on appearance change
         let currentScheme = colorScheme

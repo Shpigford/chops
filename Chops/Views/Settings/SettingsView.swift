@@ -5,55 +5,103 @@ extension Notification.Name {
     static let customScanPathsChanged = Notification.Name("customScanPathsChanged")
 }
 
+// MARK: - Settings Tab Definition
+
+enum SettingsTab: String, CaseIterable, Identifiable {
+    case general, library, aiAssist, scanDirs, servers, about
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .general: "General"
+        case .library: "Library"
+        case .aiAssist: "AI Assist"
+        case .scanDirs: "Scan Directories"
+        case .servers: "Servers"
+        case .about: "About"
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .general: "gearshape"
+        case .library: "books.vertical"
+        case .aiAssist: "sparkles"
+        case .scanDirs: "folder.badge.gearshape"
+        case .servers: "server.rack"
+        case .about: "info.circle"
+        }
+    }
+}
+
+// MARK: - Settings View
+
 struct SettingsView: View {
     private static let logger = AppLogger.settings
 
     let updater: SPUUpdater
+    @State private var selectedTab: SettingsTab = .general
     @State private var customPaths: [String] = []
-    @State private var defaultTool: ToolSource = .claude
+    @AppStorage("defaultTool") private var defaultTool: ToolSource = .claude
 
     var body: some View {
-        TabView {
-            generalSettings
-                .tabItem {
-                    Label("General", systemImage: "gearshape")
+        VStack(spacing: 0) {
+            // Tab bar
+            HStack(spacing: 1) {
+                ForEach(SettingsTab.allCases) { tab in
+                    SettingsTabButton(tab: tab, isSelected: selectedTab == tab) {
+                        selectedTab = tab
+                    }
                 }
+            }
+            .padding(.horizontal, 12)
+            .padding(.top, 8)
+            .padding(.bottom, 4)
 
-            ACPSettingsView()
-                .tabItem {
-                    Label("AI Assist", systemImage: "sparkles")
-                }
+            Divider()
 
-            scanSettings
-                .tabItem {
-                    Label("Scan Directories", systemImage: "folder.badge.gearshape")
-                }
-
-            RemoteServersSettingsView()
-                .tabItem {
-                    Label("Servers", systemImage: "server.rack")
-                }
-
-            aboutView
-                .tabItem {
-                    Label("About", systemImage: "info.circle")
-                }
+            // Tab content — each pane sizes itself, no outer ScrollView
+            tabContent
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .frame(minWidth: 480, maxWidth: 480, minHeight: 300)
+        .frame(width: 520)
+        .fixedSize(horizontal: false, vertical: true)
         .onAppear {
             loadCustomPaths()
         }
     }
 
+    @ViewBuilder
+    private var tabContent: some View {
+        switch selectedTab {
+        case .general:
+            generalSettings
+        case .library:
+            LibrarySettingsView()
+        case .aiAssist:
+            ACPSettingsView()
+        case .scanDirs:
+            scanSettings
+        case .servers:
+            RemoteServersSettingsView()
+        case .about:
+            aboutView
+        }
+    }
+
     private var generalSettings: some View {
-        Form {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("General")
+                .font(.headline)
+
             Picker("Default tool", selection: $defaultTool) {
                 ForEach(ToolSource.allCases) { tool in
                     Text(tool.displayName).tag(tool)
                 }
             }
+            .frame(maxWidth: 300)
         }
-        .formStyle(.grouped)
         .padding()
     }
 
@@ -66,27 +114,40 @@ struct SettingsView: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
-            List {
-                ForEach(customPaths, id: \.self) { path in
-                    HStack {
-                        Image(systemName: "folder")
-                        Text(path)
-                            .font(.system(.body, design: .monospaced))
-                            .lineLimit(1)
-                            .truncationMode(.middle)
-                        Spacer()
-                        Button {
-                            customPaths.removeAll { $0 == path }
-                            saveCustomPaths()
-                        } label: {
-                            Image(systemName: "minus.circle.fill")
-                                .foregroundStyle(.red)
+            if !customPaths.isEmpty {
+                VStack(spacing: 0) {
+                    ForEach(customPaths, id: \.self) { path in
+                        HStack {
+                            Image(systemName: "folder")
+                            Text(path)
+                                .font(.system(.body, design: .monospaced))
+                                .lineLimit(1)
+                                .truncationMode(.middle)
+                            Spacer()
+                            Button {
+                                customPaths.removeAll { $0 == path }
+                                saveCustomPaths()
+                            } label: {
+                                Image(systemName: "minus.circle.fill")
+                                    .foregroundStyle(.red)
+                            }
+                            .buttonStyle(.plain)
                         }
-                        .buttonStyle(.plain)
+                        .padding(.vertical, 6)
+                        .padding(.horizontal, 8)
+
+                        if path != customPaths.last {
+                            Divider()
+                        }
                     }
                 }
+                .background(Color(NSColor.controlBackgroundColor))
+                .clipShape(RoundedRectangle(cornerRadius: 6))
+            } else {
+                Text("No custom directories added.")
+                    .foregroundStyle(.secondary)
+                    .font(.callout)
             }
-            .frame(minHeight: 120)
 
             HStack {
                 Spacer()
@@ -110,19 +171,12 @@ struct SettingsView: View {
 
     private var aboutView: some View {
         VStack(spacing: 16) {
-            Image("tool-claude") // App icon from asset catalog
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(width: 80, height: 80)
-                .opacity(0) // Hidden — use the actual app icon instead
-                .overlay {
-                    if let icon = NSApp.applicationIconImage {
-                        Image(nsImage: icon)
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 80, height: 80)
-                    }
-                }
+            if let icon = NSApp.applicationIconImage {
+                Image(nsImage: icon)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 80, height: 80)
+            }
 
             Text("Chops")
                 .font(.title)
@@ -142,15 +196,15 @@ struct SettingsView: View {
                 }
 
                 Button("Website") {
-                    NSWorkspace.shared.open(URL(string: "https://chops.md")!)
+                    if let url = URL(string: "https://chops.md") { NSWorkspace.shared.open(url) }
                 }
 
                 Button("@Shpigford") {
-                    NSWorkspace.shared.open(URL(string: "https://x.com/Shpigford")!)
+                    if let url = URL(string: "https://x.com/Shpigford") { NSWorkspace.shared.open(url) }
                 }
 
                 Button("GitHub") {
-                    NSWorkspace.shared.open(URL(string: "https://github.com/Shpigford/chops")!)
+                    if let url = URL(string: "https://github.com/Shpigford/chops") { NSWorkspace.shared.open(url) }
                 }
             }
 
@@ -158,7 +212,8 @@ struct SettingsView: View {
                 .font(.caption)
                 .foregroundStyle(.tertiary)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 30)
     }
 
     private var appVersion: String {
@@ -174,5 +229,34 @@ struct SettingsView: View {
     private func saveCustomPaths() {
         UserDefaults.standard.set(customPaths, forKey: "customScanPaths")
         NotificationCenter.default.post(name: .customScanPathsChanged, object: nil)
+    }
+}
+
+// MARK: - Tab Button
+
+private struct SettingsTabButton: View {
+    let tab: SettingsTab
+    let isSelected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 2) {
+                Image(systemName: tab.icon)
+                    .font(.system(size: 16))
+                    .frame(height: 20)
+                Text(tab.title)
+                    .font(.caption2)
+                    .lineLimit(1)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 6)
+            .padding(.horizontal, 4)
+            .background(isSelected ? Color.accentColor.opacity(0.15) : Color.clear)
+            .clipShape(RoundedRectangle(cornerRadius: 6))
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(isSelected ? .primary : .secondary)
     }
 }

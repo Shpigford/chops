@@ -17,9 +17,7 @@ struct ContentView: View {
         } content: {
             SkillListView()
         } detail: {
-            if case .wizardTemplate(let templateType) = appState.sidebarFilter {
-                TemplateDetailView(templateType: templateType)
-            } else if let skill = appState.selectedSkill {
+            if let skill = appState.selectedSkill {
                 SkillDetailView(skill: skill)
             } else {
                 ContentUnavailableView(
@@ -39,26 +37,8 @@ struct ContentView: View {
         .sheet(isPresented: $appState.showingRegistrySheet) {
             RegistrySheet()
         }
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Menu {
-                    Button {
-                        appState.newItemKind = .skill
-                        appState.showingNewSkillSheet = true
-                    } label: {
-                        Label("New Skill", systemImage: "doc.text")
-                    }
-                    Divider()
-                    Button {
-                        appState.showingRegistrySheet = true
-                    } label: {
-                        Label("Browse Registry", systemImage: "globe")
-                    }
-                } label: {
-                    Label("Add", systemImage: "plus")
-                }
-                .menuIndicator(.hidden)
-            }
+        .onChange(of: appState.sidebarFilter) {
+            appState.toolKindFilter = nil
         }
         .frame(minWidth: 900, minHeight: 500)
         .onReceive(NotificationCenter.default.publisher(for: .customScanPathsChanged)) { _ in

@@ -91,10 +91,10 @@ struct SkillDetailView: View {
                 if preferPreview {
                     SkillPreviewView(content: document.editorContent)
                 } else {
-                    SkillEditorView(document: document)
+                    SkillEditorView(document: document, isEditable: !skill.isPlugin)
                 }
 
-                if !showingComposePanel {
+                if !showingComposePanel && !skill.isPlugin {
                     composeFloatingButton
                 }
             }
@@ -109,7 +109,7 @@ struct SkillDetailView: View {
                     frontmatter: skill.frontmatter,
                     filePath: skill.filePath,
                     workingDirectory: URL(fileURLWithPath: skill.filePath).deletingLastPathComponent(),
-                    templateType: .skill,
+                    templateType: WizardTemplateType(rawValue: skill.itemKind.rawValue) ?? .skill,
                     onAccept: { document.save(to: skill) }
                 )
                 .id(skill.filePath)
@@ -128,6 +128,7 @@ struct SkillDetailView: View {
             document.load(from: skill)
         }
         .onChange(of: document.editorContent) {
+            guard !skill.isPlugin else { return }
             autoSaveTask?.cancel()
             autoSaveTask = Task {
                 try? await Task.sleep(for: .seconds(1))
@@ -147,16 +148,6 @@ struct SkillDetailView: View {
             Text(document.saveErrorMessage)
         }
         .toolbar {
-            ToolbarItem {
-                Button {
-                    document.save(to: skill)
-                } label: {
-                    Label("Save", systemImage: "square.and.arrow.down")
-                }
-                .buttonStyle(.bordered)
-                .disabled(!document.hasUnsavedChanges)
-                .help("Save (⌘S)")
-            }
             ToolbarItem {
                 Picker("Mode", selection: $preferPreview) {
                     Image(systemName: "pencil").tag(false)

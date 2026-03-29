@@ -9,24 +9,27 @@ struct NewSkillSheet: View {
     @State private var selectedTool: ToolSource = .claude
     @State private var errorMessage: String?
 
-    private let skillCreatableTools: [ToolSource] = [.claude, .agents, .cursor, .codex, .amp, .opencode, .pi, .antigravity]
-    private let agentCreatableTools: [ToolSource] = [.claude, .cursor, .codex]
-
     private var itemKind: ItemKind { appState.newItemKind }
-    private var isAgent: Bool { itemKind == .agent }
 
     private var creatableTools: [ToolSource] {
-        isAgent ? agentCreatableTools : skillCreatableTools
+        switch itemKind {
+        case .skill:
+            return [.claude, .agents, .cursor, .codex, .amp, .opencode, .pi, .antigravity]
+        case .agent:
+            return ToolSource.allCases.filter { !$0.globalAgentPaths.isEmpty }
+        case .rule:
+            return ToolSource.allCases.filter { !$0.globalRulePaths.isEmpty }
+        }
     }
 
     var body: some View {
         VStack(spacing: 20) {
-            Text(isAgent ? "New Agent" : "New Skill")
+            Text("New \(itemKind.singularName)")
                 .font(.title2)
                 .fontWeight(.bold)
 
             Form {
-                TextField(isAgent ? "Agent name" : "Skill name", text: $skillName)
+                TextField("\(itemKind.singularName) name", text: $skillName)
                     .textFieldStyle(.roundedBorder)
 
                 Picker("Tool", selection: $selectedTool) {
@@ -90,46 +93,28 @@ struct NewSkillSheet: View {
         let basePath: String
         let fileName: String
 
-        if isAgent {
-            // Agents go into the tool's agents/ directory
-            guard let agentDir = selectedTool.globalAgentPaths.first else {
+        switch itemKind {
+        case .agent:
+            guard let dir = selectedTool.globalAgentPaths.first else {
                 errorMessage = "This tool doesn't support agents"
                 return
             }
-            basePath = "\(agentDir)/\(sanitizedName)"
+            basePath = "\(dir)/\(sanitizedName)"
             fileName = "\(sanitizedName).md"
-        } else {
-            // Skills use existing path logic
-            switch selectedTool {
-            case .claude:
-                basePath = "\(fm.homeDirectoryForCurrentUser.path)/.claude/skills/\(sanitizedName)"
-                fileName = "SKILL.md"
-            case .agents:
-                basePath = "\(fm.homeDirectoryForCurrentUser.path)/.agents/skills/\(sanitizedName)"
-                fileName = "SKILL.md"
-            case .cursor:
-                basePath = "\(fm.homeDirectoryForCurrentUser.path)/.cursor/skills/\(sanitizedName)"
-                fileName = "SKILL.md"
-            case .codex:
-                basePath = "\(fm.homeDirectoryForCurrentUser.path)/.codex/skills/\(sanitizedName)"
-                fileName = "SKILL.md"
-            case .amp:
-                basePath = "\(configHome)/amp/skills/\(sanitizedName)"
-                fileName = "SKILL.md"
-            case .opencode:
-                basePath = "\(configHome)/opencode/skills/\(sanitizedName)"
-                fileName = "SKILL.md"
-            case .pi:
-                basePath = "\(fm.homeDirectoryForCurrentUser.path)/.pi/agent/skills/\(sanitizedName)"
-                fileName = "SKILL.md"
-            case .antigravity:
-                basePath = "\(fm.homeDirectoryForCurrentUser.path)/.gemini/antigravity/skills/\(sanitizedName)"
-                fileName = "SKILL.md"
-            default:
-                let firstPath = selectedTool.globalPaths.first ?? "\(fm.homeDirectoryForCurrentUser.path)/.claude/skills/\(sanitizedName)"
-                basePath = firstPath
-                fileName = "SKILL.md"
+        case .rule:
+            guard let dir = selectedTool.globalRulePaths.first else {
+                errorMessage = "This tool doesn't support rules"
+                return
             }
+            basePath = dir
+            fileName = "\(sanitizedName).md"
+        case .skill:
+            guard let dir = selectedTool.globalPaths.first else {
+                errorMessage = "This tool doesn't support skills"
+                return
+            }
+            basePath = "\(dir)/\(sanitizedName)"
+            fileName = "SKILL.md"
         }
 
         do {
@@ -138,7 +123,7 @@ struct NewSkillSheet: View {
             let filePath = "\(basePath)/\(fileName)"
 
             guard !fm.fileExists(atPath: filePath) else {
-                errorMessage = isAgent ? "An agent with this name already exists" : "A skill with this name already exists"
+                errorMessage = "A \(itemKind.singularName.lowercased()) with this name already exists"
                 return
             }
 
@@ -149,7 +134,7 @@ struct NewSkillSheet: View {
             let skill = Skill(
                 filePath: filePath,
                 toolSource: selectedTool,
-                isDirectory: true,
+                isDirectory: itemKind != .rule,
                 name: skillName,
                 skillDescription: parsed.description,
                 content: parsed.content,
@@ -163,6 +148,11 @@ struct NewSkillSheet: View {
             modelContext.insert(skill)
             try modelContext.save()
 
+            switch itemKind {
+            case .skill: appState.sidebarFilter = .allSkills
+            case .agent: appState.sidebarFilter = .allAgents
+            case .rule: appState.sidebarFilter = .allRules
+            }
             appState.selectedSkill = skill
             dismiss()
         } catch {
@@ -171,7 +161,8 @@ struct NewSkillSheet: View {
     }
 
     private func generateBoilerplate(name: String, skillID: String, tool: ToolSource) -> String {
-        if isAgent {
+        switch itemKind {
+        case .agent:
             return """
             ---
             name: \(skillID)
@@ -184,50 +175,45 @@ struct NewSkillSheet: View {
 
             Add your agent instructions here.
             """
-        }
-
-        switch tool {
-        case .claude, .cursor:
+        case .rule:
             return """
-            ---
-            name: \(skillID)
-            description: \(name)
-            ---
-
             # \(name)
 
-            ## When to Use
-
-            - Describe when this skill should be activated
-
-            ## Instructions
-
-            Add your skill instructions here.
+            Add your rule content here.
             """
-        case .codex, .amp, .opencode, .pi, .agents, .antigravity:
-            return """
-            ---
-            name: \(skillID)
-            description: \(name)
-            ---
+        case .skill:
+            switch tool {
+            case .claude, .cursor:
+                return """
+                ---
+                name: \(skillID)
+                description: \(name)
+                ---
 
-            # \(name)
+                # \(name)
 
-            ## Instructions
+                ## When to Use
 
-            Add your skill instructions here.
-            """
-        default:
-            return """
-            ---
-            name: \(skillID)
-            description: \(name)
-            ---
+                - Describe when this skill should be activated
 
-            # \(name)
+                ## Instructions
 
-            Add your skill instructions here.
-            """
+                Add your skill instructions here.
+                """
+            default:
+                return """
+                ---
+                name: \(skillID)
+                description: \(name)
+                ---
+
+                # \(name)
+
+                ## Instructions
+
+                Add your skill instructions here.
+                """
+            }
         }
     }
 }

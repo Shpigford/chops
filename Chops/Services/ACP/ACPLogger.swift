@@ -23,7 +23,8 @@ final class ACPLogger: @unchecked Sendable {
     }
 
     private init() {
-        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
+            ?? FileManager.default.temporaryDirectory
         let logsDir = appSupport.appendingPathComponent("Chops/Logs", isDirectory: true)
         try? FileManager.default.createDirectory(at: logsDir, withIntermediateDirectories: true)
 
@@ -69,18 +70,6 @@ final class ACPLogger: @unchecked Sendable {
         case .send:    log(level: .debug, message: ">>> SEND: \(str)")
         case .receive: log(level: .debug, message: "<<< RECV: \(str)")
         }
-    }
-
-    /// Log send payload (only in debug mode)
-    func logSend(_ payload: String) {
-        guard debugEnabled else { return }
-        log(level: .debug, message: ">>> SEND: \(payload)")
-    }
-
-    /// Log receive payload (only in debug mode)
-    func logReceive(_ payload: String) {
-        guard debugEnabled else { return }
-        log(level: .debug, message: "<<< RECV: \(payload)")
     }
 
     /// Get the log file URL for viewing

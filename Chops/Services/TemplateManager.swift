@@ -13,7 +13,8 @@ final class TemplateManager {
     private let fileManager = FileManager.default
 
     private var templatesDirectory: URL {
-        let appSupport = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        let appSupport = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
+            ?? fileManager.temporaryDirectory
         return appSupport.appendingPathComponent("Chops/templates", isDirectory: true)
     }
 
@@ -53,7 +54,11 @@ final class TemplateManager {
     }
 
     private func systemPromptContent(for type: WizardTemplateType) -> String {
-        Self.defaultSkillSystemPrompt
+        switch type {
+        case .skill: Self.defaultSkillSystemPrompt
+        case .agent: Self.defaultAgentSystemPrompt
+        case .rule: Self.defaultRuleSystemPrompt
+        }
     }
 
     /// Save updated template content
@@ -91,8 +96,10 @@ final class TemplateManager {
     // MARK: - Private
 
     private func ensureTemplatesExist() {
-        if !fileManager.fileExists(atPath: templatesDirectory.path) {
-            try? fileManager.createDirectory(at: templatesDirectory, withIntermediateDirectories: true)
+        do {
+            try fileManager.createDirectory(at: templatesDirectory, withIntermediateDirectories: true)
+        } catch {
+            AppLogger.fileIO.error("Failed to create templates dir: \(error.localizedDescription)")
         }
 
         // Write bundled templates on first run; overwrite outdated stored versions.
@@ -100,11 +107,21 @@ final class TemplateManager {
             let destURL = templatesDirectory.appendingPathComponent(type.fileName)
             guard let bundled = loadBundledTemplate(type) else { continue }
 
+            let needsWrite: Bool
             if !fileManager.fileExists(atPath: destURL.path) {
-                try? bundled.write(to: destURL, atomically: true, encoding: .utf8)
-            } else if let stored = try? String(contentsOf: destURL, encoding: .utf8),
-                      templateNeedsUpdate(stored: stored, bundled: bundled) {
-                try? bundled.write(to: destURL, atomically: true, encoding: .utf8)
+                needsWrite = true
+            } else if let stored = try? String(contentsOf: destURL, encoding: .utf8) {
+                needsWrite = templateNeedsUpdate(stored: stored, bundled: bundled)
+            } else {
+                needsWrite = false
+            }
+
+            if needsWrite {
+                do {
+                    try bundled.write(to: destURL, atomically: true, encoding: .utf8)
+                } catch {
+                    AppLogger.fileIO.error("Failed to write template \(type.rawValue): \(error.localizedDescription)")
+                }
             }
         }
     }
@@ -161,7 +178,11 @@ final class TemplateManager {
     }
 
     private func defaultTemplateContent(for type: WizardTemplateType) -> String {
-        Self.defaultSkillTemplate
+        switch type {
+        case .skill: Self.defaultSkillTemplate
+        case .agent: Self.defaultAgentTemplate
+        case .rule: Self.defaultRuleTemplate
+        }
     }
 
     // MARK: - Default Templates
@@ -190,6 +211,54 @@ final class TemplateManager {
     """
 
 
+    // MARK: - Default Agent / Rule Templates
+
+    private static let defaultAgentTemplate = """
+    <!-- chops-template-version: 1 -->
+    # Agent Composer
+
+    You are helping create or improve an agent definition.
+
+    ## Context
+    - File type: Agent
+    - Agents are specialized AI assistants with a defined role, tools, and behavior
+
+    ## Current Content
+    {{file_content}}
+
+    ## User Instructions
+    {{user_instructions}}
+
+    ## Guidelines
+    1. Use YAML frontmatter for metadata (name, description)
+    2. Define a clear, focused role for the agent
+    3. Specify which tools and capabilities the agent should use
+    4. Keep instructions concise and unambiguous
+    """
+
+    private static let defaultRuleTemplate = """
+    <!-- chops-template-version: 1 -->
+    # Rule Composer
+
+    You are helping create or improve a rule definition.
+
+    ## Context
+    - File type: Rule
+    - Rules are persistent instructions applied across all interactions in a tool
+
+    ## Current Content
+    {{file_content}}
+
+    ## User Instructions
+    {{user_instructions}}
+
+    ## Guidelines
+    1. Use YAML frontmatter for metadata (name, description)
+    2. Write rules as clear, imperative directives
+    3. Keep scope narrow — one concern per rule
+    4. Avoid contradictions with other rules
+    """
+
     // MARK: - Default System Prompts
 
     private static let defaultSkillSystemPrompt = """
@@ -204,6 +273,38 @@ final class TemplateManager {
 
     ## Your role
     When the user asks you to create or update this skill, use the ACP `write_text_file` tool to write the complete updated file content directly to the file path shown above.
+    Do not show the content in a code block or ask for confirmation — write it directly via `write_text_file`.
+    Always write the full file, including YAML frontmatter.
+    """
+
+    private static let defaultAgentSystemPrompt = """
+    You are an expert in writing agent definitions for AI coding assistants.
+
+    ## Current agent context
+    - Name: {{skill_name}}
+    - Description: {{skill_description}}
+    - File: {{file_path}}
+    - Frontmatter:
+    {{frontmatter}}
+
+    ## Your role
+    When the user asks you to create or update this agent, use the ACP `write_text_file` tool to write the complete updated file content directly to the file path shown above.
+    Do not show the content in a code block or ask for confirmation — write it directly via `write_text_file`.
+    Always write the full file, including YAML frontmatter.
+    """
+
+    private static let defaultRuleSystemPrompt = """
+    You are an expert in writing rules for AI coding assistants.
+
+    ## Current rule context
+    - Name: {{skill_name}}
+    - Description: {{skill_description}}
+    - File: {{file_path}}
+    - Frontmatter:
+    {{frontmatter}}
+
+    ## Your role
+    When the user asks you to create or update this rule, use the ACP `write_text_file` tool to write the complete updated file content directly to the file path shown above.
     Do not show the content in a code block or ask for confirmation — write it directly via `write_text_file`.
     Always write the full file, including YAML frontmatter.
     """
