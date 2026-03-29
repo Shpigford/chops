@@ -22,7 +22,7 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
     /// Whether this tool should appear in the sidebar tools list.
     var listable: Bool {
         switch self {
-        case .custom, .openclaw, .claudeDesktop, .agents, .aider:
+        case .custom, .claudeDesktop, .agents, .aider:
             return false
         default:
             return true
@@ -134,7 +134,35 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
         case .copilot: return ["\(home)/.copilot/skills"]
         case .aider: return []
         case .amp: return ["\(configHome)/amp/skills"]
-        case .openclaw: return []
+        case .openclaw:
+            var paths: [String] = []
+            // Main skills directory
+            if FileManager.default.fileExists(atPath: "\(home)/.openclaw/skills") {
+                paths.append("\(home)/.openclaw/skills")
+            }
+            // Workspace skills (search all workspace dirs)
+            let openclawDir = URL(fileURLWithPath: "\(home)/.openclaw")
+            if let workspaces = try? FileManager.default.contentsOfDirectory(
+                at: openclawDir,
+                includingPropertiesForKeys: [.isDirectoryKey],
+                options: [.skipsHiddenFiles]
+            ) {
+                for workspace in workspaces {
+                    let skillsPath = workspace.appendingPathComponent("skills")
+                    if FileManager.default.fileExists(atPath: skillsPath.path) {
+                        paths.append(skillsPath.path)
+                    }
+                }
+            }
+            // NPM global installation (ARM Mac)
+            if FileManager.default.fileExists(atPath: "/opt/homebrew/lib/node_modules/openclaw/skills") {
+                paths.append("/opt/homebrew/lib/node_modules/openclaw/skills")
+            }
+            // NPM global installation (Intel Mac)
+            if FileManager.default.fileExists(atPath: "/usr/local/lib/node_modules/openclaw/skills") {
+                paths.append("/usr/local/lib/node_modules/openclaw/skills")
+            }
+            return paths
         case .opencode: return ["\(configHome)/opencode/skills"]
         case .pi: return ["\(home)/.pi/agent/skills"]
         case .agents: return ["\(home)/.agents/skills"]
@@ -217,7 +245,13 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
                 || globalPaths.contains { fm.fileExists(atPath: $0) }
         case .claudeDesktop:
             return Self.appBundleExists("Claude")
-        case .aider, .openclaw, .custom:
+        case .openclaw:
+            return fm.fileExists(atPath: "\(home)/.openclaw")
+                || Self.cliBinaryExists("openclaw")
+                || fm.fileExists(atPath: "/opt/homebrew/lib/node_modules/openclaw")
+                || fm.fileExists(atPath: "/usr/local/lib/node_modules/openclaw")
+                || globalPaths.contains { fm.fileExists(atPath: $0) }
+        case .aider, .custom:
             return true
         }
     }
