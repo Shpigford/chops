@@ -15,6 +15,7 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
     case pi
     case antigravity
     case claudeDesktop
+    case shared
     case custom
 
     var id: String { rawValue }
@@ -45,6 +46,7 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
         case .agents: "Global"
         case .antigravity: "Antigravity"
         case .claudeDesktop: "Claude Desktop"
+        case .shared: "Shared"
         case .custom: "Custom"
         }
     }
@@ -66,6 +68,7 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
         case .agents: "globe"
         case .antigravity: "arrow.up.circle"
         case .claudeDesktop: "desktopcomputer"
+        case .shared: "square.stack.3d.up"
         case .custom: "folder"
         }
     }
@@ -103,6 +106,7 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
         case .agents: .mint
         case .antigravity: .red
         case .claudeDesktop: .orange
+        case .shared: .brown
         case .custom: .gray
         }
     }
@@ -113,6 +117,9 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
         case .claude: return ["\(home)/.claude/agents"]
         case .cursor: return ["\(home)/.cursor/agents"]
         case .codex: return ["\(home)/.codex/agents"]
+        case .shared:
+            guard let base = Self.sharedBase else { return [] }
+            return ["\(base)/agents"]
         default: return []
         }
     }
@@ -168,6 +175,9 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
         case .agents: return ["\(home)/.agents/skills"]
         case .antigravity: return ["\(home)/.gemini/antigravity/skills"]
         case .claudeDesktop: return []
+        case .shared:
+            guard let base = Self.sharedBase else { return [] }
+            return ["\(base)/skills"]
         case .custom: return []
         }
     }
@@ -177,6 +187,9 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
         switch self {
         case .cursor: return ["\(home)/.cursor/rules"]
         case .windsurf: return ["\(home)/.codeium/windsurf/memories", "\(home)/.windsurf/rules"]
+        case .shared:
+            guard let base = Self.sharedBase else { return [] }
+            return ["\(base)/rules"]
         default: return []
         }
     }
@@ -247,6 +260,8 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
             return Self.appBundleExists("Claude")
         case .openclaw:
             return fm.fileExists(atPath: "\(home)/.openclaw")
+        case .shared:
+            guard let base = Self.sharedBase else { return false }
                 || Self.cliBinaryExists("openclaw")
                 || fm.fileExists(atPath: "/opt/homebrew/lib/node_modules/openclaw")
                 || fm.fileExists(atPath: "/usr/local/lib/node_modules/openclaw")
@@ -284,5 +299,25 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
             }
         }
         return false
+    }
+}
+
+extension ToolSource {
+    /// Returns the global directories this tool uses for the given item kind.
+    func globalDirs(for kind: ItemKind) -> [String] {
+        switch kind {
+        case .skill: return globalPaths
+        case .agent: return globalAgentPaths
+        case .rule:  return globalRulePaths
+        }
+    }
+}
+
+private extension ToolSource {
+    /// Expanded absolute path of the user-configured shared library root, or nil if unset.
+    static var sharedBase: String? {
+        let raw = UserDefaults.standard.string(forKey: "sharedLibraryPath") ?? ""
+        let expanded = (raw as NSString).expandingTildeInPath
+        return expanded.isEmpty ? nil : expanded
     }
 }

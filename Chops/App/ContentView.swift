@@ -43,6 +43,7 @@ struct ContentView: View {
         .frame(minWidth: 900, minHeight: 500)
         .onReceive(NotificationCenter.default.publisher(for: .customScanPathsChanged)) { _ in
             scanner?.scanAll()
+            SymlinkService.shared.reconcile(context: modelContext)
         }
     }
 
@@ -52,6 +53,7 @@ struct ContentView: View {
         self.scanner = scanner
         scanner.removeDeletedSkills()
         scanner.scanAll()
+        SymlinkService.shared.reconcile(context: modelContext)
 
         var allPaths: [String] = []
         for tool in ToolSource.allCases {

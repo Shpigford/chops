@@ -17,7 +17,7 @@ struct ChopsApp: App {
     }
 
     var sharedModelContainer: ModelContainer = {
-        let schema = Schema([Skill.self, SkillCollection.self, RemoteServer.self])
+        let schema = Schema([Skill.self, SkillCollection.self, RemoteServer.self, SymlinkTarget.self])
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
         do {
