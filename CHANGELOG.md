@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [1.11.0] - 2026-03-28
+
+- Chat with AI agents directly inside Chops (ACP support)
+- Cancel in-progress AI requests
+- Floating AI button for quick access to the compose panel
+- Improved compose panel layout and usability
+
 ## [1.10.0] - 2026-03-27
 
 - Native markdown editor with syntax highlighting and formatting shortcuts (bold, italic, headings, links, lists)
