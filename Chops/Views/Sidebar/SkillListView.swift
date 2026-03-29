@@ -140,13 +140,16 @@ struct SkillListView: View {
                 NSWorkspace.shared.selectFile(skill.filePath, inFileViewerRootedAtPath: "")
             }
         }
-        Divider()
-        Button("Delete", role: .destructive) {
-            activeAlert = .confirmDelete(skill)
+        if !skill.isReadOnly {
+            Divider()
+            Button("Delete", role: .destructive) {
+                activeAlert = .confirmDelete(skill)
+            }
         }
     }
 
     private func deleteSkill(_ skill: Skill) {
+        guard !skill.isReadOnly else { return }
         do {
             try skill.deleteFromDisk()
             if appState.selectedSkill == skill {

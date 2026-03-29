@@ -91,10 +91,10 @@ struct SkillDetailView: View {
                 if preferPreview {
                     SkillPreviewView(content: document.editorContent)
                 } else {
-                    SkillEditorView(document: document, isEditable: !skill.isPlugin)
+                    SkillEditorView(document: document, isEditable: !skill.isReadOnly)
                 }
 
-                if !showingComposePanel && !skill.isPlugin {
+                if !showingComposePanel && !skill.isReadOnly {
                     composeFloatingButton
                 }
             }
@@ -128,7 +128,7 @@ struct SkillDetailView: View {
             document.load(from: skill)
         }
         .onChange(of: document.editorContent) {
-            guard !skill.isPlugin else { return }
+            guard !skill.isReadOnly else { return }
             autoSaveTask?.cancel()
             autoSaveTask = Task {
                 try? await Task.sleep(for: .seconds(1))
@@ -140,6 +140,7 @@ struct SkillDetailView: View {
             autoSaveTask?.cancel()
         }
         .onReceive(NotificationCenter.default.publisher(for: .saveCurrentSkill)) { _ in
+            guard !skill.isReadOnly else { return }
             document.save(to: skill)
         }
         .alert("Save Error", isPresented: $document.showingSaveError) {
@@ -174,13 +175,15 @@ struct SkillDetailView: View {
                     .help("Show in Finder")
                 }
             }
-            ToolbarItem {
-                Button {
-                    activeAlert = .confirmDelete
-                } label: {
-                    Image(systemName: "trash")
+            if !skill.isReadOnly {
+                ToolbarItem {
+                    Button {
+                        activeAlert = .confirmDelete
+                    } label: {
+                        Image(systemName: "trash")
+                    }
+                    .help("Delete \(skill.displayTypeName)")
                 }
-                .help("Delete \(skill.displayTypeName)")
             }
         }
         .alert(item: $activeAlert) { alert in
@@ -217,6 +220,7 @@ struct SkillDetailView: View {
     }
 
     private func deleteSkill() {
+        guard !skill.isReadOnly else { return }
         do {
             try skill.deleteFromDisk()
             appState.selectedSkill = nil
