@@ -279,8 +279,15 @@ struct ComposePanel: View {
                 .frame(maxWidth: 200)
             }
 
-            // RIGHT: Config options (when connected) + close
+            // RIGHT: Template badge + config options (when connected) + close
             HStack(spacing: 8) {
+                Label(selectedTemplateType.displayName, systemImage: selectedTemplateType.icon)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 3)
+                    .background(Color.primary.opacity(0.06))
+                    .clipShape(Capsule())
                 inlineConfigOptions
                 closeButton
             }

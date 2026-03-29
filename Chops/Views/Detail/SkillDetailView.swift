@@ -109,7 +109,7 @@ struct SkillDetailView: View {
                     frontmatter: skill.frontmatter,
                     filePath: skill.filePath,
                     workingDirectory: URL(fileURLWithPath: skill.filePath).deletingLastPathComponent(),
-                    templateType: .skill,
+                    templateType: WizardTemplateType(rawValue: skill.itemKind.rawValue) ?? .skill,
                     onAccept: { document.save(to: skill) }
                 )
                 .id(skill.filePath)
