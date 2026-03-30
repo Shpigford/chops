@@ -13,7 +13,7 @@ struct SidebarView: View {
     private var activeSources: [ToolSource] {
         ToolSource.allCases.filter { tool in
             guard tool.listable else { return false }
-            return allSkills.contains { $0.toolSources.contains(tool) }
+            return tool.isInstalled || allSkills.contains { $0.toolSources.contains(tool) }
         }
     }
 
