@@ -114,6 +114,7 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
     var globalAgentPaths: [String] {
         let home = FileManager.default.homeDirectoryForCurrentUser.path
         switch self {
+        case .augment: return ["\(home)/.augment/agents"]
         case .claude: return ["\(home)/.claude/agents"]
         case .cursor: return ["\(home)/.cursor/agents"]
         case .codex: return ["\(home)/.codex/agents"]
