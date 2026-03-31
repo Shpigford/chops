@@ -131,6 +131,9 @@ final class SkillScanner {
 
     private static func collectFromCustomDirectory(_ directory: URL, into results: inout [ScannedSkillData]) {
         let fm = FileManager.default
+
+        collectDirectSkillsFromCustomDirectory(directory, into: &results)
+
         guard let projects = try? fm.contentsOfDirectory(
             at: directory,
             includingPropertiesForKeys: [.isDirectoryKey],
@@ -156,6 +159,55 @@ final class SkillScanner {
                     }
                 } else {
                     collectFromDirectory(probePath, toolSource: probe.tool, isGlobal: false, kind: probe.kind, into: &results)
+                }
+            }
+        }
+    }
+
+    /// Custom scan paths serve two different jobs:
+    /// - parent dirs like ~/Development that contain projects with tool-specific folders
+    /// - library dirs that contain skills directly as child folders/files
+    ///
+    /// Only scan direct skill-style entries here so repo-level AGENTS.md files do not become
+    /// bogus custom skills when the user adds a generic project parent directory.
+    private static func collectDirectSkillsFromCustomDirectory(_ directory: URL, into results: inout [ScannedSkillData]) {
+        let fm = FileManager.default
+
+        guard let contents = try? fm.contentsOfDirectory(
+            at: directory,
+            includingPropertiesForKeys: [.isDirectoryKey],
+            options: [.skipsHiddenFiles]
+        ) else { return }
+
+        for item in contents {
+            guard !Task.isCancelled else { return }
+
+            var isDirectory: ObjCBool = false
+            fm.fileExists(atPath: item.path, isDirectory: &isDirectory)
+
+            if isDirectory.boolValue {
+                let skillFile = item.appendingPathComponent("SKILL.md")
+                guard fm.fileExists(atPath: skillFile.path) else { continue }
+                if let data = collectSkillData(
+                    at: skillFile,
+                    toolSource: .custom,
+                    isDirectory: true,
+                    isGlobal: false,
+                    kind: .skill
+                ) {
+                    results.append(data)
+                }
+            } else {
+                guard ["md", "mdc", "toml"].contains(item.pathExtension) else { continue }
+                guard !shouldIgnoreLooseMarkdownFile(named: item.lastPathComponent) else { continue }
+                if let data = collectSkillData(
+                    at: item,
+                    toolSource: .custom,
+                    isDirectory: false,
+                    isGlobal: false,
+                    kind: .skill
+                ) {
+                    results.append(data)
                 }
             }
         }

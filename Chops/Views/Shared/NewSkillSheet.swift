@@ -74,12 +74,6 @@ struct NewSkillSheet: View {
 
     private func createItem() {
         let fm = FileManager.default
-        let configHome: String = {
-            if let xdg = ProcessInfo.processInfo.environment["XDG_CONFIG_HOME"], !xdg.isEmpty {
-                return xdg
-            }
-            return "\(fm.homeDirectoryForCurrentUser.path)/.config"
-        }()
         let sanitizedName = skillName
             .lowercased()
             .replacingOccurrences(of: " ", with: "-")

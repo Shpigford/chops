@@ -57,6 +57,7 @@ struct ContentView: View {
         for tool in ToolSource.allCases {
             allPaths.append(contentsOf: tool.globalPaths)
             allPaths.append(contentsOf: tool.globalAgentPaths)
+            allPaths.append(contentsOf: tool.globalRulePaths)
         }
         let fm = FileManager.default
         let home = fm.homeDirectoryForCurrentUser.path
