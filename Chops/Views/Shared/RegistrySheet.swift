@@ -101,14 +101,14 @@ struct RegistrySheet: View {
             Divider()
 
             // Results
-            if results.isEmpty && !isSearching && searchText.isEmpty {
+            if results.isEmpty && (isSearching || searchText.count < 2) {
                 ContentUnavailableView {
                     Label("Search the Skills Registry", systemImage: "globe")
                 } description: {
                     Text("Find and install skills from the open agent skills ecosystem.")
                 }
                 .frame(maxHeight: .infinity)
-            } else if results.isEmpty && !isSearching && !searchText.isEmpty {
+            } else if results.isEmpty && !isSearching && searchText.count >= 2 {
                 ContentUnavailableView.search(text: searchText)
                     .frame(maxHeight: .infinity)
             } else {
@@ -286,14 +286,15 @@ struct RegistrySheet: View {
 
         guard query.count >= 2 else {
             results = []
+            isSearching = false
             return
         }
+
+        isSearching = true
 
         searchTask = Task {
             try? await Task.sleep(for: .milliseconds(300))
             guard !Task.isCancelled else { return }
-
-            await MainActor.run { isSearching = true }
 
             do {
                 let skills = try await registry.search(query: query)

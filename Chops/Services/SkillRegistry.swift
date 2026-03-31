@@ -5,8 +5,8 @@ final class SkillRegistry {
     var isSearching = false
     var searchError: String?
 
-    // Cache repo trees and default branches to avoid repeated API calls
-    private var treeCache: [String: [String]] = [:] // source -> [SKILL.md paths]
+    // Cache repo metadata to avoid repeated GitHub API calls
+    private var treeCache: [String: [String]] = [:] // source@branch -> [SKILL.md paths]
     private var branchCache: [String: String] = [:] // source -> default branch
 
     // MARK: - Search
@@ -52,9 +52,45 @@ final class SkillRegistry {
 
     func fetchContent(skill: RegistrySkill) async throws -> String {
         let branch = try await getDefaultBranch(source: skill.source)
+
+        if let content = try await fetchContentAtConventionalPaths(skill: skill, branch: branch) {
+            return content
+        }
+
+        return try await fetchContentViaTreeAPI(skill: skill, branch: branch)
+    }
+
+    private func fetchContentAtConventionalPaths(skill: RegistrySkill, branch: String) async throws -> String? {
+        let pathPatterns = [
+            "skills/\(skill.skillId)/SKILL.md",
+            "skills/.curated/\(skill.skillId)/SKILL.md",
+            "skills/.experimental/\(skill.skillId)/SKILL.md",
+            "\(skill.skillId)/SKILL.md",
+            "SKILL.md",
+        ]
+
+        for path in pathPatterns {
+            let rawURL = URL(string: "https://raw.githubusercontent.com/\(skill.source)/\(branch)/\(path)")!
+            guard let (data, response) = try? await URLSession.shared.data(from: rawURL),
+                  let http = response as? HTTPURLResponse, http.statusCode == 200,
+                  let content = String(data: data, encoding: .utf8) else {
+                continue
+            }
+
+            if path == "SKILL.md" {
+                let name = parseFrontmatterName(from: content)
+                if name != skill.skillId && name != skill.name { continue }
+            }
+
+            return content
+        }
+
+        return nil
+    }
+
+    private func fetchContentViaTreeAPI(skill: RegistrySkill, branch: String) async throws -> String {
         let paths = try await getSkillPaths(source: skill.source, branch: branch)
 
-        // Try each SKILL.md path until we find one whose frontmatter name matches
         for path in paths {
             let rawURL = URL(string: "https://raw.githubusercontent.com/\(skill.source)/\(branch)/\(path)")!
             guard let (data, response) = try? await URLSession.shared.data(from: rawURL),
@@ -63,7 +99,6 @@ final class SkillRegistry {
                 continue
             }
 
-            // Check if this SKILL.md's frontmatter name matches the skillId
             let frontmatterName = parseFrontmatterName(from: content)
             if frontmatterName == skill.skillId || frontmatterName == skill.name {
                 return content
@@ -80,9 +115,14 @@ final class SkillRegistry {
 
         let url = URL(string: "https://api.github.com/repos/\(source)")!
         let (data, response) = try await URLSession.shared.data(from: url)
-        guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
-            // Fall back to "main" if we can't determine default branch
-            return "main"
+        guard let http = response as? HTTPURLResponse else {
+            throw RegistryError.treeFetchFailed
+        }
+        if http.statusCode == 403 {
+            throw RegistryError.rateLimited
+        }
+        guard http.statusCode == 200 else {
+            throw RegistryError.treeFetchFailed
         }
 
         struct RepoResponse: Codable {
@@ -95,7 +135,8 @@ final class SkillRegistry {
     }
 
     private func getSkillPaths(source: String, branch: String) async throws -> [String] {
-        if let cached = treeCache[source] {
+        let cacheKey = "\(source)@\(branch)"
+        if let cached = treeCache[cacheKey] {
             return cached
         }
 
@@ -121,10 +162,10 @@ final class SkillRegistry {
 
         let tree = try JSONDecoder().decode(TreeResponse.self, from: data)
         let skillPaths = tree.tree
-            .filter { $0.type == "blob" && $0.path.hasSuffix("/SKILL.md") }
+            .filter { $0.type == "blob" && ($0.path == "SKILL.md" || $0.path.hasSuffix("/SKILL.md")) }
             .map(\.path)
 
-        treeCache[source] = skillPaths
+        treeCache[cacheKey] = skillPaths
         return skillPaths
     }
 

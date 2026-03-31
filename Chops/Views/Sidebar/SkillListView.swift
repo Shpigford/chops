@@ -230,7 +230,7 @@ struct SkillListView: View {
                             Label("Browse Registry", systemImage: "globe")
                         }
                     } label: {
-                        Image(systemName: "square.and.pencil")
+                        Image(systemName: "plus")
                     }
                     .menuIndicator(.hidden)
                 }
