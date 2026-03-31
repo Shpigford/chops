@@ -4,14 +4,20 @@ import SwiftData
 struct SkillListView: View {
     private enum ActiveAlert: Identifiable {
         case confirmDelete(Skill)
+        case confirmMakeGlobal(Skill)
         case deleteError(String)
+        case makeGlobalError(String)
 
         var id: String {
             switch self {
             case .confirmDelete(let skill):
                 return "confirm-delete-\(skill.filePath)"
+            case .confirmMakeGlobal(let skill):
+                return "confirm-make-global-\(skill.filePath)"
             case .deleteError(let message):
                 return "delete-error-\(message)"
+            case .makeGlobalError(let message):
+                return "make-global-error-\(message)"
             }
         }
     }
@@ -115,6 +121,11 @@ struct SkillListView: View {
             skill.isFavorite.toggle()
             try? modelContext.save()
         }
+        if skill.canMakeGlobal {
+            Button("Make Global") {
+                activeAlert = .confirmMakeGlobal(skill)
+            }
+        }
         if !allCollections.isEmpty {
             Menu("Collections") {
                 ForEach(allCollections) { collection in
@@ -145,6 +156,15 @@ struct SkillListView: View {
             Button("Delete", role: .destructive) {
                 activeAlert = .confirmDelete(skill)
             }
+        }
+    }
+
+    private func makeSkillGlobal(_ skill: Skill) {
+        do {
+            try skill.makeGlobal()
+            try? modelContext.save()
+        } catch {
+            activeAlert = .makeGlobalError(error.localizedDescription)
         }
     }
 
@@ -238,6 +258,15 @@ struct SkillListView: View {
         }
         .alert(item: $activeAlert) { alert in
             switch alert {
+            case .confirmMakeGlobal(let skill):
+                return Alert(
+                    title: Text("Make \"\(skill.name)\" Global?"),
+                    message: Text("This will move the skill to ~/.agents/skills/ and symlink it to all installed agents."),
+                    primaryButton: .default(Text("Make Global")) {
+                        makeSkillGlobal(skill)
+                    },
+                    secondaryButton: .cancel()
+                )
             case .confirmDelete(let skill):
                 return Alert(
                     title: Text("Delete \(skill.displayTypeName)?"),
@@ -250,6 +279,12 @@ struct SkillListView: View {
             case .deleteError(let message):
                 return Alert(
                     title: Text("Delete Failed"),
+                    message: Text(message),
+                    dismissButton: .default(Text("OK"))
+                )
+            case .makeGlobalError(let message):
+                return Alert(
+                    title: Text("Make Global Failed"),
                     message: Text(message),
                     dismissButton: .default(Text("OK"))
                 )

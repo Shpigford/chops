@@ -62,14 +62,20 @@ private struct ClickableCursorOverlay: NSViewRepresentable {
 struct SkillDetailView: View {
     private enum ActiveAlert: Identifiable {
         case confirmDelete
+        case confirmMakeGlobal
         case deleteError(String)
+        case makeGlobalError(String)
 
         var id: String {
             switch self {
             case .confirmDelete:
                 return "confirm-delete"
+            case .confirmMakeGlobal:
+                return "confirm-make-global"
             case .deleteError(let message):
                 return "delete-error-\(message)"
+            case .makeGlobalError(let message):
+                return "make-global-error-\(message)"
             }
         }
     }
@@ -185,9 +191,28 @@ struct SkillDetailView: View {
                     .help("Delete \(skill.displayTypeName)")
                 }
             }
+            if skill.canMakeGlobal {
+                ToolbarItem(placement: .primaryAction) {
+                    Button {
+                        activeAlert = .confirmMakeGlobal
+                    } label: {
+                        Image(systemName: "globe")
+                    }
+                    .help("Make Global")
+                }
+            }
         }
         .alert(item: $activeAlert) { alert in
             switch alert {
+            case .confirmMakeGlobal:
+                return Alert(
+                    title: Text("Make \"\(skill.name)\" Global?"),
+                    message: Text("This will move the skill to ~/.agents/skills/ and symlink it to all installed agents."),
+                    primaryButton: .default(Text("Make Global")) {
+                        makeSkillGlobal()
+                    },
+                    secondaryButton: .cancel()
+                )
             case .confirmDelete:
                 return Alert(
                     title: Text("Delete \(skill.displayTypeName)?"),
@@ -200,6 +225,12 @@ struct SkillDetailView: View {
             case .deleteError(let message):
                 return Alert(
                     title: Text("Delete Failed"),
+                    message: Text(message),
+                    dismissButton: .default(Text("OK"))
+                )
+            case .makeGlobalError(let message):
+                return Alert(
+                    title: Text("Make Global Failed"),
                     message: Text(message),
                     dismissButton: .default(Text("OK"))
                 )
@@ -217,6 +248,15 @@ struct SkillDetailView: View {
             .overlay(ClickableCursorOverlay(action: { [self] in showingComposePanel.toggle() }))
             .help("Compose with AI")
             .padding(16)
+    }
+
+    private func makeSkillGlobal() {
+        do {
+            try skill.makeGlobal()
+            try? modelContext.save()
+        } catch {
+            activeAlert = .makeGlobalError(error.localizedDescription)
+        }
     }
 
     private func deleteSkill() {

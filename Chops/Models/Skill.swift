@@ -252,6 +252,71 @@ final class Skill {
         return Array(targets).sorted()
     }
 
+    var canMakeGlobal: Bool {
+        itemKind == .skill
+            && isDirectory
+            && !isRemote
+            && !isReadOnly
+            && !toolSources.contains(.agents)
+    }
+
+    func makeGlobal() throws {
+        let fm = FileManager.default
+        let home = fm.homeDirectoryForCurrentUser.path
+
+        let currentSkillDir = URL(fileURLWithPath: filePath)
+            .deletingLastPathComponent()
+        let skillDirName = currentSkillDir.lastPathComponent
+
+        let agentsSkillsDir = "\(home)/.agents/skills"
+        let canonicalDir = "\(agentsSkillsDir)/\(skillDirName)"
+        let canonicalFile = "\(canonicalDir)/SKILL.md"
+
+        guard !fm.fileExists(atPath: canonicalDir) else {
+            throw MakeGlobalError.alreadyExists(skillDirName)
+        }
+
+        try fm.createDirectory(atPath: agentsSkillsDir, withIntermediateDirectories: true)
+
+        // Move original directory to canonical location
+        let originalDir = currentSkillDir.path
+        try fm.moveItem(atPath: originalDir, toPath: canonicalDir)
+
+        // Replace original with symlink to canonical
+        try fm.createSymbolicLink(atPath: originalDir, withDestinationPath: canonicalDir)
+
+        // Create symlinks from all installed agents
+        var newInstalledPaths = [canonicalFile, "\(originalDir)/SKILL.md"]
+        var newToolSources: [ToolSource] = [.agents]
+
+        if let originalTool = toolSources.first, originalTool != .agents {
+            newToolSources.append(originalTool)
+        }
+
+        for agent in AgentTarget.installed {
+            let agentDir = "\(agent.expandedSkillsDir)/\(skillDirName)"
+            if !fm.fileExists(atPath: agentDir) {
+                try fm.createDirectory(atPath: agent.expandedSkillsDir, withIntermediateDirectories: true)
+                try fm.createSymbolicLink(atPath: agentDir, withDestinationPath: canonicalDir)
+            }
+            let agentFilePath = "\(agentDir)/SKILL.md"
+            if !newInstalledPaths.contains(agentFilePath) {
+                newInstalledPaths.append(agentFilePath)
+            }
+            if let toolSource = ToolSource.allCases.first(where: { $0.globalPaths.contains(agent.expandedSkillsDir) }) {
+                if !newToolSources.contains(toolSource) {
+                    newToolSources.append(toolSource)
+                }
+            }
+        }
+
+        resolvedPath = canonicalFile
+        filePath = canonicalFile
+        installedPaths = newInstalledPaths
+        toolSources = newToolSources
+        isGlobal = true
+    }
+
     func deleteFromDisk() throws {
         let fm = FileManager.default
 
@@ -263,6 +328,17 @@ final class Skill {
 
         for path in deletionTargets where fm.fileExists(atPath: path) {
             try fm.removeItem(atPath: path)
+        }
+    }
+}
+
+enum MakeGlobalError: LocalizedError {
+    case alreadyExists(String)
+
+    var errorDescription: String? {
+        switch self {
+        case .alreadyExists(let name):
+            return "A global skill named \"\(name)\" already exists."
         }
     }
 }
