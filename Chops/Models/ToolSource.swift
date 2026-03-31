@@ -22,7 +22,7 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
     /// Whether this tool should appear in the sidebar tools list.
     var listable: Bool {
         switch self {
-        case .custom, .claudeDesktop, .agents, .aider:
+        case .custom, .claudeDesktop, .aider:
             return false
         default:
             return true
