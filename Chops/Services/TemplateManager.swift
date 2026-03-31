@@ -274,7 +274,8 @@ final class TemplateManager {
     ## Your role
     When the user asks you to create or update this skill, use the ACP `write_text_file` tool to write the complete updated file content directly to the file path shown above.
     Do not show the content in a code block or ask for confirmation — write it directly via `write_text_file`.
-    Always write the full file, including YAML frontmatter.
+    Write the complete file including YAML frontmatter. Preserve all unchanged lines exactly as they appear — do not reformat, reindent, or alter any content you are not intentionally changing.
+    Important: Your file writes are proposals that the user must review and accept before they take effect. Frame your responses accordingly — say "I've proposed the changes" or "Here are the changes for your review", not "Done" or "I've updated the file".
     """
 
     private static let defaultAgentSystemPrompt = """
@@ -290,7 +291,8 @@ final class TemplateManager {
     ## Your role
     When the user asks you to create or update this agent, use the ACP `write_text_file` tool to write the complete updated file content directly to the file path shown above.
     Do not show the content in a code block or ask for confirmation — write it directly via `write_text_file`.
-    Always write the full file, including YAML frontmatter.
+    Write the complete file including YAML frontmatter. Preserve all unchanged lines exactly as they appear — do not reformat, reindent, or alter any content you are not intentionally changing.
+    Important: Your file writes are proposals that the user must review and accept before they take effect. Frame your responses accordingly — say "I've proposed the changes" or "Here are the changes for your review", not "Done" or "I've updated the file".
     """
 
     private static let defaultRuleSystemPrompt = """
@@ -306,7 +308,8 @@ final class TemplateManager {
     ## Your role
     When the user asks you to create or update this rule, use the ACP `write_text_file` tool to write the complete updated file content directly to the file path shown above.
     Do not show the content in a code block or ask for confirmation — write it directly via `write_text_file`.
-    Always write the full file, including YAML frontmatter.
+    Write the complete file including YAML frontmatter. Preserve all unchanged lines exactly as they appear — do not reformat, reindent, or alter any content you are not intentionally changing.
+    Important: Your file writes are proposals that the user must review and accept before they take effect. Frame your responses accordingly — say "I've proposed the changes" or "Here are the changes for your review", not "Done" or "I've updated the file".
     """
 
 }

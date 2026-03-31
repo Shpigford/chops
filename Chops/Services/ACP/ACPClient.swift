@@ -33,7 +33,21 @@ open class BaseACPAgent: ClientDelegate {
     var thoughtText: String = ""
     var currentActivity: String?
     var pendingWrites: [PendingWrite] = []
+    /// Maps resolved file paths to proposed content not yet accepted by the user.
+    /// Lets handleFileReadRequest return the "virtual" state during the same turn.
+    var deferredContent: [String: String] = [:]
     private(set) var sessionConfigOptions: [SessionConfigOption] = []
+
+    /// True when the agent's permission mode is set to bypass — writes should be
+    /// auto-accepted without user review.
+    var isBypassMode: Bool {
+        sessionConfigOptions.contains { option in
+            if case .select(let select) = option.kind {
+                return select.currentValue.value.lowercased().contains("bypass")
+            }
+            return false
+        }
+    }
     private(set) var pendingPermissionRequest: PermissionRequest?
     private(set) var isConnected: Bool = false
     private(set) var isConnecting: Bool = false
@@ -224,7 +238,7 @@ open class BaseACPAgent: ClientDelegate {
         acpLog.debug("Prompt done: \(resp.stopReason)")
     }
 
-    func clearPendingWrites() { pendingWrites = [] }
+    func clearPendingWrites() { pendingWrites = []; deferredContent = [:] }
 
     /// Sends a session/cancel notification to the agent to interrupt the current turn.
     func cancelPrompt() {
@@ -260,13 +274,18 @@ open class BaseACPAgent: ClientDelegate {
 
     public func handleFileReadRequest(_ path: String, sessionId: String, line: Int?, limit: Int?) async throws -> ReadTextFileResponse {
         acpLog.debug("readTextFile: \(path)")
+        let resolved = URL(fileURLWithPath: path).resolvingSymlinksInPath().path
+        if let deferred = deferredContent[resolved] {
+            acpLog.debug("Returning deferred content for: \(path)")
+            return ReadTextFileResponse(content: deferred)
+        }
         let content = try await Task.detached { try String(contentsOfFile: path, encoding: .utf8) }.value
         return ReadTextFileResponse(content: content)
     }
 
     public func handleFileWriteRequest(_ path: String, content: String, sessionId: String) async throws -> WriteTextFileResponse {
         acpLog.debug("Write via ACP: \(path)")
-        // Read original before writing so reject can revert.
+        // Read original snapshot so the diff panel can show before/after.
         // Skip if a diff block already captured this path (e.g. ClaudeACPAgent.captureDiffs).
         // Resolve symlinks on both sides so that e.g. a symlink path and its target compare equal.
         let resolvedIncoming = URL(fileURLWithPath: path).resolvingSymlinksInPath().path
@@ -281,7 +300,7 @@ open class BaseACPAgent: ClientDelegate {
                     do {
                         originalData = try Data(contentsOf: URL(fileURLWithPath: path))
                     } catch {
-                        acpLog.error("Failed to read original for diff revert (\(path)): \(error.localizedDescription)")
+                        acpLog.error("Failed to read original for diff (\(path)): \(error.localizedDescription)")
                         originalData = nil
                     }
                 } else {
@@ -299,15 +318,20 @@ open class BaseACPAgent: ClientDelegate {
                 )
             )
         }
-        // Write to disk — agent expects the file to be persisted.
-        try await Task.detached {
-            let url = URL(fileURLWithPath: path)
-            let parent = url.deletingLastPathComponent()
-            if !FileManager.default.fileExists(atPath: parent.path) {
-                try FileManager.default.createDirectory(at: parent, withIntermediateDirectories: true)
-            }
-            try content.write(to: url, atomically: true, encoding: .utf8)
-        }.value
+        // Store proposed content so subsequent agent reads return it.
+        deferredContent[resolvedIncoming] = content
+        if isBypassMode {
+            // Bypass mode: write to disk immediately — user opted out of review.
+            try await Task.detached {
+                let url = URL(fileURLWithPath: path)
+                let parent = url.deletingLastPathComponent()
+                if !FileManager.default.fileExists(atPath: parent.path) {
+                    try FileManager.default.createDirectory(at: parent, withIntermediateDirectories: true)
+                }
+                try content.write(to: url, atomically: true, encoding: .utf8)
+            }.value
+        }
+        // Non-bypass: do NOT write to disk — deferred until user accepts the diff.
         return WriteTextFileResponse()
     }
 

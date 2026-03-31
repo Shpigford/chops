@@ -4,6 +4,11 @@ import SwiftUI
 
 /// Inline panel for composing/editing skill content with ACP
 struct ComposePanel: View {
+    private struct DiffApplyError: Identifiable {
+        let id = UUID()
+        let message: String
+    }
+
     @Binding var content: String
     @Binding var isVisible: Bool
     let skillName: String
@@ -30,6 +35,8 @@ struct ComposePanel: View {
     @State private var panelHeight: CGFloat = ComposeConstants.defaultPanelHeight
     @State private var isDragging = false
     @State private var dragStartHeight: CGFloat?
+    @State private var applyingDiffID: String?
+    @State private var diffApplyError: DiffApplyError?
 
     private static let minPanelHeight: CGFloat = 160
     private static let maxPanelHeight: CGFloat = 700
@@ -108,6 +115,13 @@ struct ComposePanel: View {
             if let request = acpClient?.pendingPermissionRequest {
                 permissionSheet(request: request)
             }
+        }
+        .alert(item: $diffApplyError) { error in
+            Alert(
+                title: Text("Apply Failed"),
+                message: Text(error.message),
+                dismissButton: .default(Text("OK"))
+            )
         }
     }
 
@@ -575,7 +589,8 @@ struct ComposePanel: View {
                 original: diff.original ?? "",
                 proposed: diff.proposed,
                 onAccept: { acceptDiff(messageId: messageId, diffIndex: diffIndex) },
-                onReject: { rejectDiff(messageId: messageId, diffIndex: diffIndex) }
+                onReject: { rejectDiff(messageId: messageId, diffIndex: diffIndex) },
+                isApplying: applyingDiffID == diffActionID(messageId: messageId, diffIndex: diffIndex)
             )
             .frame(height: 260)
             .clipShape(RoundedRectangle(cornerRadius: 8))
@@ -805,10 +820,11 @@ struct ComposePanel: View {
 
     /// Attaches diffs from pending writes or disk changes; logs text-only turns.
     private func handleWrites(client: BaseACPAgent, messageId: UUID, filePath: String, originalContent: String) async {
-        acpLog.info("Compose: handleWrites — filePath=\(filePath) originalContent.count=\(originalContent.count)")
+        let autoAccept = client.isBypassMode
+        acpLog.info("Compose: handleWrites — filePath=\(filePath) originalContent.count=\(originalContent.count) autoAccept=\(autoAccept)")
         if !client.pendingWrites.isEmpty {
             acpLog.info("Compose: attaching \(client.pendingWrites.count) diff(s) from write_text_file")
-            await attachDiffs(messageId: messageId, writes: client.pendingWrites, fallbackOriginal: originalContent)
+            await attachDiffs(messageId: messageId, writes: client.pendingWrites, fallbackOriginal: originalContent, autoAccept: autoAccept)
             client.clearPendingWrites()
             return
         }
@@ -826,7 +842,8 @@ struct ComposePanel: View {
                         existedBefore: true
                     )
                 ],
-                fallbackOriginal: originalContent
+                fallbackOriginal: originalContent,
+                autoAccept: autoAccept
             )
         }
     }
@@ -843,7 +860,8 @@ struct ComposePanel: View {
     private func attachDiffs(
         messageId: UUID,
         writes: [PendingWrite],
-        fallbackOriginal: String
+        fallbackOriginal: String,
+        autoAccept: Bool = false
     ) async {
         guard let idx = messages.firstIndex(where: { $0.id == messageId }) else { return }
         let resolvedFilePath = resolvedPath(filePath)
@@ -881,31 +899,17 @@ struct ComposePanel: View {
             )
         }
         messages[idx].diffs = diffs
-    }
 
-    private func pendingDiffs() -> [ChatDiff] {
-        messages.flatMap(\.diffs).filter { $0.status == .pending }
-    }
-
-    nonisolated private static func revertDiffOnDisk(_ diff: ChatDiff) {
-        let url = URL(fileURLWithPath: diff.path)
-        if diff.existedBefore {
-            do {
-                if let originalData = diff.originalData {
-                    try originalData.write(to: url)
-                } else if let original = diff.original {
-                    try original.write(to: url, atomically: true, encoding: .utf8)
-                } else {
-                    acpLog.error("Reject failed: missing original snapshot for \(diff.path)")
+        if autoAccept {
+            // Bypass mode: auto-accept all diffs. Disk writes already happened in handleFileWriteRequest.
+            let resolvedFilePath = resolvedPath(filePath)
+            for i in messages[idx].diffs.indices {
+                messages[idx].diffs[i].status = .accepted
+                let diff = messages[idx].diffs[i]
+                if resolvedPath(diff.path) == resolvedFilePath {
+                    content = diff.proposed
+                    onAccept()
                 }
-            } catch {
-                acpLog.error("Reject failed writing \(diff.path): \(error.localizedDescription)")
-            }
-        } else {
-            do {
-                try FileManager.default.removeItem(at: url)
-            } catch {
-                acpLog.error("Reject failed removing \(diff.path): \(error.localizedDescription)")
             }
         }
     }
@@ -914,35 +918,65 @@ struct ComposePanel: View {
         guard let msgIdx = messages.firstIndex(where: { $0.id == messageId }),
               diffIndex < messages[msgIdx].diffs.count else { return }
         let diff = messages[msgIdx].diffs[diffIndex]
-        messages[msgIdx].diffs[diffIndex].status = .accepted
         if resolvedPath(diff.path) == resolvedPath(filePath) {
+            messages[msgIdx].diffs[diffIndex].status = .accepted
+            // Currently-open file: update editor binding, onAccept() persists to disk.
             content = diff.proposed
             onAccept()
+        } else {
+            let actionID = diffActionID(messageId: messageId, diffIndex: diffIndex)
+            guard applyingDiffID != actionID else { return }
+            applyingDiffID = actionID
+            Task {
+                do {
+                    try await Self.persistAcceptedDiff(diff)
+                    guard let updatedMsgIdx = messages.firstIndex(where: { $0.id == messageId }),
+                          diffIndex < messages[updatedMsgIdx].diffs.count else {
+                        applyingDiffID = nil
+                        return
+                    }
+                    messages[updatedMsgIdx].diffs[diffIndex].status = .accepted
+                } catch {
+                    let fileName = URL(fileURLWithPath: diff.path).lastPathComponent
+                    AppLogger.fileIO.error("Deferred diff apply failed for \(diff.path): \(error.localizedDescription)")
+                    diffApplyError = DiffApplyError(
+                        message: "Couldn't apply changes to \(fileName): \(error.localizedDescription)"
+                    )
+                }
+                applyingDiffID = nil
+            }
         }
     }
 
     private func rejectDiff(messageId: UUID, diffIndex: Int) {
         guard let msgIdx = messages.firstIndex(where: { $0.id == messageId }),
               diffIndex < messages[msgIdx].diffs.count else { return }
-        let diff = messages[msgIdx].diffs[diffIndex]
         messages[msgIdx].diffs[diffIndex].status = .rejected
-        Task.detached(priority: .userInitiated) {
-            Self.revertDiffOnDisk(diff)
-        }
+        // No disk revert needed — file was never written.
+    }
+
+    private func diffActionID(messageId: UUID, diffIndex: Int) -> String {
+        "\(messageId.uuidString)-\(diffIndex)"
+    }
+
+    nonisolated private static func persistAcceptedDiff(_ diff: ChatDiff) async throws {
+        try await Task.detached(priority: .userInitiated) {
+            let url = URL(fileURLWithPath: diff.path)
+            let parent = url.deletingLastPathComponent()
+            if !FileManager.default.fileExists(atPath: parent.path) {
+                try FileManager.default.createDirectory(at: parent, withIntermediateDirectories: true, attributes: nil)
+            }
+            try diff.proposed.write(to: url, atomically: true, encoding: .utf8)
+        }.value
     }
 
     private func forceDisconnect() {
         let client = acpClient
-        let pendingDiffs = pendingDiffs()
         acpClient = nil
         isFirstTurn = true
         messages = []
+        applyingDiffID = nil
         Task {
-            if !pendingDiffs.isEmpty {
-                await Task.detached(priority: .userInitiated) {
-                    pendingDiffs.forEach(Self.revertDiffOnDisk)
-                }.value
-            }
             await client?.disconnect()
         }
     }

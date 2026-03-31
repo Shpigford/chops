@@ -100,6 +100,7 @@ struct DiffReviewPanel: View {
     let proposed: String
     let onAccept: () -> Void
     let onReject: () -> Void
+    var isApplying = false
 
     @State private var lines: [DiffLine] = []
 
@@ -146,12 +147,14 @@ struct DiffReviewPanel: View {
             Button("Reject", action: onReject)
                 .buttonStyle(.bordered)
                 .controlSize(.small)
+                .disabled(isApplying)
 
-            Button("Accept", action: onAccept)
+            Button(isApplying ? "Applying..." : "Accept", action: onAccept)
                 .buttonStyle(.borderedProminent)
                 .controlSize(.small)
                 .tint(.green)
                 .keyboardShortcut(.return, modifiers: .command)
+                .disabled(isApplying)
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 6)
@@ -189,7 +192,8 @@ struct DiffReviewPanel: View {
         original: "# My Skill\n\nOld content here.\nLine two.\n",
         proposed: "# My Skill\n\nNew content here.\nLine two.\nLine three added.\n",
         onAccept: {},
-        onReject: {}
+        onReject: {},
+        isApplying: false
     )
     .frame(width: 600, height: 300)
 }
