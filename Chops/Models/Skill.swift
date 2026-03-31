@@ -209,17 +209,47 @@ final class Skill {
         }
     }
 
+    private var linkedAgentSkillDirectories: [String] {
+        guard isDirectory else { return [] }
+
+        let fm = FileManager.default
+        let skillDirectoryName = URL(fileURLWithPath: filePath)
+            .deletingLastPathComponent()
+            .lastPathComponent
+
+        guard !skillDirectoryName.isEmpty else { return [] }
+
+        let canonicalDirectories = Set(
+            ([filePath] + installedPaths).map {
+                URL(fileURLWithPath: $0)
+                    .deletingLastPathComponent()
+                    .resolvingSymlinksInPath()
+                    .path
+            }
+        )
+
+        return AgentTarget.all.compactMap { agent in
+            let candidate = "\(agent.expandedSkillsDir)/\(skillDirectoryName)"
+            guard fm.fileExists(atPath: candidate) else { return nil }
+            let resolvedCandidate = URL(fileURLWithPath: candidate)
+                .resolvingSymlinksInPath()
+                .path
+            return canonicalDirectories.contains(resolvedCandidate) ? candidate : nil
+        }
+    }
+
     var deletionTargets: [String] {
-        Array(
-            Set(
-                ([filePath] + installedPaths).map { path in
-                    if isDirectory {
-                        return (path as NSString).deletingLastPathComponent
-                    }
-                    return path
+        var targets = Set(
+            ([filePath] + installedPaths).map { path in
+                if isDirectory {
+                    return (path as NSString).deletingLastPathComponent
                 }
-            )
-        ).sorted()
+                return path
+            }
+        )
+
+        targets.formUnion(linkedAgentSkillDirectories)
+        return Array(targets).sorted()
     }
 
     func deleteFromDisk() throws {
