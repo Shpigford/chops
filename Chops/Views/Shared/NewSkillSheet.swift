@@ -6,7 +6,7 @@ struct NewSkillSheet: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(AppState.self) private var appState
     @State private var skillName = ""
-    @State private var selectedTool: ToolSource = .claude
+    @State private var selectedTool: ToolSource = .agents
     @State private var errorMessage: String?
 
     private var itemKind: ItemKind { appState.newItemKind }
@@ -14,7 +14,7 @@ struct NewSkillSheet: View {
     private var creatableTools: [ToolSource] {
         switch itemKind {
         case .skill:
-            return [.claude, .agents, .cursor, .codex, .amp, .opencode, .pi, .antigravity]
+            return [.agents, .amp, .antigravity, .claude, .codex, .cursor, .opencode, .pi]
         case .agent:
             return ToolSource.allCases.filter { !$0.globalAgentPaths.isEmpty }
         case .rule:
@@ -115,6 +115,8 @@ struct NewSkillSheet: View {
             try fm.createDirectory(atPath: basePath, withIntermediateDirectories: true)
 
             let filePath = "\(basePath)/\(fileName)"
+            var installedPaths = [filePath]
+            var toolSources = [selectedTool]
 
             guard !fm.fileExists(atPath: filePath) else {
                 errorMessage = "A \(itemKind.singularName.lowercased()) with this name already exists"
@@ -123,6 +125,20 @@ struct NewSkillSheet: View {
 
             let boilerplate = generateBoilerplate(name: skillName, skillID: sanitizedName, tool: selectedTool)
             try boilerplate.write(toFile: filePath, atomically: true, encoding: .utf8)
+
+            // When creating a Global skill, symlink from each installed agent's skills dir
+            if itemKind == .skill && selectedTool == .agents {
+                for agent in AgentTarget.installed {
+                    let agentDir = "\(agent.expandedSkillsDir)/\(sanitizedName)"
+                    guard !fm.fileExists(atPath: agentDir) else { continue }
+                    try fm.createDirectory(atPath: agent.expandedSkillsDir, withIntermediateDirectories: true)
+                    try fm.createSymbolicLink(atPath: agentDir, withDestinationPath: basePath)
+                    installedPaths.append("\(agentDir)/SKILL.md")
+                    if let toolSource = ToolSource.allCases.first(where: { $0.globalPaths.contains(agent.expandedSkillsDir) }) {
+                        toolSources.append(toolSource)
+                    }
+                }
+            }
 
             let parsed = FrontmatterParser.parse(boilerplate)
             let skill = Skill(
@@ -139,6 +155,8 @@ struct NewSkillSheet: View {
                 resolvedPath: filePath,
                 kind: itemKind
             )
+            skill.installedPaths = installedPaths
+            skill.toolSources = toolSources
             modelContext.insert(skill)
             try modelContext.save()
 
@@ -177,7 +195,7 @@ struct NewSkillSheet: View {
             """
         case .skill:
             switch tool {
-            case .claude, .cursor:
+            case .claude, .cursor, .agents:
                 return """
                 ---
                 name: \(skillID)
