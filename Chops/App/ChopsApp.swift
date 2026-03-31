@@ -17,11 +17,15 @@ struct ChopsApp: App {
     }
 
     var sharedModelContainer: ModelContainer = {
-        let schema = Schema([Skill.self, SkillCollection.self, RemoteServer.self])
-        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+        let schema = Schema(versionedSchema: SchemaV1.self)
 
         do {
-            return try ModelContainer(for: schema, configurations: [config])
+            let config = try StoreBootstrap.makeConfiguration(schema: schema)
+            return try ModelContainer(
+                for: schema,
+                migrationPlan: ChopsMigrationPlan.self,
+                configurations: [config]
+            )
         } catch {
             fatalError("Could not create ModelContainer: \(error)")
         }

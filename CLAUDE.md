@@ -38,12 +38,15 @@ No test suite exists. Validate manually by building and running.
 ## Architecture
 
 **Entry:** `Chops/App/ChopsApp.swift` → sets up SwiftData ModelContainer + Sparkle updater.
+SwiftData store path is explicit: `~/Library/Application Support/Chops/Chops.store`. Do not rely on the implicit `default.store`.
 
 **State:** `AppState` is an `@Observable` singleton holding UI filters, search text, and selection state.
 
 **Models (SwiftData):**
 - `Skill` — a discovered skill file. Uniquely identified by resolved symlink path. Tracks which tools it's installed in.
-- `SkillCollection` — user-created groupings of skills.
+- `SkillCollection` — user-created groupings of skills (pure user data, not filesystem-backed — data loss is permanent).
+
+**Schema versioning:** SwiftData models use `VersionedSchema` + `SchemaMigrationPlan` (see `SchemaVersions.swift`). Each schema version must declare its own nested `@Model` snapshots; app code reaches the current version through top-level `typealias`es like `Skill = SchemaV1.Skill`. When adding or changing a stored property, freeze the previous schema in place, add a new schema version (e.g. `SchemaV2`) with its own nested models, move the typealiases to the new version, and add the corresponding `MigrationStage`. Never point an older schema version at live top-level models — future migrations will crash with duplicate checksums.
 
 **Services:**
 - `SkillScanner` — probes tool directories (~/.claude/skills/, ~/.cursor/rules/, etc.), parses frontmatter, upserts into SwiftData. Deduplicates via resolved symlink paths.

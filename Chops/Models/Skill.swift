@@ -31,26 +31,7 @@ enum ItemKind: String, Codable, CaseIterable {
     }
 }
 
-@Model
-final class Skill {
-    @Attribute(.unique) var resolvedPath: String
-    var filePath: String
-    var isDirectory: Bool
-    var name: String
-    var skillDescription: String
-    var content: String
-    var frontmatterData: Data?
-
-    var collections: [SkillCollection]
-    var isFavorite: Bool
-    var lastOpened: Date?
-    var fileModifiedDate: Date
-    var fileSize: Int
-    var isGlobal: Bool
-
-    var remoteServer: RemoteServer?
-    var remotePath: String?
-
+extension Skill {
     var isRemote: Bool { remoteServer != nil }
 
     var isPlugin: Bool {
@@ -62,15 +43,6 @@ final class Skill {
     var isReadOnly: Bool {
         isPlugin || isBundledOpenClawSkill
     }
-
-    /// Comma-separated tool raw values (e.g. "claude,cursor,codex")
-    var toolSourcesRaw: String
-
-    /// All file paths where this skill is installed (JSON-encoded array)
-    var installedPathsData: Data?
-
-    /// Raw `ItemKind` value. Defaults to `"skill"` for lightweight migration compatibility.
-    var kind: String = ItemKind.skill.rawValue
 
     // MARK: - Computed
 
@@ -152,45 +124,6 @@ final class Skill {
             }
         }
         return nil
-    }
-
-    // MARK: - Init
-
-    init(
-        filePath: String,
-        toolSource: ToolSource,
-        isDirectory: Bool = false,
-        name: String = "",
-        skillDescription: String = "",
-        content: String = "",
-        frontmatter: [String: String] = [:],
-
-        collections: [SkillCollection] = [],
-        isFavorite: Bool = false,
-        lastOpened: Date? = nil,
-        fileModifiedDate: Date = .now,
-        fileSize: Int = 0,
-        isGlobal: Bool = true,
-        resolvedPath: String = "",
-        kind: ItemKind = .skill
-    ) {
-        self.resolvedPath = resolvedPath.isEmpty ? filePath : resolvedPath
-        self.filePath = filePath
-        self.toolSourcesRaw = toolSource.rawValue
-        self.installedPathsData = try? JSONEncoder().encode([filePath]) // [String] encode never throws
-        self.isDirectory = isDirectory
-        self.name = name
-        self.skillDescription = skillDescription
-        self.content = content
-        self.frontmatterData = try? JSONEncoder().encode(frontmatter) // [String: String] encode never throws
-
-        self.collections = collections
-        self.isFavorite = isFavorite
-        self.lastOpened = lastOpened
-        self.fileModifiedDate = fileModifiedDate
-        self.fileSize = fileSize
-        self.isGlobal = isGlobal
-        self.kind = kind.rawValue
     }
 
     // MARK: - Merge
