@@ -102,13 +102,19 @@ final class SkillScanner {
                 let url = URL(fileURLWithPath: path)
                 collectFromDirectory(url, toolSource: tool, isGlobal: true, kind: .skill, into: &results)
             }
-            for path in tool.globalAgentPaths {
-                let url = URL(fileURLWithPath: path)
-                collectFromDirectory(url, toolSource: tool, isGlobal: true, kind: .agent, into: &results)
+            // Skip directories that are hard-link targets — those files are already represented
+            // by their source location and cannot be deduplicated via symlink resolution.
+            if !tool.usesHardLink(for: .agent) {
+                for path in tool.globalAgentPaths {
+                    let url = URL(fileURLWithPath: path)
+                    collectFromDirectory(url, toolSource: tool, isGlobal: true, kind: .agent, into: &results)
+                }
             }
-            for path in tool.globalRulePaths {
-                let url = URL(fileURLWithPath: path)
-                collectFromDirectory(url, toolSource: tool, isGlobal: true, kind: .rule, into: &results)
+            if !tool.usesHardLink(for: .rule) {
+                for path in tool.globalRulePaths {
+                    let url = URL(fileURLWithPath: path)
+                    collectFromDirectory(url, toolSource: tool, isGlobal: true, kind: .rule, into: &results)
+                }
             }
         }
 

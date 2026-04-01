@@ -200,7 +200,7 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
         case .augment: return ["\(home)/.augment/rules"]
         case .claude: return ["\(home)/.claude/rules"]
         case .cursor: return ["\(home)/.cursor/rules"]
-        case .windsurf: return ["\(home)/.codeium/memories"]
+        case .windsurf: return ["\(home)/.codeium/windsurf/memories", "\(home)/.windsurf/rules"]
         case .shared:
             guard let base = Self.sharedBase else { return [] }
             return ["\(base)/rules"]
@@ -318,6 +318,13 @@ extension ToolSource {
         case .agent: return globalAgentPaths
         case .rule:  return globalRulePaths
         }
+    }
+
+    /// Returns true if this tool requires hard links (same inode) for the given item kind.
+    /// Hard-linked targets are invisible to symlink resolution, so the scanner skips those
+    /// directories to avoid creating duplicate Skill records for the same content.
+    func usesHardLink(for kind: ItemKind) -> Bool {
+        self == .cursor && kind == .agent
     }
 }
 
