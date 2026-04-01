@@ -42,6 +42,7 @@ struct ContentView: View {
         }
         .frame(minWidth: 900, minHeight: 500)
         .onReceive(NotificationCenter.default.publisher(for: .customScanPathsChanged)) { _ in
+            // reconcile runs inside applyResults() after each scan completes
             scanner?.scanAll()
         }
     }
@@ -51,7 +52,7 @@ struct ContentView: View {
         let scanner = SkillScanner(modelContext: modelContext)
         self.scanner = scanner
         scanner.removeDeletedSkills()
-        scanner.scanAll()
+        scanner.scanAll() // reconcile runs inside applyResults() after scan completes
 
         var allPaths: [String] = []
         for tool in ToolSource.allCases {

@@ -17,7 +17,7 @@ struct ChopsApp: App {
     }
 
     var sharedModelContainer: ModelContainer = {
-        let schema = Schema(versionedSchema: SchemaV1.self)
+        let schema = Schema(versionedSchema: SchemaV2.self)
 
         do {
             let config = try StoreBootstrap.makeConfiguration(schema: schema)

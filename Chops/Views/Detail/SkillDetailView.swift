@@ -121,6 +121,10 @@ struct SkillDetailView: View {
                 .id(skill.filePath)
             }
 
+            if !skill.isPlugin && !skill.isRemote {
+                VendorLinkingPanel(skill: skill)
+            }
+
             Divider()
 
             SkillMetadataBar(skill: skill)

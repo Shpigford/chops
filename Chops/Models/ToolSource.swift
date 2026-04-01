@@ -16,6 +16,7 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
     case pi
     case antigravity
     case claudeDesktop
+    case shared
     case custom
 
     var id: String { rawValue }
@@ -47,6 +48,7 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
         case .agents: "Global"
         case .antigravity: "Antigravity"
         case .claudeDesktop: "Claude Desktop"
+        case .shared: "Shared"
         case .custom: "Custom"
         }
     }
@@ -69,6 +71,7 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
         case .agents: "globe"
         case .antigravity: "arrow.up.circle"
         case .claudeDesktop: "desktopcomputer"
+        case .shared: "square.stack.3d.up"
         case .custom: "folder"
         }
     }
@@ -107,6 +110,7 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
         case .agents: .mint
         case .antigravity: .red
         case .claudeDesktop: .orange
+        case .shared: .brown
         case .custom: .gray
         }
     }
@@ -114,9 +118,13 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
     var globalAgentPaths: [String] {
         let home = FileManager.default.homeDirectoryForCurrentUser.path
         switch self {
+        case .augment: return ["\(home)/.augment/agents"]
         case .claude: return ["\(home)/.claude/agents"]
         case .cursor: return ["\(home)/.cursor/agents"]
         case .codex: return ["\(home)/.codex/agents"]
+        case .shared:
+            guard let base = Self.sharedBase else { return [] }
+            return ["\(base)/agents"]
         default: return []
         }
     }
@@ -179,6 +187,9 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
         case .agents: return ["\(home)/.agents/skills"]
         case .antigravity: return ["\(home)/.gemini/antigravity/skills"]
         case .claudeDesktop: return []
+        case .shared:
+            guard let base = Self.sharedBase else { return [] }
+            return ["\(base)/skills"]
         case .custom: return []
         }
     }
@@ -186,8 +197,13 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
     var globalRulePaths: [String] {
         let home = FileManager.default.homeDirectoryForCurrentUser.path
         switch self {
+        case .augment: return ["\(home)/.augment/rules"]
+        case .claude: return ["\(home)/.claude/rules"]
         case .cursor: return ["\(home)/.cursor/rules"]
         case .windsurf: return ["\(home)/.codeium/windsurf/memories", "\(home)/.windsurf/rules"]
+        case .shared:
+            guard let base = Self.sharedBase else { return [] }
+            return ["\(base)/rules"]
         default: return []
         }
     }
@@ -203,17 +219,16 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
         case .claude:
             return fm.fileExists(atPath: "\(home)/.claude/settings.json")
                 || fm.fileExists(atPath: "\(home)/.claude/CLAUDE.md")
-                || fm.fileExists(atPath: "\(home)/.claude/plugins/installed_plugins.json")
+                || fm.fileExists(atPath: "\(home)/.claude/installed_plugins.json")
                 || Self.cliBinaryExists("claude")
         case .cursor:
             return fm.fileExists(atPath: "/Applications/Cursor.app")
-                || fm.fileExists(atPath: "\(home)/.cursor/argv.json")
+                || fm.fileExists(atPath: "\(home)/.cursor")
         case .windsurf:
             return fm.fileExists(atPath: "/Applications/Windsurf.app")
                 || fm.fileExists(atPath: "\(home)/.codeium/windsurf/argv.json")
         case .codex:
-            return fm.fileExists(atPath: "\(home)/.codex/config.toml")
-                || fm.fileExists(atPath: "\(home)/.codex/auth.json")
+            return fm.fileExists(atPath: "\(home)/.codex")
                 || Self.cliBinaryExists("codex")
         case .amp:
             let configHome = ProcessInfo.processInfo.environment["XDG_CONFIG_HOME"]
@@ -222,7 +237,8 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
                 || fm.fileExists(atPath: "\(configHome)/amp/settings.json")
                 || Self.cliBinaryExists("amp")
         case .pi:
-            return Self.cliBinaryExists("pi")
+            return fm.fileExists(atPath: "\(home)/.pi")
+                || Self.cliBinaryExists("pi")
         case .copilot:
             return fm.fileExists(atPath: "\(home)/.copilot")
                 || Self.cliBinaryExists("copilot")
@@ -251,9 +267,13 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
                 || Self.cliBinaryExists("openclaw")
                 || fm.fileExists(atPath: "/opt/homebrew/lib/node_modules/openclaw")
                 || fm.fileExists(atPath: "/usr/local/lib/node_modules/openclaw")
+                || globalPaths.contains { fm.fileExists(atPath: $0) }
         case .hermes:
             return fm.fileExists(atPath: "\(home)/.hermes")
                 || Self.cliBinaryExists("hermes")
+        case .shared:
+            guard let base = Self.sharedBase else { return false }
+            return fm.fileExists(atPath: base)
         case .aider, .custom:
             return true
         }
@@ -287,5 +307,25 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
             }
         }
         return false
+    }
+}
+
+extension ToolSource {
+    /// Returns the global directories this tool uses for the given item kind.
+    func globalDirs(for kind: ItemKind) -> [String] {
+        switch kind {
+        case .skill: return globalPaths
+        case .agent: return globalAgentPaths
+        case .rule:  return globalRulePaths
+        }
+    }
+}
+
+private extension ToolSource {
+    /// Expanded absolute path of the user-configured shared library root, or nil if unset.
+    static var sharedBase: String? {
+        let raw = UserDefaults.standard.string(forKey: "sharedLibraryPath") ?? ""
+        let expanded = (raw as NSString).expandingTildeInPath
+        return expanded.isEmpty ? nil : expanded
     }
 }

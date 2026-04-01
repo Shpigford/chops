@@ -46,6 +46,9 @@
 		A99BA179E0520DCDC98E1382 /* AppLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = F45D5C8E8C732B2F4A867E43 /* AppLogger.swift */; };
 		AAC4A3CBF2A9B4DF50608948 /* SSHService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6797D4AC1970DB9ACB5ACA73 /* SSHService.swift */; };
 		AFDC3DAB708B352A7606F119 /* DiagnosticExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5D3C2567FBF8DBA4DE957B3 /* DiagnosticExporter.swift */; };
+		B36ECE472F7C93F9004D01D0 /* SymlinkTarget.swift in Sources */ = {isa = PBXBuildFile; fileRef = B36ECE462F7C93F9004D01D0 /* SymlinkTarget.swift */; };
+		B36ECE492F7C9418004D01D0 /* SymlinkService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B36ECE482F7C9418004D01D0 /* SymlinkService.swift */; };
+		B36ECE4B2F7C944D004D01D0 /* VendorLinkingPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B36ECE4A2F7C944D004D01D0 /* VendorLinkingPanel.swift */; };
 		B4526ECE136AC044CD3C7603 /* EditorTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = D24B049638C76AC6248FD5D2 /* EditorTheme.swift */; };
 		B5B95B9DA63A734F25470FF5 /* SchemaVersions.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F8AA042D5D8A9F92F35CA3 /* SchemaVersions.swift */; };
 		BD584933CCE2B650345C4CF1 /* ToolSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5487D9027B97F7E9EE9A1F4A /* ToolSource.swift */; };
@@ -118,6 +121,9 @@
 		A924245DDDA4C6A59BE15567 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		AA64A368BBF950CD36C4F495 /* SkillListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillListView.swift; sourceTree = "<group>"; };
 		B1F8AA042D5D8A9F92F35CA3 /* SchemaVersions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SchemaVersions.swift; sourceTree = "<group>"; };
+		B36ECE462F7C93F9004D01D0 /* SymlinkTarget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SymlinkTarget.swift; sourceTree = "<group>"; };
+		B36ECE482F7C9418004D01D0 /* SymlinkService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SymlinkService.swift; sourceTree = "<group>"; };
+		B36ECE4A2F7C944D004D01D0 /* VendorLinkingPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VendorLinkingPanel.swift; sourceTree = "<group>"; };
 		B3F5CF5BB1FC8455FDDB004A /* Chops.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Chops.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B955C8B935BD62ED4811FCA2 /* DiffReviewPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiffReviewPanel.swift; sourceTree = "<group>"; };
 		C9AFE1AF02B0F8057791C2A9 /* Collection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Collection.swift; sourceTree = "<group>"; };
@@ -253,6 +259,7 @@
 				3D23D43EC788E51ED1C265FE /* StoreBootstrap.swift */,
 				12C5CD1627D4EFF58AEF4F71 /* TemplateManager.swift */,
 				3B8985D8816557B264BF0AD8 /* ACP */,
+				B36ECE482F7C9418004D01D0 /* SymlinkService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -269,6 +276,7 @@
 				27D6ED655F951177D2152351 /* Skill.swift */,
 				5487D9027B97F7E9EE9A1F4A /* ToolSource.swift */,
 				181FD0056E54DEB3957FB4DC /* WizardTemplate.swift */,
+				B36ECE462F7C93F9004D01D0 /* SymlinkTarget.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -303,6 +311,7 @@
 				31B4DB87833D5160A11E39C9 /* SkillEditorView.swift */,
 				8C812515FD8DC222B89745F2 /* SkillMetadataBar.swift */,
 				77E332B9970E6E3D00DCFBA3 /* SkillPreviewView.swift */,
+				B36ECE4A2F7C944D004D01D0 /* VendorLinkingPanel.swift */,
 			);
 			path = Detail;
 			sourceTree = "<group>";
@@ -359,8 +368,6 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
-				TargetAttributes = {
-				};
 			};
 			buildConfigurationList = 719777DE0F769FDB488A0FDB /* Build configuration list for PBXProject "Chops" */;
 			developmentRegion = en;
@@ -427,6 +434,7 @@
 				6E02BA7498763274DD403CD0 /* DiffReviewPanel.swift in Sources */,
 				B4526ECE136AC044CD3C7603 /* EditorTheme.swift in Sources */,
 				99EE8F6124FE91AC9576D6FD /* FileWatcher.swift in Sources */,
+				B36ECE492F7C9418004D01D0 /* SymlinkService.swift in Sources */,
 				CBD8FECF1C5A453C8B021665 /* FrontmatterParser.swift in Sources */,
 				A0862ECC573FDC0AA7CB9950 /* LibrarySettingsView.swift in Sources */,
 				7FD1DE6640F9339D5E97E09A /* MDCParser.swift in Sources */,
@@ -445,12 +453,14 @@
 				95163AEB7980654C901EC693 /* Skill.swift in Sources */,
 				09D3F065191A83BDEE922789 /* SkillDetailView.swift in Sources */,
 				FB295303DD30AED03290C726 /* SkillEditorView.swift in Sources */,
+				B36ECE472F7C93F9004D01D0 /* SymlinkTarget.swift in Sources */,
 				E98F7490B18A194F82ED2C0E /* SkillListView.swift in Sources */,
 				87A469B631CC80C89B14B1C7 /* SkillMetadataBar.swift in Sources */,
 				60A6711BAB0C3B8A3ACBF985 /* SkillParser.swift in Sources */,
 				E6F4E1CF50F2F78F5BA9BAC9 /* SkillPreviewView.swift in Sources */,
 				846B58F3B105D1734DC6FA75 /* SkillRegistry.swift in Sources */,
 				6A8E0927D95BB14C9F377F4E /* SkillScanner.swift in Sources */,
+				B36ECE4B2F7C944D004D01D0 /* VendorLinkingPanel.swift in Sources */,
 				C2A028F40A1C665D29495DB6 /* StoreBootstrap.swift in Sources */,
 				3F0ED402E77D8D25C600BAED /* TemplateManager.swift in Sources */,
 				038F5975DA97A3211EF4D448 /* ThinkingView.swift in Sources */,

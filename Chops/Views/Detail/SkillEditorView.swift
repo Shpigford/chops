@@ -75,7 +75,9 @@ final class SkillEditorDocument {
 
     private func saveLocal(_ skill: Skill) {
         do {
-            try editorContent.write(toFile: skill.filePath, atomically: true, encoding: .utf8)
+            // Resolve symlinks before the atomic write so rename(2) operates on the real file.
+            let writePath = URL(fileURLWithPath: skill.filePath).resolvingSymlinksInPath().path
+            try editorContent.write(toFile: writePath, atomically: true, encoding: .utf8)
             fullFileContent = editorContent
             hasUnsavedChanges = false
 
