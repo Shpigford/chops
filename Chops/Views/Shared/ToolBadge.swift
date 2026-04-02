@@ -44,6 +44,7 @@ extension ToolSource {
         case .copilot: "CP"
         case .aider: "AI"
         case .amp: "AM"
+        case .hermes: "HE"
         case .openclaw: "OC"
         case .opencode: "OP"
         case .pi: "PI"

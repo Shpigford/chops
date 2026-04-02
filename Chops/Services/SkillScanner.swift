@@ -61,6 +61,7 @@ final class SkillScanner {
         (".github/agents", .copilot, .agent),
         (".config/amp/skills", .amp, .skill),
         (".opencode/skills", .opencode, .skill),
+        (".hermes/skills", .hermes, .skill),
     ]
 
     func scanAll() {
@@ -266,6 +267,9 @@ final class SkillScanner {
                     if let data = collectSkillData(at: remappedAgentFile, toolSource: toolSource, isDirectory: true, isGlobal: isGlobal, kind: kind) {
                         results.append(data)
                     }
+                } else if toolSource == .hermes, kind == .skill {
+                    // Hermes nests skills as ~/.hermes/skills/<category>/<skill>/SKILL.md (agentskills.io layout).
+                    collectFromDirectory(item, toolSource: toolSource, isGlobal: isGlobal, kind: kind, into: &results)
                 }
             } else if item.pathExtension == "md" || item.pathExtension == "mdc" || item.pathExtension == "toml" {
                 guard !shouldIgnoreLooseMarkdownFile(named: item.lastPathComponent) else { continue }
@@ -582,7 +586,7 @@ final class SkillScanner {
                 } else {
                     let skill = Skill(
                         filePath: resolvedPath,
-                        toolSource: .openclaw,
+                        toolSource: server.inferredRemoteToolSource,
                         isDirectory: true,
                         name: name,
                         skillDescription: parsed.description,

@@ -27,7 +27,7 @@ One macOS app to discover, organize, and edit coding agent skills and agents acr
 - **Real-time file watching** — FSEvents-based, instant updates on disk changes
 - **Full-text search** — Search across name, description, and content
 - **Create new skills & agents** — Generates correct boilerplate per tool
-- **Remote servers** — Connect to servers like [OpenClaw](https://openclaw.ai) to discover, browse, and install skills
+- **Remote servers** — Connect to servers running [OpenClaw](https://openclaw.ai), [Hermes](https://github.com/NousResearch/hermes-agent), or other layouts to discover, browse, and install skills
 
 ## Prerequisites
 

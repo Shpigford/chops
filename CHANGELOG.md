@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Add [Hermes](https://github.com/NousResearch/hermes-agent) as a tool source (`~/.hermes/skills`), including nested category folders and remote SSH paths that reference `hermes`
+
 ## [1.13.1] - 2026-03-31
 
 - Prevents data loss when the database schema changes between versions
