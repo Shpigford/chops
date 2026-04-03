@@ -19,7 +19,7 @@
 - Keep pure file collection off the main actor and return to the main actor only for SwiftData mutation and UI-observable state changes.
 - Reuse canonical-path logic whenever scan identity, symlink merging, or plugin normalization is involved.
 - Preserve the existing distinction between local/plugin records and remote records.
-- Keep note metadata derived from content, not filenames: prefer the first H1-H4 heading in document order, otherwise the first non-empty line, and keep excerpt extraction aligned with that chosen title line.
+- Keep note metadata derived from content, not filenames: use only the first non-empty line as the title source, strip `#` markers when that first line is an H1-H4 heading, truncate only plain-text fallback titles, and keep excerpt extraction aligned with the next meaningful line after that first title line.
 - Reuse the existing shell escaping and batching strategy in `SSHService` when expanding remote behavior.
 - Keep vendor-specific ACP behavior behind `BaseACPAgent` hooks and `ACPAgentFactory`, not scattered across views.
 - Keep registry or template services side-effect-light; let higher layers decide how results surface in the UI.

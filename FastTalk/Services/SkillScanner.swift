@@ -69,19 +69,10 @@ enum NotesService {
             return NoteMetadata(title: untitledTitle, excerpt: "")
         }
 
-        let headingLine = meaningfulLines.first { headingTitle(from: $0.1) != nil }
-        let titleSource = headingLine ?? firstLine
-        let title: String
-
-        if let headingTitle = headingTitle(from: titleSource.1), !headingTitle.isEmpty {
-            title = headingTitle
-        } else {
-            let fallbackTitle = normalizedDisplayLine(from: titleSource.1)
-            title = truncatedFallbackTitle(from: fallbackTitle)
-        }
+        let title = title(from: firstLine.1)
 
         let excerpt = (
-            meaningfulLines.first(where: { $0.0 > titleSource.0 })?.1
+            meaningfulLines.first(where: { $0.0 > firstLine.0 })?.1
         )
         .map(normalizedDisplayLine) ?? ""
 
@@ -125,6 +116,16 @@ enum NotesService {
             options: .regularExpression
         )
         return strippedHeading.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private static func title(from rawLine: String) -> String {
+        if let headingTitle = headingTitle(from: rawLine), !headingTitle.isEmpty {
+            return headingTitle
+        }
+
+        let fallbackTitle = normalizedDisplayLine(from: rawLine)
+        guard !fallbackTitle.isEmpty else { return untitledTitle }
+        return truncatedFallbackTitle(from: fallbackTitle)
     }
 
     private static func headingTitle(from rawLine: String) -> String? {
