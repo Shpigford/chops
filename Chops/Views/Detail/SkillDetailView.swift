@@ -61,15 +61,12 @@ private struct ClickableCursorOverlay: NSViewRepresentable {
 
 struct SkillDetailView: View {
     private enum ActiveAlert: Identifiable {
-        case confirmDelete
         case confirmMakeGlobal
         case deleteError(String)
         case makeGlobalError(String)
 
         var id: String {
             switch self {
-            case .confirmDelete:
-                return "confirm-delete"
             case .confirmMakeGlobal:
                 return "confirm-make-global"
             case .deleteError(let message):
@@ -82,6 +79,7 @@ struct SkillDetailView: View {
 
     @Bindable var skill: Skill
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.undoManager) private var undoManager
     @Environment(AppState.self) private var appState
     @AppStorage("preferPreview") private var preferPreview = false
     @State private var document = SkillEditorDocument()
@@ -135,6 +133,13 @@ struct SkillDetailView: View {
         }
         .onChange(of: document.editorContent) {
             guard !skill.isReadOnly else { return }
+
+            if skill.itemKind == .note {
+                let metadata = NotesService.metadata(for: document.editorContent)
+                skill.name = metadata.title
+                skill.skillDescription = metadata.excerpt
+            }
+
             autoSaveTask?.cancel()
             autoSaveTask = Task {
                 try? await Task.sleep(for: .seconds(1))
@@ -184,7 +189,7 @@ struct SkillDetailView: View {
             if !skill.isReadOnly {
                 ToolbarItem {
                     Button {
-                        activeAlert = .confirmDelete
+                        deleteSkill()
                     } label: {
                         Image(systemName: "trash")
                     }
@@ -213,18 +218,9 @@ struct SkillDetailView: View {
                     },
                     secondaryButton: .cancel()
                 )
-            case .confirmDelete:
-                return Alert(
-                    title: Text("Delete \(skill.displayTypeName)?"),
-                    message: Text("This will permanently delete \"\(skill.name)\" from disk."),
-                    primaryButton: .destructive(Text("Delete")) {
-                        deleteSkill()
-                    },
-                    secondaryButton: .cancel()
-                )
             case .deleteError(let message):
                 return Alert(
-                    title: Text("Delete Failed"),
+                    title: Text("Move to Trash Failed"),
                     message: Text(message),
                     dismissButton: .default(Text("OK"))
                 )
@@ -260,12 +256,33 @@ struct SkillDetailView: View {
     }
 
     private func deleteSkill() {
-        guard !skill.isReadOnly else { return }
+        guard !skill.isReadOnly, !skill.isRemote else { return }
         do {
-            try skill.deleteFromDisk()
-            appState.selectedSkill = nil
+            let operation = try SkillTrashOperation.trash([skill])
             modelContext.delete(skill)
-            try modelContext.save()
+            do {
+                try modelContext.save()
+            } catch {
+                _ = try? operation.restore(in: modelContext)
+                try? modelContext.save()
+                throw error
+            }
+
+            appState.selectOnly(nil)
+
+            undoManager?.registerUndo(withTarget: modelContext) { context in
+                do {
+                    let restoredSkills = try operation.restore(in: context)
+                    try context.save()
+
+                    if let restoredSkill = restoredSkills.first {
+                        appState.selectOnly(restoredSkill)
+                    }
+                } catch {
+                    activeAlert = .deleteError(error.localizedDescription)
+                }
+            }
+            undoManager?.setActionName("Move to Trash")
         } catch {
             activeAlert = .deleteError(error.localizedDescription)
         }

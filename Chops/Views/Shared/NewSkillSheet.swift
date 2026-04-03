@@ -183,10 +183,7 @@ struct NewSkillSheet: View {
             case .agent: appState.sidebarFilter = .allAgents
             case .rule: appState.sidebarFilter = .allRules
             }
-            appState.selectedSkill = skill
-            if itemKind == .note {
-                NotificationCenter.default.post(name: .customScanPathsChanged, object: nil)
-            }
+            appState.selectOnly(skill)
             dismiss()
         } catch {
             errorMessage = error.localizedDescription
@@ -196,10 +193,7 @@ struct NewSkillSheet: View {
     private func generateBoilerplate(name: String, skillID: String, tool: ToolSource) -> String {
         switch itemKind {
         case .note:
-            return """
-            # \(name)
-
-            """
+            return NotesService.initialContent
         case .agent:
             return """
             ---

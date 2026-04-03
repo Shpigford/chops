@@ -9,11 +9,12 @@ struct NoteMetadata: Sendable {
 
 enum NotesService {
     static let untitledTitle = "Untitled Note"
+    static let initialContent = "# "
 
     private static let fileNameDateFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.dateFormat = "yyyyMMdd-HHmmss"
+        formatter.dateFormat = "yyyy-MM-dd--HH-mm-ss"
         return formatter
     }()
 
@@ -40,27 +41,49 @@ enum NotesService {
         try ensureNotesDirectoryExists()
 
         let fm = FileManager.default
+        let timestamp = fileNameDateFormatter.string(from: Date())
+        var collisionIndex = 0
+
         while true {
-            let suffix = UUID().uuidString.prefix(4).lowercased()
-            let name = "note-\(fileNameDateFormatter.string(from: Date()))-\(suffix).md"
+            let collisionSuffix = collisionIndex == 0 ? "" : "-\(collisionIndex)"
+            let name = "\(timestamp)\(collisionSuffix).md"
             let fileURL = notesDirectoryURL.appendingPathComponent(name)
-            guard !fm.fileExists(atPath: fileURL.path) else { continue }
-            try "".write(to: fileURL, atomically: true, encoding: .utf8)
+            guard !fm.fileExists(atPath: fileURL.path) else {
+                collisionIndex += 1
+                continue
+            }
+            try initialContent.write(to: fileURL, atomically: true, encoding: .utf8)
             return fileURL
         }
     }
 
     static func metadata(for content: String) -> NoteMetadata {
         let lines = content.components(separatedBy: .newlines)
-            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-            .filter { !$0.isEmpty }
+        let meaningfulLines = lines.enumerated().compactMap { index, line -> (Int, String)? in
+            let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !trimmed.isEmpty else { return nil }
+            return (index, trimmed)
+        }
 
-        guard let firstLine = lines.first else {
+        guard let firstLine = meaningfulLines.first else {
             return NoteMetadata(title: untitledTitle, excerpt: "")
         }
 
-        let title = normalizedDisplayLine(from: firstLine)
-        let excerpt = lines.dropFirst().first.map(normalizedDisplayLine) ?? ""
+        let headingLine = meaningfulLines.first { headingTitle(from: $0.1) != nil }
+        let titleSource = headingLine ?? firstLine
+        let title: String
+
+        if let headingTitle = headingTitle(from: titleSource.1), !headingTitle.isEmpty {
+            title = headingTitle
+        } else {
+            let fallbackTitle = normalizedDisplayLine(from: titleSource.1)
+            title = truncatedFallbackTitle(from: fallbackTitle)
+        }
+
+        let excerpt = (
+            meaningfulLines.first(where: { $0.0 > titleSource.0 })?.1
+        )
+        .map(normalizedDisplayLine) ?? ""
 
         return NoteMetadata(
             title: title.isEmpty ? untitledTitle : title,
@@ -102,6 +125,27 @@ enum NotesService {
             options: .regularExpression
         )
         return strippedHeading.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private static func headingTitle(from rawLine: String) -> String? {
+        let trimmed = rawLine.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard
+            let match = trimmed.range(
+                of: #"^#{1,4}\s+.+$"#,
+                options: .regularExpression
+            )
+        else {
+            return nil
+        }
+
+        let heading = String(trimmed[match])
+        let normalized = normalizedDisplayLine(from: heading)
+        return normalized.isEmpty ? nil : normalized
+    }
+
+    private static func truncatedFallbackTitle(from line: String) -> String {
+        guard line.count > 20 else { return line }
+        return "\(line.prefix(20))..."
     }
 }
 

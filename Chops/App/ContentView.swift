@@ -28,47 +28,59 @@ struct ContentView: View {
     }
 
     private var emptySelectionTitle: LocalizedStringKey {
+        if appState.hasMultipleSelection {
+            return "Multiple Items Selected"
+        }
+
         switch appState.sidebarFilter {
         case .allNotes:
-            "Select a Note"
+            return "Select a Note"
         case .allAgents:
-            "Select an Agent"
+            return "Select an Agent"
         case .allRules:
-            "Select a Rule"
+            return "Select a Rule"
         case .allSkills:
-            "Select a Skill"
+            return "Select a Skill"
         case .favorites, .tool, .collection, .server:
-            "Select an Item"
+            return "Select an Item"
         }
     }
 
     private var emptySelectionIcon: String {
+        if appState.hasMultipleSelection {
+            return "square.stack.3d.up"
+        }
+
         switch appState.sidebarFilter {
         case .allNotes:
-            ItemKind.note.icon
+            return ItemKind.note.icon
         case .allAgents:
-            ItemKind.agent.icon
+            return ItemKind.agent.icon
         case .allRules:
-            ItemKind.rule.icon
+            return ItemKind.rule.icon
         case .allSkills, .favorites, .tool, .collection, .server:
-            ItemKind.skill.icon
+            return ItemKind.skill.icon
         }
     }
 
     private var emptySelectionDescription: LocalizedStringKey {
+        if appState.hasMultipleSelection {
+            return "Choose a single item to edit, or use Delete to move the selected items to Trash."
+        }
+
         switch appState.sidebarFilter {
         case .allNotes:
-            "Choose a note from the sidebar to view and edit it."
+            return "Choose a note from the sidebar to view and edit it."
         case .allAgents:
-            "Choose an agent from the sidebar to view and edit it."
+            return "Choose an agent from the sidebar to view and edit it."
         case .allRules:
-            "Choose a rule from the sidebar to view and edit it."
+            return "Choose a rule from the sidebar to view and edit it."
         case .allSkills:
-            "Choose a skill from the sidebar to view and edit it."
+            return "Choose a skill from the sidebar to view and edit it."
         case .favorites:
-            "Choose an item from favorites to view and edit it."
+            return "Choose an item from favorites to view and edit it."
         case .tool, .collection, .server:
-            "Choose an item from the list to view and edit it."
+            return "Choose an item from the list to view and edit it."
         }
     }
 

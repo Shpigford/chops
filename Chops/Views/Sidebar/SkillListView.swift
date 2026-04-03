@@ -4,7 +4,6 @@ import SwiftData
 struct SkillListView: View {
     private enum ActiveAlert: Identifiable {
         case createNoteError(String)
-        case confirmDelete(Skill)
         case confirmMakeGlobal(Skill)
         case deleteError(String)
         case makeGlobalError(String)
@@ -13,8 +12,6 @@ struct SkillListView: View {
             switch self {
             case .createNoteError(let message):
                 return "create-note-error-\(message)"
-            case .confirmDelete(let skill):
-                return "confirm-delete-\(skill.filePath)"
             case .confirmMakeGlobal(let skill):
                 return "confirm-make-global-\(skill.filePath)"
             case .deleteError(let message):
@@ -26,6 +23,7 @@ struct SkillListView: View {
     }
 
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.undoManager) private var undoManager
     @Environment(AppState.self) private var appState
     @Query(sort: \Skill.name) private var allSkills: [Skill]
     @Query(sort: \SkillCollection.name) private var allCollections: [SkillCollection]
@@ -100,6 +98,21 @@ struct SkillListView: View {
         guard case .tool(let tool) = appState.sidebarFilter else { return [] }
         let kinds = Set(allSkills.filter { $0.toolSources.contains(tool) }.map(\.itemKind))
         return ItemKind.allCases.filter { kinds.contains($0) }
+    }
+
+    private var filteredSkillPaths: [String] {
+        filteredSkills.map(\.resolvedPath)
+    }
+
+    private var selectedSkills: [Skill] {
+        filteredSkills.filter { appState.selectedSkillPaths.contains($0.resolvedPath) }
+    }
+
+    private var selectionBinding: Binding<Set<String>> {
+        Binding(
+            get: { appState.selectedSkillPaths },
+            set: { appState.setListSelection($0, availableSkills: filteredSkills) }
+        )
     }
 
     @ViewBuilder
@@ -177,7 +190,7 @@ struct SkillListView: View {
         if !skill.isReadOnly {
             Divider()
             Button("Delete", role: .destructive) {
-                activeAlert = .confirmDelete(skill)
+                trashSkills([skill], restoreSelectionOnUndo: true)
             }
         }
     }
@@ -191,28 +204,15 @@ struct SkillListView: View {
         }
     }
 
-    private func deleteSkill(_ skill: Skill) {
-        guard !skill.isReadOnly else { return }
-        do {
-            try skill.deleteFromDisk()
-            if appState.selectedSkill == skill {
-                appState.selectedSkill = nil
-            }
-            modelContext.delete(skill)
-            try modelContext.save()
-        } catch {
-            activeAlert = .deleteError(error.localizedDescription)
-        }
-    }
-
     private func createNote() {
         do {
             let fileURL = try NotesService.createBlankNote()
+            let initialContent = NotesService.initialContent
             let note = NotesService.makeIndexedNote(
                 fileURL: fileURL,
-                content: "",
+                content: initialContent,
                 fileModifiedDate: .now,
-                fileSize: 0
+                fileSize: initialContent.utf8.count
             )
             modelContext.insert(note)
             try modelContext.save()
@@ -220,25 +220,80 @@ struct SkillListView: View {
             appState.searchText = ""
             appState.toolKindFilter = nil
             appState.sidebarFilter = .allNotes
-            appState.selectedSkill = note
-
-            NotificationCenter.default.post(name: .customScanPathsChanged, object: nil)
+            appState.selectOnly(note)
         } catch {
             activeAlert = .createNoteError(error.localizedDescription)
         }
     }
 
-    var body: some View {
-        @Bindable var appState = appState
+    private func trashSelectedSkills() {
+        trashSkills(selectedSkills, restoreSelectionOnUndo: selectedSkills.count == 1)
+    }
 
-        List(selection: $appState.selectedSkill) {
+    private func trashSkills(_ skills: [Skill], restoreSelectionOnUndo: Bool) {
+        let deletableSkills = Array(
+            Dictionary(
+                uniqueKeysWithValues: skills
+                    .filter { !$0.isRemote && !$0.isReadOnly }
+                    .map { ($0.resolvedPath, $0) }
+            ).values
+        )
+        guard !deletableSkills.isEmpty else { return }
+
+        let deletedPaths = Set(deletableSkills.map(\.resolvedPath))
+        let remainingSkills = filteredSkills.filter { !deletedPaths.contains($0.resolvedPath) }
+        var trashOperation: SkillTrashOperation?
+
+        do {
+            let operation = try SkillTrashOperation.trash(deletableSkills)
+            trashOperation = operation
+
+            for skill in deletableSkills {
+                modelContext.delete(skill)
+            }
+            do {
+                try modelContext.save()
+            } catch {
+                _ = try? operation.restore(in: modelContext)
+                try? modelContext.save()
+                throw error
+            }
+
+            appState.selectedSkillPaths.subtract(deletedPaths)
+            appState.repairSelection(in: remainingSkills)
+
+            undoManager?.registerUndo(withTarget: modelContext) { context in
+                do {
+                    let restoredSkills = try operation.restore(in: context)
+                    try context.save()
+
+                    if restoreSelectionOnUndo, restoredSkills.count == 1 {
+                        appState.selectOnly(restoredSkills[0])
+                    }
+                } catch {
+                    activeAlert = .deleteError(error.localizedDescription)
+                }
+            }
+            undoManager?.setActionName("Move to Trash")
+        } catch {
+            if let trashOperation {
+                _ = try? trashOperation.restore(in: modelContext)
+                try? modelContext.save()
+            }
+            activeAlert = .deleteError(error.localizedDescription)
+        }
+    }
+
+    var body: some View {
+        List(selection: selectionBinding) {
             ForEach(filteredSkills) { skill in
                 SkillRow(skill: skill, showTypeBadge: showsTypeBadge)
-                    .tag(skill)
+                    .tag(skill.resolvedPath)
                     .draggable(skill.resolvedPath)
                     .contextMenu { contextMenu(for: skill) }
             }
         }
+        .onDeleteCommand(perform: trashSelectedSkills)
         .navigationTitle(title)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
@@ -334,18 +389,9 @@ struct SkillListView: View {
                     },
                     secondaryButton: .cancel()
                 )
-            case .confirmDelete(let skill):
-                return Alert(
-                    title: Text("Delete \(skill.displayTypeName)?"),
-                    message: Text("This will permanently delete \"\(skill.name)\" from disk."),
-                    primaryButton: .destructive(Text("Delete")) {
-                        deleteSkill(skill)
-                    },
-                    secondaryButton: .cancel()
-                )
             case .deleteError(let message):
                 return Alert(
-                    title: Text("Delete Failed"),
+                    title: Text("Move to Trash Failed"),
                     message: Text(message),
                     dismissButton: .default(Text("OK"))
                 )
@@ -360,12 +406,21 @@ struct SkillListView: View {
         .overlay {
             if filteredSkills.isEmpty { emptyStateView }
         }
+        .onAppear {
+            appState.repairSelection(in: filteredSkills)
+        }
         .onChange(of: appState.sidebarFilter) {
-            if let selected = appState.selectedSkill, filteredSkills.contains(selected) {
-                // Already selected something valid in this filter
-            } else {
-                appState.selectedSkill = filteredSkills.first
-            }
+            appState.repairSelection(in: filteredSkills)
+        }
+        .onChange(of: appState.searchText) {
+            appState.repairSelection(in: filteredSkills)
+        }
+        .onChange(of: filteredSkillPaths) {
+            appState.repairSelection(in: filteredSkills)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .newNoteRequested)) { _ in
+            guard isNotesLibraryView else { return }
+            createNote()
         }
     }
 }

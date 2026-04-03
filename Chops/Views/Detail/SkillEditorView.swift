@@ -10,6 +10,7 @@ final class SkillEditorDocument {
             hasUnsavedChanges = editorContent != fullFileContent
         }
     }
+    var preferredCursorLocation: Int?
     var hasUnsavedChanges = false
     var isLoadingRemote = false
     var isSavingRemote = false
@@ -47,6 +48,7 @@ final class SkillEditorDocument {
         let path = skill.filePath
         let fallback = skill.content
         let generation = loadGeneration
+        let isNote = skill.itemKind == .note
 
         loadTask = Task.detached { [weak self] in
             let start = CFAbsoluteTimeGetCurrent()
@@ -65,6 +67,7 @@ final class SkillEditorDocument {
                 guard let self, self.loadGeneration == generation else { return }
                 self.editorContent = data
                 self.fullFileContent = data
+                self.preferredCursorLocation = self.initialCursorLocation(isNote: isNote, content: data)
                 self.isLoading = false
                 self.hasUnsavedChanges = false
                 self.showingSaveError = false
@@ -105,6 +108,7 @@ final class SkillEditorDocument {
         loadGeneration += 1
         let generation = loadGeneration
         let fallbackContent = skill.content
+        let isNote = skill.itemKind == .note
 
         isLoading = true
         isLoadingRemote = true
@@ -117,6 +121,7 @@ final class SkillEditorDocument {
                     guard self.loadGeneration == generation else { return }
                     editorContent = content
                     fullFileContent = content
+                    preferredCursorLocation = initialCursorLocation(isNote: isNote, content: content)
                     isLoading = false
                     isLoadingRemote = false
                     hasUnsavedChanges = false
@@ -129,6 +134,7 @@ final class SkillEditorDocument {
                     guard self.loadGeneration == generation else { return }
                     editorContent = fallbackContent
                     fullFileContent = fallbackContent
+                    preferredCursorLocation = initialCursorLocation(isNote: isNote, content: fallbackContent)
                     isLoading = false
                     isLoadingRemote = false
                     hasUnsavedChanges = false
@@ -189,6 +195,14 @@ final class SkillEditorDocument {
         skill.frontmatter = parsed.frontmatter
     }
 
+    private func initialCursorLocation(isNote: Bool, content: String) -> Int? {
+        guard isNote, content == NotesService.initialContent else {
+            return nil
+        }
+
+        return NotesService.initialContent.utf16.count
+    }
+
     deinit {
         loadTask?.cancel()
     }
@@ -207,7 +221,11 @@ struct SkillEditorView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
-                HighlightedTextEditor(text: $document.editorContent, isEditable: isEditable)
+                HighlightedTextEditor(
+                    text: $document.editorContent,
+                    preferredCursorLocation: $document.preferredCursorLocation,
+                    isEditable: isEditable
+                )
             }
 
             HStack(spacing: 6) {
@@ -225,16 +243,18 @@ struct SkillEditorView: View {
     }
 }
 
-// MARK: - Save notification for Cmd+S menu support
+// MARK: - File menu notifications
 
 extension Notification.Name {
     static let saveCurrentSkill = Notification.Name("saveCurrentSkill")
+    static let newNoteRequested = Notification.Name("newNoteRequested")
 }
 
 // MARK: - Syntax-highlighted NSTextView wrapper
 
 struct HighlightedTextEditor: NSViewRepresentable {
     @Binding var text: String
+    @Binding var preferredCursorLocation: Int?
     var isEditable: Bool = true
     @Environment(\.colorScheme) private var colorScheme
 
@@ -343,6 +363,17 @@ struct HighlightedTextEditor: NSViewRepresentable {
             context.coordinator.isHighlightingInProgress = false
             textView.selectedRanges = selectedRanges
             context.coordinator.isUpdating = false
+        }
+
+        if let preferredCursorLocation {
+            let clampedLocation = min(preferredCursorLocation, textView.string.utf16.count)
+            let selectedRange = NSRange(location: clampedLocation, length: 0)
+            textView.setSelectedRange(selectedRange)
+            textView.scrollRangeToVisible(selectedRange)
+
+            DispatchQueue.main.async {
+                self.preferredCursorLocation = nil
+            }
         }
     }
 

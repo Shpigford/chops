@@ -42,6 +42,13 @@ struct ChopsApp: App {
         .modelContainer(sharedModelContainer)
         .commands {
             TextEditingCommands()
+            CommandGroup(replacing: .newItem) {
+                Button("New Note") {
+                    NotificationCenter.default.post(name: .newNoteRequested, object: nil)
+                }
+                .keyboardShortcut("n", modifiers: .command)
+                .disabled(appState.sidebarFilter != .allNotes)
+            }
             CommandGroup(replacing: .saveItem) {
                 Button("Save") {
                     NotificationCenter.default.post(name: .saveCurrentSkill, object: nil)
