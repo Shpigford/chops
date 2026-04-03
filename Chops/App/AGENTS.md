@@ -15,12 +15,16 @@
 - Start scanner and watcher lifecycle from the shell coordinator instead of scattering startup logic across feature views.
 - Add new shell-wide commands in `ChopsApp` and route them through existing notification or environment patterns when the action belongs to an already-open detail view.
 - Keep sheet routing centralized in `ContentView` when the sheet is app-shell level rather than local to a single detail workflow.
+- Keep scan/watch roots centralized in `ContentView`: derive standard roots from `ToolSource` registries and append one-off Claude plugin/session paths there rather than spreading watchers across features.
+- Reuse `.customScanPathsChanged` when settings or installs should trigger a full rescan.
 
 ## Never
 - Never move filesystem scanning, remote sync, parsing, or persistence bootstrap into `AppState`.
 - Never let `ChopsApp` accumulate feature-specific workflow logic that belongs in services or views.
 - Never create a second startup coordinator outside `ContentView` for scan and watcher setup.
 - Never store persisted domain data in `AppState`.
+- Never move shell search, split-view selection fallback, or top-level empty-state behavior into a lower subtree that cannot see the full navigation context.
 
 ## Validation
 - After editing this folder, verify app launch, initial scanning, sidebar/list/detail shell behavior, and any affected menu command or settings-scene wiring.
+- If watch roots or startup flow changed, verify that file edits, installs, and scan-path setting changes all trigger rescans once the app is already running.

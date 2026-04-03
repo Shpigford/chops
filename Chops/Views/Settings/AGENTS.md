@@ -19,11 +19,13 @@
   - AI assist settings for ACP registry and templates
   - server settings for SSH-backed sources
   - about tab for updater and metadata
+- Keep scan-affecting controls posting `.customScanPathsChanged` from this subtree so the shell rescan path stays centralized.
 
 ## Integration Rules
 - Reuse existing save and invalidation pathways when a setting affects scanning, registry availability, or assistant behavior.
 - Keep remote-server management and ACP configuration inside this subtree instead of surfacing them as ad hoc dialogs elsewhere in the app.
 - When a setting changes runtime behavior, make that coupling explicit in the code and in the control label or helper text.
+- Keep updater, diagnostics export, remote connection testing, and assistant template editing attached to the settings scene rather than leaking them into unrelated workflows.
 
 ## Never
 - Never add long-running service logic directly to settings containers when it belongs in a service or a focused row/sheet component.

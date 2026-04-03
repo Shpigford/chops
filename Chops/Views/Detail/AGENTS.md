@@ -13,6 +13,7 @@
 ## Editor Design System
 - Reuse `EditorTheme` for editor typography, insets, line spacing, baseline alignment, and dynamic colors.
 - Reuse `ChopsTextView` when editing behavior requires native cursor, find-panel, insertion-point, or markdown-formatting support.
+- Reuse `HighlightedTextEditor` for syntax-highlighted plain-text editing. Do not replace it with `TextEditor` when the surface still needs editor theming, NSTextView behavior, or synchronous highlighting.
 - Keep editor surfaces monospaced and document-like. Do not introduce a separate rich-text editing aesthetic in this subtree.
 - Preserve the current preview model: WebKit, generated HTML, CSP that blocks JavaScript, and explicit link handoff to `NSWorkspace`.
 
@@ -21,6 +22,8 @@
 - Keep remote editing routed through `SSHService` from the document object instead of building a second remote-edit abstraction in the view.
 - Keep autosave explicit and delayed, not continuous on every keystroke.
 - Route explicit save requests through the existing save notification and document save method.
+- After successful local or remote saves, keep the `Skill` mirror fields refreshed from parsed content so the list and metadata panes stay in sync without a full rescan.
+- Keep load cancellation and generation-guard patterns intact when changing document load behavior so stale async results do not overwrite newer selections.
 
 ## Compose And Metadata
 - Keep the floating compose affordance and inline compose panel integrated into the detail pane rather than opening a separate window for the same workflow.
@@ -34,3 +37,4 @@
 
 ## Validation
 - After editing this subtree, verify local editing, remote editing when relevant, preview mode, autosave, explicit save, metadata display, and compose-panel behavior.
+- If editor plumbing changed, verify syntax highlighting, cursor behavior, find support, and save-error presentation in addition to the content itself.

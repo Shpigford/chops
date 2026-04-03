@@ -16,12 +16,15 @@
 - Use `DiffReviewPanel` for explicit reviewable file changes and keep diff computation off the main actor.
 - Use `ComposePanel` as the reference pattern for inline assistant workflows: compact top bar, explicit connection state, chat transcript, explicit diff acceptance, and local dismissal behavior.
 - Use `RegistrySheet` as the reference pattern for searchable install/browse flows that fetch external content and then apply a filesystem-backed install.
+- Keep `ComposePanel` wired through `ACPConfiguration.shared`, `TemplateManager.shared`, and `ACPAgentFactory`. Do not fork assistant setup logic into feature-specific panels.
+- Keep assistant-proposed writes reviewable by default: pending writes stay deferred until accept/reject unless ACP bypass mode is explicitly in effect.
 
 ## UI Consistency
 - Keep shared workflow panels compact, technical, and low-chrome.
 - Keep monospaced text in diffs, logs, raw previews, and machine-readable content.
 - Use grouped backgrounds, separators, and small controls rather than heavy card systems.
 - Prefer explicit accept/reject actions over silent mutation when a workflow proposes file changes.
+- Keep long-running shared workflow work visibly stateful with progress, connection, or “thinking” affordances instead of hidden background transitions.
 
 ## Never
 - Never let a shared workflow silently mutate files if the current pattern requires review, except for explicit bypass modes already defined by ACP session configuration.

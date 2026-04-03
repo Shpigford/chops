@@ -9,6 +9,7 @@
 - Treat external documents as the product data model. The app indexes and edits them; it does not own a separate canonical copy.
 - Follow the current flow: filesystem or SSH content -> service scan/load -> SwiftData index -> `@Query` views -> targeted read/save through document or service code.
 - Keep transient UI state in `AppState`. Keep persisted or integration state out of `AppState`.
+- Keep `AppState` as one shared environment value created in `ChopsApp`, not as a recreated feature-local store or singleton replacement.
 - Keep long-running I/O and process work off the main actor. Keep SwiftData mutation and save points on the main actor unless a file explicitly proves a different pattern.
 
 ## Reusable Shell Patterns
@@ -26,9 +27,12 @@
 
 ## Data And State
 - Keep `Skill.resolvedPath` semantics intact. It is the identity boundary that merges symlinked installs, plugin installs, and remote records.
+- Keep the canonical global skill location centered on `~/.agents/skills`. Local installs and registry installs fan out from that canonical directory through symlinks.
 - Keep SwiftData focused on `Skill`, `SkillCollection`, and `RemoteServer` plus their derived helpers. Put workflow logic in services or document objects, not in schema definitions.
 - Reuse the existing invalidation notifications when the meaning is the same: `saveCurrentSkill` for explicit save requests and `customScanPathsChanged` for scan-affecting settings or installs.
+- Add new app-wide invalidation notifications only when neither existing notification matches the meaning. Prefer extending the existing scan/save pathways over inventing parallel ones.
 
 ## Validation
 - Validate changed shell flows end-to-end, not only individual functions.
 - When touching code that spans services, models, and views, test the actual user journey through the app shell instead of spot-checking isolated pieces.
+- After structural changes, verify the full path from scan or load to list display to detail editing so the indexed mirror still matches disk or SSH state.

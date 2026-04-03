@@ -12,9 +12,11 @@
 
 ## List And Filter Rules
 - Keep `SkillListView` as the owner of list-level filtering, row context actions, toolbar actions, and selection repair when filters change.
+- Keep list filtering in memory over the existing `@Query` result unless the repository intentionally redesigns search and indexing. Do not bolt a second search backend onto this subtree casually.
 - Keep current filter semantics aligned across shell and list: kind filters, favorites, collection membership, server scope, tool scope, and text search should continue to compose predictably.
 - Keep row actions explicit and immediate: favorite toggles, collection membership, show in Finder, make global, and delete all save at the action boundary.
 - Preserve drag-and-drop into collections as a sidebar/list interaction pattern.
+- Keep server actions limited to explicit user-triggered sync/test affordances that call existing services. Do not make the sidebar its own sync coordinator.
 
 ## UI Consistency
 - Keep sidebar and list rows compact and badge-forward.

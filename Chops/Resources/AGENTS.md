@@ -14,6 +14,7 @@
 - Keep resource naming predictable and code-friendly; prefer the existing `tool-<name>` pattern for tool-specific assets.
 - Treat bundled non-code resources as load-path contracts. If code looks up a subdirectory or filename through `Bundle.main`, preserve that path shape exactly.
 - When adding future bundled templates or content resources, wire them intentionally and keep any hardcoded fallback behavior in sync with the bundled version.
+- Treat the current absence of bundled `Templates/` content as intentional repo reality. If you add bundled templates, update both the resources and the `TemplateManager` assumptions in the same change.
 
 ## Never
 - Never rename or remove an asset-catalog entry that is referenced from `ToolSource` without updating the code in the same change.
