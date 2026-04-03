@@ -1,6 +1,5 @@
 import SwiftUI
 import SwiftData
-import Sparkle
 import AppKit
 
 @main
@@ -8,15 +7,9 @@ struct FastTalkApp: App {
     @NSApplicationDelegateAdaptor(AppLifecycleLogger.self) private var lifecycleLogger
     @State private var appState = AppState()
     @AppStorage("ACPDebugLogging") private var debugLoggingEnabled = false
-    private let updaterController: SPUStandardUpdaterController
 
     init() {
         AppLogger.lifecycle.notice("FastTalkApp init bundleID=\(Bundle.main.bundleIdentifier ?? "unknown", privacy: .public)")
-        updaterController = SPUStandardUpdaterController(
-            startingUpdater: true,
-            updaterDelegate: nil,
-            userDriverDelegate: nil
-        )
     }
 
     var sharedModelContainer: ModelContainer = {
@@ -56,9 +49,6 @@ struct FastTalkApp: App {
                 .keyboardShortcut("s", modifiers: .command)
                 .disabled(appState.selectedSkill == nil)
             }
-            CommandGroup(after: .appInfo) {
-                CheckForUpdatesView(updater: updaterController.updater)
-            }
             CommandGroup(after: .help) {
                 Toggle("Enable Debug Logging", isOn: $debugLoggingEnabled)
                 Divider()
@@ -70,7 +60,7 @@ struct FastTalkApp: App {
         }
 
         Settings {
-            SettingsView(updater: updaterController.updater)
+            SettingsView()
                 .environment(appState)
                 .modelContainer(sharedModelContainer)
         }
@@ -276,37 +266,5 @@ enum AppRuntimeDiagnostics {
         let frame = NSStringFromRect(window.frame)
         let screen = window.screen?.localizedName ?? "<no-screen>"
         return "title=\(title) visible=\(window.isVisible) key=\(window.isKeyWindow) main=\(window.isMainWindow) miniaturized=\(window.isMiniaturized) frame=\(frame) screen=\(screen)"
-    }
-}
-
-// MARK: - Sparkle Check for Updates menu item
-
-struct CheckForUpdatesView: View {
-    @ObservedObject private var checkForUpdatesViewModel: CheckForUpdatesViewModel
-    let updater: SPUUpdater
-
-    init(updater: SPUUpdater) {
-        self.updater = updater
-        self.checkForUpdatesViewModel = CheckForUpdatesViewModel(updater: updater)
-    }
-
-    var body: some View {
-        Button("Check for Updates…") {
-            updater.checkForUpdates()
-        }
-        .disabled(!checkForUpdatesViewModel.canCheckForUpdates)
-    }
-}
-
-final class CheckForUpdatesViewModel: ObservableObject {
-    @Published var canCheckForUpdates = false
-    private var observation: Any?
-
-    init(updater: SPUUpdater) {
-        observation = updater.observe(\.canCheckForUpdates, options: [.initial, .new]) { [weak self] updater, change in
-            DispatchQueue.main.async {
-                self?.canCheckForUpdates = updater.canCheckForUpdates
-            }
-        }
     }
 }

@@ -9,29 +9,28 @@
 /* Begin PBXBuildFile section */
 		0906FC3BC9871AC919791E0A /* StoreBootstrap.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD49D5F9815047EB5F08F5AC /* StoreBootstrap.swift */; };
 		106841D096D2E1D941600CA7 /* ACPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331C22BD704CC9068FF0B5DB /* ACPClient.swift */; };
-		114C51B58971B10D4262EF10 /* ACPModel in Frameworks */ = {isa = PBXBuildFile; productRef = 375D09A7C304642ADEF83B06 /* ACPModel */; };
+		114C51B58971B10D4262EF10 /* ACPRegistry in Frameworks */ = {isa = PBXBuildFile; productRef = F6EFE36C8544DD39E6E0E45A /* ACPRegistry */; };
 		1678A6A5ECA9748C94F17658 /* SearchService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63680B00142352C2BFC30231 /* SearchService.swift */; };
 		18F9A67A071EF02F210A8EBA /* ClaudeACPAgent.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4E1371DE93F7E8D605B0EAF /* ClaudeACPAgent.swift */; };
-		18FBC19F28D47AE71E693027 /* ACP in Frameworks */ = {isa = PBXBuildFile; productRef = 7246E0CF510D0BF656F782B9 /* ACP */; };
+		18FBC19F28D47AE71E693027 /* ACPModel in Frameworks */ = {isa = PBXBuildFile; productRef = 375D09A7C304642ADEF83B06 /* ACPModel */; };
 		1AE11103D9424CD803222B14 /* DiffReviewPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FE4B9C7F7735DE1660539DD /* DiffReviewPanel.swift */; };
 		1C73583C786AD2205E17EDCE /* ACPLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2CE1F7B894DDA18D70FBA84 /* ACPLogger.swift */; };
 		1D031EC54B52CF4C326EE71B /* ComposePanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CE6F0B0720106D69C62750B /* ComposePanel.swift */; };
 		2092BCDDBDEB69FEA36272D6 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A342869C5D3D62B0196CF1FE /* ContentView.swift */; };
-		22F8BF587FF7BA1B82DEE395 /* cmark in Frameworks */ = {isa = PBXBuildFile; productRef = 5CD2C5CB89060A741CFF98ED /* cmark */; };
+		22F8BF587FF7BA1B82DEE395 /* ACP in Frameworks */ = {isa = PBXBuildFile; productRef = 7246E0CF510D0BF656F782B9 /* ACP */; };
 		2D24C932C0D91F0C32AC1AE5 /* FileWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A3AAD176660AD7F814DB4B3 /* FileWatcher.swift */; };
 		30DF8B8258740B7FFD4C4207 /* MDCParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A30FB7129468FD1CC257F0E /* MDCParser.swift */; };
 		33C7D10DBF737BDD8A7F04AD /* Skill.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11BE3B8622781CB567506473 /* Skill.swift */; };
 		37E8DDCDFF5A75D1940659E3 /* TemplateManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 315100255A0C1BDB1CC1C1B3 /* TemplateManager.swift */; };
-		3A40640C5FD5BBF84915E109 /* ACPRegistry in Frameworks */ = {isa = PBXBuildFile; productRef = F6EFE36C8544DD39E6E0E45A /* ACPRegistry */; };
 		436B44C6F2B2FED11AB3C92E /* ToolBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97E9EF43F5DAA6F89193A11F /* ToolBadge.swift */; };
 		4658375E3EC7C614670C2EE0 /* RegistrySheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = F929481026040DDC901923AE /* RegistrySheet.swift */; };
 		5B67FFEDB566F88DE25411A5 /* AgentTarget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F2E88BF368CDA41613E5C46 /* AgentTarget.swift */; };
 		5E2597D17E22264106D7A674 /* MarkdownMessageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEF484DD20E4FBCCC3D8C963 /* MarkdownMessageView.swift */; };
 		5F47CA5436CB143919F0A891 /* ThinkingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E1168A0DBFF2C8E3357BB93 /* ThinkingView.swift */; };
-		5F7495395E9600CDE98CCA12 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 76E0D5419F036C5576A7FD51 /* Sparkle */; };
+		5F7495395E9600CDE98CCA12 /* Highlightr in Frameworks */ = {isa = PBXBuildFile; productRef = 9BDD49A13DF08F75D3FF9040 /* Highlightr */; };
 		64F5DC3EAA6ECA882C764CAF /* RemoteServersSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F398EEDAC369673541F4E7B9 /* RemoteServersSettingsView.swift */; };
 		6A72DC9042926CDE32129F93 /* AppLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28C8671B8C0620CB8BD396CC /* AppLogger.swift */; };
-		6C38927ECCEBD1C38D5CDD06 /* Highlightr in Frameworks */ = {isa = PBXBuildFile; productRef = 9BDD49A13DF08F75D3FF9040 /* Highlightr */; };
+		6C38927ECCEBD1C38D5CDD06 /* cmark in Frameworks */ = {isa = PBXBuildFile; productRef = 5CD2C5CB89060A741CFF98ED /* cmark */; };
 		7779426407E86CE174CC28A3 /* ToolFilterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B50C10D3101A13B9E2F03033 /* ToolFilterView.swift */; };
 		7D167BDF4F0666BD9F512A47 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 222B2B6B76702476051439F8 /* AppState.swift */; };
 		7DB173FF5EAD2A4B5004ACA5 /* SchemaVersions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C2FBCA38E297B2198F6D025 /* SchemaVersions.swift */; };
@@ -134,12 +133,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5F7495395E9600CDE98CCA12 /* Sparkle in Frameworks */,
-				6C38927ECCEBD1C38D5CDD06 /* Highlightr in Frameworks */,
-				22F8BF587FF7BA1B82DEE395 /* cmark in Frameworks */,
-				18FBC19F28D47AE71E693027 /* ACP in Frameworks */,
-				114C51B58971B10D4262EF10 /* ACPModel in Frameworks */,
-				3A40640C5FD5BBF84915E109 /* ACPRegistry in Frameworks */,
+				5F7495395E9600CDE98CCA12 /* Highlightr in Frameworks */,
+				6C38927ECCEBD1C38D5CDD06 /* cmark in Frameworks */,
+				22F8BF587FF7BA1B82DEE395 /* ACP in Frameworks */,
+				18FBC19F28D47AE71E693027 /* ACPModel in Frameworks */,
+				114C51B58971B10D4262EF10 /* ACPRegistry in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -337,7 +335,6 @@
 			);
 			name = FastTalk;
 			packageProductDependencies = (
-				76E0D5419F036C5576A7FD51 /* Sparkle */,
 				9BDD49A13DF08F75D3FF9040 /* Highlightr */,
 				5CD2C5CB89060A741CFF98ED /* cmark */,
 				7246E0CF510D0BF656F782B9 /* ACP */,
@@ -371,7 +368,6 @@
 			packageReferences = (
 				7EF62DADB77A834A12F8181E /* XCRemoteSwiftPackageReference "swift-acp" */,
 				6B7A67F0C7204C4B824C8476 /* XCRemoteSwiftPackageReference "Highlightr" */,
-				CE4D5A1480A15B071DBA4295 /* XCRemoteSwiftPackageReference "Sparkle" */,
 				4D63791FC2C2F9C8B9A41BB8 /* XCRemoteSwiftPackageReference "cmark-gfm" */,
 			);
 			preferredProjectObjectVersion = 77;
@@ -752,14 +748,6 @@
 				kind = branch;
 			};
 		};
-		CE4D5A1480A15B071DBA4295 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/sparkle-project/Sparkle";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 2.6.0;
-			};
-		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -777,11 +765,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 7EF62DADB77A834A12F8181E /* XCRemoteSwiftPackageReference "swift-acp" */;
 			productName = ACP;
-		};
-		76E0D5419F036C5576A7FD51 /* Sparkle */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = CE4D5A1480A15B071DBA4295 /* XCRemoteSwiftPackageReference "Sparkle" */;
-			productName = Sparkle;
 		};
 		9BDD49A13DF08F75D3FF9040 /* Highlightr */ = {
 			isa = XCSwiftPackageProductDependency;

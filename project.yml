@@ -12,9 +12,6 @@ configs:
   LocalRelease: release
 
 packages:
-  Sparkle:
-    url: https://github.com/sparkle-project/Sparkle
-    from: "2.6.0"
   ACP:
     url: https://github.com/wiedymi/swift-acp
     branch: main
@@ -36,7 +33,6 @@ targets:
           - "**/AGENTS.md"
           - Info.plist
     dependencies:
-      - package: Sparkle
       - package: Highlightr
       - package: cmark-gfm
         product: cmark

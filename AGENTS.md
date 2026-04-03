@@ -19,7 +19,7 @@
 - Treat filesystem and SSH-backed content as the source of truth. Treat SwiftData as the indexed mirror used for browsing, grouping, and editing.
 - Keep `Skill.resolvedPath` stable across local symlinks, plugin installs, and remote records. Treat it as the identity boundary for dedupe and metadata retention.
 - Keep persisted model evolution behind new `SchemaV*` snapshots and migration-plan updates. Never mutate an older schema snapshot in place.
-- Keep `FastTalkApp` focused on scene wiring, model-container setup, commands, and updater integration.
+- Keep `FastTalkApp` focused on scene wiring, model-container setup, diagnostics commands, and shell-level command registration.
 - Keep `ContentView` as the shell coordinator for startup scanning, file watching, split-view composition, and sheet routing.
 - Prefer native macOS SwiftUI patterns and local AppKit bridges over custom cross-platform abstractions.
 

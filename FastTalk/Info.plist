@@ -23,10 +23,6 @@
 	<key>CFBundleIconName</key>
 	<string>FastTalkAppIcon</string>
 	<key>NSHumanReadableCopyright</key>
-	<string>Copyright © 2026 Josh Pigford. All rights reserved.</string>
-	<key>SUFeedURL</key>
-	<string>https://fasttalk.md/appcast.xml</string>
-	<key>SUPublicEDKey</key>
-	<string>I1gi82QlV84mZZXMzxJyVMFKpDCmcatBYVSGcq1nJgE=</string>
+	<string>Copyright © 2026 Fast Talk. All rights reserved.</string>
 </dict>
 </plist>

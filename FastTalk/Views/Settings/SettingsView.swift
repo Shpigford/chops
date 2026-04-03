@@ -1,5 +1,4 @@
 import SwiftUI
-import Sparkle
 
 extension Notification.Name {
     static let customScanPathsChanged = Notification.Name("customScanPathsChanged")
@@ -40,7 +39,6 @@ enum SettingsTab: String, CaseIterable, Identifiable {
 struct SettingsView: View {
     private static let logger = AppLogger.settings
 
-    let updater: SPUUpdater
     @State private var selectedTab: SettingsTab = .general
     @State private var customPaths: [String] = []
     @AppStorage("defaultTool") private var defaultTool: ToolSource = .claude
@@ -190,25 +188,13 @@ struct SettingsView: View {
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
 
-            HStack(spacing: 16) {
-                Button("Check for Updates") {
-                    updater.checkForUpdates()
-                }
-
+            HStack {
                 Button("Website") {
-                    if let url = URL(string: "https://fasttalk.md") { NSWorkspace.shared.open(url) }
-                }
-
-                Button("@Shpigford") {
-                    if let url = URL(string: "https://x.com/Shpigford") { NSWorkspace.shared.open(url) }
-                }
-
-                Button("GitHub") {
-                    if let url = URL(string: "https://github.com/Shpigford/fasttalk") { NSWorkspace.shared.open(url) }
+                    if let url = URL(string: "https://fast.talk") { NSWorkspace.shared.open(url) }
                 }
             }
 
-            Text("Free and open source under the MIT License.")
+            Text("Private macOS app for organizing AI skills and agents.")
                 .font(.caption)
                 .foregroundStyle(.tertiary)
         }

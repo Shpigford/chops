@@ -5,7 +5,7 @@
 - Keep this folder responsible for application entry, scene wiring, startup coordination, and shell-level UI state only.
 
 ## Ownership
-- Keep `FastTalkApp` responsible for `ModelContainer` creation, settings-scene injection, Sparkle updater wiring, and command registration.
+- Keep `FastTalkApp` responsible for `ModelContainer` creation, settings-scene injection, diagnostics command wiring, and command registration.
 - Keep `ContentView` responsible for split-view composition, startup scan orchestration, file-watcher lifecycle, and top-level sheets.
 - Keep `AppState` limited to transient shell state such as selection, filters, search text, and presentation toggles.
 - Keep `AppState.selectedSkillPaths` as the source of truth for middle-list selection and treat `selectedSkill` as the derived single-detail selection only.
