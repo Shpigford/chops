@@ -22,12 +22,14 @@ Usage:
   ./scripts/local-release.sh bundle
   ./scripts/local-release.sh copy <host> [remote_subdir]
   ./scripts/local-release.sh open <host> [remote_subdir]
+  ./scripts/local-release.sh restart <host> [remote_subdir]
   ./scripts/local-release.sh copy-and-open <host> [remote_subdir]
 
 Examples:
   ./scripts/local-release.sh bundle
   ./scripts/local-release.sh copy macbook Desktop
   ./scripts/local-release.sh open macbook Desktop
+  ./scripts/local-release.sh restart macbook Desktop
   ./scripts/local-release.sh copy-and-open macbook Desktop
 EOF
 }
@@ -200,7 +202,7 @@ main() {
       shift || true
       copy_to_remote "${1:-}" "${2:-Desktop}"
       ;;
-    open)
+    open|restart)
       shift || true
       open_remote_app "${1:-}" "${2:-Desktop}"
       ;;
