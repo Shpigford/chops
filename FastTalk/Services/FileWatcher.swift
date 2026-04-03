@@ -5,7 +5,7 @@ final class FileWatcher {
     private var sources: [DispatchSourceFileSystemObject] = []
     private var fileDescriptors: [Int32] = []
     private let callback: (String) -> Void
-    private let queue = DispatchQueue(label: "com.shpigford.Chops.filewatcher", qos: .utility)
+    private let queue = DispatchQueue(label: "com.fasttalk.filewatcher", qos: .utility)
     private var debounceWorkItem: DispatchWorkItem?
 
     init(callback: @escaping (String) -> Void) {

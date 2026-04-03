@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleName</key>
-	<string>Chops</string>
+	<string>FastTalk</string>
 	<key>CFBundleDisplayName</key>
-	<string>Chops</string>
+	<string>FastTalk</string>
 	<key>CFBundleIdentifier</key>
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>CFBundleVersion</key>
@@ -19,13 +19,13 @@
 	<key>LSMinimumSystemVersion</key>
 	<string>$(MACOSX_DEPLOYMENT_TARGET)</string>
 	<key>CFBundleIconFile</key>
-	<string>ChopsAppIcon</string>
+	<string>FastTalkAppIcon</string>
 	<key>CFBundleIconName</key>
-	<string>ChopsAppIcon</string>
+	<string>FastTalkAppIcon</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright © 2026 Josh Pigford. All rights reserved.</string>
 	<key>SUFeedURL</key>
-	<string>https://chops.md/appcast.xml</string>
+	<string>https://fasttalk.md/appcast.xml</string>
 	<key>SUPublicEDKey</key>
 	<string>I1gi82QlV84mZZXMzxJyVMFKpDCmcatBYVSGcq1nJgE=</string>
 </dict>

@@ -5,9 +5,9 @@ import os.log
 final class ACPLogger: @unchecked Sendable {
     static let shared = ACPLogger()
 
-    private let osLog = Logger(subsystem: "md.chops", category: "ACP")
+    private let osLog = Logger(subsystem: "md.fasttalk", category: "ACP")
     private let logFileURL: URL
-    private let queue = DispatchQueue(label: "md.chops.acplogger", qos: .utility)
+    private let queue = DispatchQueue(label: "md.fasttalk.acplogger", qos: .utility)
     private static let isoFormatter = ISO8601DateFormatter()
     private var fileHandle: FileHandle?
 
@@ -25,7 +25,7 @@ final class ACPLogger: @unchecked Sendable {
     private init() {
         let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
             ?? FileManager.default.temporaryDirectory
-        let logsDir = appSupport.appendingPathComponent("Chops/Logs", isDirectory: true)
+        let logsDir = appSupport.appendingPathComponent("FastTalk/Logs", isDirectory: true)
         try? FileManager.default.createDirectory(at: logsDir, withIntermediateDirectories: true)
 
         let dateFormatter = DateFormatter()

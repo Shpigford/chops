@@ -2,7 +2,7 @@ import Foundation
 import os
 
 enum AppLogger {
-    private static let subsystem = Bundle.main.bundleIdentifier ?? "com.shpigford.Chops"
+    private static let subsystem = Bundle.main.bundleIdentifier ?? "com.fasttalk"
 
     static let lifecycle = Logger(subsystem: subsystem, category: "lifecycle")
     static let scanning = Logger(subsystem: subsystem, category: "scanning")

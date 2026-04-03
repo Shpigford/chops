@@ -12,7 +12,7 @@ enum DiagnosticExporter {
         let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "?"
         let osVersion = ProcessInfo.processInfo.operatingSystemVersionString
 
-        lines.append("# Chops Diagnostic Report")
+        lines.append("# FastTalk Diagnostic Report")
         lines.append("Generated: \(ISO8601DateFormatter().string(from: .now))")
         lines.append("")
         lines.append("## System")
@@ -62,7 +62,7 @@ enum DiagnosticExporter {
 
         // Save panel
         let panel = NSSavePanel()
-        panel.nameFieldStringValue = "chops-diagnostic-\(dateStamp()).txt"
+        panel.nameFieldStringValue = "fasttalk-diagnostic-\(dateStamp()).txt"
         panel.allowedContentTypes = [.plainText]
 
         if panel.runModal() == .OK, let url = panel.url {
@@ -83,7 +83,7 @@ enum DiagnosticExporter {
         }
 
         let since = Date.now.addingTimeInterval(-3600) // last hour
-        let subsystem = Bundle.main.bundleIdentifier ?? "com.shpigford.Chops"
+        let subsystem = Bundle.main.bundleIdentifier ?? "com.fasttalk"
 
         guard let entries = try? store.getEntries(
             at: store.position(date: since),

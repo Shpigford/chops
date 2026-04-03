@@ -10,7 +10,7 @@ enum StoreBootstrap {
     private static func prepareStoreURL(schema: Schema) throws -> URL {
         let fm = FileManager.default
         let appSupportURL = try appSupportDirectory(using: fm)
-        let storeURL = appSupportURL.appendingPathComponent("Chops.store")
+        let storeURL = appSupportURL.appendingPathComponent("FastTalk.store")
 
         if !fm.fileExists(atPath: storeURL.path) {
             try? removeStoreFiles(at: storeURL)
@@ -28,7 +28,7 @@ enum StoreBootstrap {
             throw CocoaError(.fileNoSuchFile)
         }
 
-        let appSupportURL = baseURL.appendingPathComponent("Chops", isDirectory: true)
+        let appSupportURL = baseURL.appendingPathComponent("FastTalk", isDirectory: true)
         try fm.createDirectory(at: appSupportURL, withIntermediateDirectories: true)
         return appSupportURL
     }
@@ -48,14 +48,14 @@ enum StoreBootstrap {
         do {
             let legacyContainer = try ModelContainer(
                 for: schema,
-                migrationPlan: ChopsMigrationPlan.self,
+                migrationPlan: FastTalkMigrationPlan.self,
                 configurations: [legacyConfig]
             )
             let legacyContext = ModelContext(legacyContainer)
 
             let storeContainer = try ModelContainer(
                 for: schema,
-                migrationPlan: ChopsMigrationPlan.self,
+                migrationPlan: FastTalkMigrationPlan.self,
                 configurations: [storeConfig]
             )
             let storeContext = ModelContext(storeContainer)

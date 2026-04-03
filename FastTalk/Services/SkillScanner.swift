@@ -218,7 +218,7 @@ final class SkillScanner {
         scanGeneration += 1
         let generation = scanGeneration
         let customPaths = UserDefaults.standard.stringArray(forKey: "customScanPaths") ?? []
-        let includePlugins = ChopsSettings.includePluginSkills
+        let includePlugins = FastTalkSettings.includePluginSkills
         scanTask = Task.detached { [weak self] in
             let results = Self.collectAllSkills(customPaths: customPaths, includePlugins: includePlugins)
             guard !Task.isCancelled else { return }

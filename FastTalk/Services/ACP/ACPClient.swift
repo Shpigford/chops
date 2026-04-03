@@ -122,7 +122,7 @@ open class BaseACPAgent: ClientDelegate {
                 fs: FileSystemCapabilities(readTextFile: true, writeTextFile: true),
                 terminal: false
             ),
-            clientInfo: ClientInfo(name: "Chops", version: "1.0")
+            clientInfo: ClientInfo(name: "FastTalk", version: "1.0")
         )
         guard !Task.isCancelled else { await client.terminate(); return }
         acpLog.debug("Connected: \(initResp.agentInfo?.name ?? "?") (protocol v\(initResp.protocolVersion))")
@@ -435,7 +435,7 @@ open class BaseACPAgent: ClientDelegate {
 
 // MARK: - Errors
 
-/// Chops-specific errors not covered by the SDK's errors.
+/// FastTalk-specific errors not covered by the SDK's errors.
 enum ACPClientError: Error, LocalizedError {
     case agentNotConfigured(String)
     case noSession

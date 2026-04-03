@@ -122,7 +122,7 @@ typealias Skill = SchemaV1.Skill
 typealias SkillCollection = SchemaV1.SkillCollection
 typealias RemoteServer = SchemaV1.RemoteServer
 
-enum ChopsMigrationPlan: SchemaMigrationPlan {
+enum FastTalkMigrationPlan: SchemaMigrationPlan {
     static var schemas: [any VersionedSchema.Type] {
         [SchemaV1.self]
     }

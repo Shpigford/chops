@@ -13,7 +13,7 @@
 		1BBEBC85C24BBC4E08AA1821 /* ACPLogViewer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F236C158C893B626A51E385 /* ACPLogViewer.swift */; };
 		2263A0A3B358FBA099D0086D /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A924245DDDA4C6A59BE15567 /* SettingsView.swift */; };
 		25A4FB387DB5BD96DB630C14 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 231C267216AF1BCA8628B667 /* AppState.swift */; };
-		309B12E0B72A22C9772BBC99 /* ChopsApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2787064DC7DF112E70C4E4D0 /* ChopsApp.swift */; };
+		309B12E0B72A22C9772BBC99 /* FastTalkApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2787064DC7DF112E70C4E4D0 /* FastTalkApp.swift */; };
 		322C22C23073C29FC0C6098D /* MarkdownMessageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 947EAED7376B7762A373EF08 /* MarkdownMessageView.swift */; };
 		331F55021A7E6C9F0B666514 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 4338FC540625A275BBC9AAC9 /* Sparkle */; };
 		3BF88469DCE0B56DD15DDB09 /* ACPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DAD83C176F3A71A5B360BFD /* ACPClient.swift */; };
@@ -37,12 +37,12 @@
 		846B58F3B105D1734DC6FA75 /* SkillRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FC9D3E83D8640CC258CF361 /* SkillRegistry.swift */; };
 		87A469B631CC80C89B14B1C7 /* SkillMetadataBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C812515FD8DC222B89745F2 /* SkillMetadataBar.swift */; };
 		87AEE95EAD9793D3241D4387 /* ACP in Frameworks */ = {isa = PBXBuildFile; productRef = F642568B19B420E64E62307D /* ACP */; };
-		91EA572FCA75A2EA848C3429 /* ChopsTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A58EBE34E8A678FC897DFCB /* ChopsTextView.swift */; };
+		91EA572FCA75A2EA848C3429 /* FastTalkTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A58EBE34E8A678FC897DFCB /* FastTalkTextView.swift */; };
 		95163AEB7980654C901EC693 /* Skill.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27D6ED655F951177D2152351 /* Skill.swift */; };
 		98434D3DDFEEC7239F6F7B79 /* RegistrySheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FCD6C2A8BE68F553A9CA392 /* RegistrySheet.swift */; };
 		99EE8F6124FE91AC9576D6FD /* FileWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD26AA4787A2E0CDC86AADC /* FileWatcher.swift */; };
 		A0862ECC573FDC0AA7CB9950 /* LibrarySettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03AA4FA049E1DADB40552060 /* LibrarySettingsView.swift */; };
-		A500A6E37C3F2BF5B4428959 /* ChopsSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D9B5801101BA69BB84EE28D /* ChopsSettings.swift */; };
+		A500A6E37C3F2BF5B4428959 /* FastTalkSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D9B5801101BA69BB84EE28D /* FastTalkSettings.swift */; };
 		A99BA179E0520DCDC98E1382 /* AppLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = F45D5C8E8C732B2F4A867E43 /* AppLogger.swift */; };
 		AAC4A3CBF2A9B4DF50608948 /* SSHService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6797D4AC1970DB9ACB5ACA73 /* SSHService.swift */; };
 		AFDC3DAB708B352A7606F119 /* DiagnosticExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5D3C2567FBF8DBA4DE957B3 /* DiagnosticExporter.swift */; };
@@ -79,11 +79,11 @@
 		17F7FE50C96124BA4EE43A6F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		181FD0056E54DEB3957FB4DC /* WizardTemplate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WizardTemplate.swift; sourceTree = "<group>"; };
 		231C267216AF1BCA8628B667 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
-		2787064DC7DF112E70C4E4D0 /* ChopsApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChopsApp.swift; sourceTree = "<group>"; };
+		2787064DC7DF112E70C4E4D0 /* FastTalkApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FastTalkApp.swift; sourceTree = "<group>"; };
 		27D6ED655F951177D2152351 /* Skill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Skill.swift; sourceTree = "<group>"; };
 		2CF7822031FD82A28978D9C5 /* SidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarView.swift; sourceTree = "<group>"; };
 		2D07C2CD05E172DB71F63033 /* ThinkingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThinkingView.swift; sourceTree = "<group>"; };
-		2D9B5801101BA69BB84EE28D /* ChopsSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChopsSettings.swift; sourceTree = "<group>"; };
+		2D9B5801101BA69BB84EE28D /* FastTalkSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FastTalkSettings.swift; sourceTree = "<group>"; };
 		31B4DB87833D5160A11E39C9 /* SkillEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillEditorView.swift; sourceTree = "<group>"; };
 		3314080A44DEB895223E36D5 /* RemoteServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteServer.swift; sourceTree = "<group>"; };
 		372FA72F2C179B79470DF86A /* MarkdownRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownRenderer.swift; sourceTree = "<group>"; };
@@ -102,7 +102,7 @@
 		7C77C5B30E6C885B39444E5B /* FrontmatterParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrontmatterParser.swift; sourceTree = "<group>"; };
 		7FCD6C2A8BE68F553A9CA392 /* RegistrySheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrySheet.swift; sourceTree = "<group>"; };
 		7FFC47BDE92105F4736B379F /* SearchService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchService.swift; sourceTree = "<group>"; };
-		8A58EBE34E8A678FC897DFCB /* ChopsTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChopsTextView.swift; sourceTree = "<group>"; };
+		8A58EBE34E8A678FC897DFCB /* FastTalkTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FastTalkTextView.swift; sourceTree = "<group>"; };
 		8C812515FD8DC222B89745F2 /* SkillMetadataBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillMetadataBar.swift; sourceTree = "<group>"; };
 		8DAD83C176F3A71A5B360BFD /* ACPClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ACPClient.swift; sourceTree = "<group>"; };
 		907E59B064AB8366B60BF611 /* AgentTarget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentTarget.swift; sourceTree = "<group>"; };
@@ -116,7 +116,7 @@
 		A924245DDDA4C6A59BE15567 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		AA64A368BBF950CD36C4F495 /* SkillListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillListView.swift; sourceTree = "<group>"; };
 		B1F8AA042D5D8A9F92F35CA3 /* SchemaVersions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SchemaVersions.swift; sourceTree = "<group>"; };
-		B3F5CF5BB1FC8455FDDB004A /* Chops.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Chops.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B3F5CF5BB1FC8455FDDB004A /* FastTalk.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FastTalk.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B955C8B935BD62ED4811FCA2 /* DiffReviewPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiffReviewPanel.swift; sourceTree = "<group>"; };
 		C9AFE1AF02B0F8057791C2A9 /* Collection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Collection.swift; sourceTree = "<group>"; };
 		CAD26AA4787A2E0CDC86AADC /* FileWatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileWatcher.swift; sourceTree = "<group>"; };
@@ -159,12 +159,12 @@
 		08ECEAD013847D8F110E61B4 = {
 			isa = PBXGroup;
 			children = (
-				198DFCB0614727F57F6D073D /* Chops */,
+				198DFCB0614727F57F6D073D /* FastTalk */,
 				D3558033A0A7B4EE7E7234CE /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		198DFCB0614727F57F6D073D /* Chops */ = {
+		198DFCB0614727F57F6D073D /* FastTalk */ = {
 			isa = PBXGroup;
 			children = (
 				55B50A6F7E2143E2A7160C6D /* App */,
@@ -174,7 +174,7 @@
 				05CBDCA0595CF021CC38C7E4 /* Utilities */,
 				414F6727A94989246C3B7B36 /* Views */,
 			);
-			path = Chops;
+			path = FastTalk;
 			sourceTree = "<group>";
 		};
 		1B016A7C37052B1801FCFD6A /* Shared */ = {
@@ -231,7 +231,7 @@
 			isa = PBXGroup;
 			children = (
 				231C267216AF1BCA8628B667 /* AppState.swift */,
-				2787064DC7DF112E70C4E4D0 /* ChopsApp.swift */,
+				2787064DC7DF112E70C4E4D0 /* FastTalkApp.swift */,
 				60E0F71982C4AF0045962380 /* ContentView.swift */,
 			);
 			path = App;
@@ -259,7 +259,7 @@
 			children = (
 				D946A13468984E6DEBC20B9A /* ACPConfiguration.swift */,
 				907E59B064AB8366B60BF611 /* AgentTarget.swift */,
-				2D9B5801101BA69BB84EE28D /* ChopsSettings.swift */,
+				2D9B5801101BA69BB84EE28D /* FastTalkSettings.swift */,
 				C9AFE1AF02B0F8057791C2A9 /* Collection.swift */,
 				3314080A44DEB895223E36D5 /* RemoteServer.swift */,
 				B1F8AA042D5D8A9F92F35CA3 /* SchemaVersions.swift */,
@@ -293,7 +293,7 @@
 		96A2A820C082754BBFB0237D /* Detail */ = {
 			isa = PBXGroup;
 			children = (
-				8A58EBE34E8A678FC897DFCB /* ChopsTextView.swift */,
+				8A58EBE34E8A678FC897DFCB /* FastTalkTextView.swift */,
 				D24B049638C76AC6248FD5D2 /* EditorTheme.swift */,
 				135976FA0E8358E099157DE1 /* MarkdownSyntaxHighlighter.swift */,
 				168E103488DEA623E712852B /* SkillDetailView.swift */,
@@ -315,7 +315,7 @@
 		D3558033A0A7B4EE7E7234CE /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				B3F5CF5BB1FC8455FDDB004A /* Chops.app */,
+				B3F5CF5BB1FC8455FDDB004A /* FastTalk.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -323,9 +323,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		9188DE9415462C6D3B3FA067 /* Chops */ = {
+		9188DE9415462C6D3B3FA067 /* FastTalk */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 19BD727EBF8BFE5016E97A7A /* Build configuration list for PBXNativeTarget "Chops" */;
+			buildConfigurationList = 19BD727EBF8BFE5016E97A7A /* Build configuration list for PBXNativeTarget "FastTalk" */;
 			buildPhases = (
 				1D538A007981736680A1AD9B /* Sources */,
 				C796CFFF04920C825B5A52FA /* Resources */,
@@ -335,7 +335,7 @@
 			);
 			dependencies = (
 			);
-			name = Chops;
+			name = FastTalk;
 			packageProductDependencies = (
 				4338FC540625A275BBC9AAC9 /* Sparkle */,
 				704A14702546BFBD29BE27A8 /* Highlightr */,
@@ -344,8 +344,8 @@
 				86292938A0949F325E358FA5 /* ACPModel */,
 				642A52CB994BF3466A09E6A6 /* ACPRegistry */,
 			);
-			productName = Chops;
-			productReference = B3F5CF5BB1FC8455FDDB004A /* Chops.app */;
+			productName = FastTalk;
+			productReference = B3F5CF5BB1FC8455FDDB004A /* FastTalk.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -359,7 +359,7 @@
 				TargetAttributes = {
 				};
 			};
-			buildConfigurationList = 719777DE0F769FDB488A0FDB /* Build configuration list for PBXProject "Chops" */;
+			buildConfigurationList = 719777DE0F769FDB488A0FDB /* Build configuration list for PBXProject "FastTalk" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -379,7 +379,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				9188DE9415462C6D3B3FA067 /* Chops */,
+				9188DE9415462C6D3B3FA067 /* FastTalk */,
 			);
 		};
 /* End PBXProject section */
@@ -409,9 +409,9 @@
 				FD8D2544AE423F4AB2843C0F /* AgentTarget.swift in Sources */,
 				A99BA179E0520DCDC98E1382 /* AppLogger.swift in Sources */,
 				25A4FB387DB5BD96DB630C14 /* AppState.swift in Sources */,
-				309B12E0B72A22C9772BBC99 /* ChopsApp.swift in Sources */,
-				A500A6E37C3F2BF5B4428959 /* ChopsSettings.swift in Sources */,
-				91EA572FCA75A2EA848C3429 /* ChopsTextView.swift in Sources */,
+				309B12E0B72A22C9772BBC99 /* FastTalkApp.swift in Sources */,
+				A500A6E37C3F2BF5B4428959 /* FastTalkSettings.swift in Sources */,
+				91EA572FCA75A2EA848C3429 /* FastTalkTextView.swift in Sources */,
 				62C6C8687D8A1E3C1EBBBC8C /* ClaudeACPAgent.swift in Sources */,
 				7A17C99C5EFAE3AA9E788D50 /* Collection.swift in Sources */,
 				7EC6156934D559226BC78859 /* CollectionListView.swift in Sources */,
@@ -519,20 +519,20 @@
 		48F3C139C64DA85863FE9C21 /* LocalRelease */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = ChopsAppIcon;
-				CODE_SIGN_ENTITLEMENTS = Chops/ChopsLocalRelease.entitlements;
+				ASSETCATALOG_COMPILER_APPICON_NAME = FastTalkAppIcon;
+				CODE_SIGN_ENTITLEMENTS = FastTalk/FastTalkLocalRelease.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = Chops/Info.plist;
+				INFOPLIST_FILE = FastTalk/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.joshpigford.Chops;
+				PRODUCT_BUNDLE_IDENTIFIER = com.fasttalk;
 				SDKROOT = macosx;
 				SWIFT_STRICT_CONCURRENCY = minimal;
 			};
@@ -541,20 +541,20 @@
 		52738EE717474F8671BFB266 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = ChopsAppIcon;
-				CODE_SIGN_ENTITLEMENTS = Chops/Chops.entitlements;
+				ASSETCATALOG_COMPILER_APPICON_NAME = FastTalkAppIcon;
+				CODE_SIGN_ENTITLEMENTS = FastTalk/FastTalk.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = Chops/Info.plist;
+				INFOPLIST_FILE = FastTalk/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.joshpigford.Chops;
+				PRODUCT_BUNDLE_IDENTIFIER = com.fasttalk;
 				SDKROOT = macosx;
 				SWIFT_STRICT_CONCURRENCY = minimal;
 			};
@@ -563,21 +563,21 @@
 		58C6E63A67ADDC4C7CB7ED9D /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = ChopsAppIcon;
-				CODE_SIGN_ENTITLEMENTS = Chops/Chops.entitlements;
+				ASSETCATALOG_COMPILER_APPICON_NAME = FastTalkAppIcon;
+				CODE_SIGN_ENTITLEMENTS = FastTalk/FastTalk.entitlements;
 				CODE_SIGN_IDENTITY = "Developer ID Application";
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = Chops/Info.plist;
+				INFOPLIST_FILE = FastTalk/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.joshpigford.Chops;
+				PRODUCT_BUNDLE_IDENTIFIER = com.fasttalk;
 				SDKROOT = macosx;
 				SWIFT_STRICT_CONCURRENCY = minimal;
 			};
@@ -705,7 +705,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		19BD727EBF8BFE5016E97A7A /* Build configuration list for PBXNativeTarget "Chops" */ = {
+		19BD727EBF8BFE5016E97A7A /* Build configuration list for PBXNativeTarget "FastTalk" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				52738EE717474F8671BFB266 /* Debug */,
@@ -715,7 +715,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
-		719777DE0F769FDB488A0FDB /* Build configuration list for PBXProject "Chops" */ = {
+		719777DE0F769FDB488A0FDB /* Build configuration list for PBXProject "FastTalk" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				67CFFB04E52F4383BF75357C /* Debug */,

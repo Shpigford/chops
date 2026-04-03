@@ -117,7 +117,7 @@ struct SidebarView: View {
             }
         }
         .listStyle(.sidebar)
-        .navigationTitle("Chops")
+        .navigationTitle("FastTalk")
     }
 
     private func syncServer(_ server: RemoteServer) {

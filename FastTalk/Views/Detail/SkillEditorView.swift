@@ -269,7 +269,7 @@ struct HighlightedTextEditor: NSViewRepresentable {
         scrollView.drawsBackground = false
         scrollView.autohidesScrollers = true
 
-        let textView = ChopsTextView()
+        let textView = FastTalkTextView()
         textView.isEditable = isEditable
         textView.isRichText = false
         textView.allowsUndo = true
@@ -327,7 +327,7 @@ struct HighlightedTextEditor: NSViewRepresentable {
     }
 
     func updateNSView(_ scrollView: NSScrollView, context: Context) {
-        guard let textView = scrollView.documentView as? ChopsTextView else { return }
+        guard let textView = scrollView.documentView as? FastTalkTextView else { return }
 
         context.coordinator.parent = self
         textView.isEditable = isEditable
@@ -384,7 +384,7 @@ struct HighlightedTextEditor: NSViewRepresentable {
         var isUpdating = false
         var isHighlightingInProgress = false
         var highlighter: MarkdownSyntaxHighlighter?
-        weak var textView: ChopsTextView?
+        weak var textView: FastTalkTextView?
         var lastColorScheme: ColorScheme?
 
         init(_ parent: HighlightedTextEditor) {

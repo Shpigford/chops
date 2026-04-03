@@ -1,6 +1,6 @@
 import AppKit
 
-final class ChopsTextView: NSTextView {
+final class FastTalkTextView: NSTextView {
 
     // MARK: - Cursor
 

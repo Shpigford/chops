@@ -2,7 +2,7 @@ import SwiftUI
 
 /// Settings for the source-of-truth directory used when symlinking library items.
 struct LibrarySettingsView: View {
-    @AppStorage("sotDir") private var sotDir = FileManager.default.homeDirectoryForCurrentUser.path + "/.chops"
+    @AppStorage("sotDir") private var sotDir = FileManager.default.homeDirectoryForCurrentUser.path + "/.fasttalk"
     @AppStorage("includePluginSkills") private var includePluginSkills = false
 
     var body: some View {

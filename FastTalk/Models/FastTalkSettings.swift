@@ -2,13 +2,13 @@ import Foundation
 
 /// User-configurable source-of-truth root directory.
 /// Sub-directories for skills, agents, and rules are derived from the root.
-struct ChopsSettings {
+struct FastTalkSettings {
     private init() {}
 
     private static let home = FileManager.default.homeDirectoryForCurrentUser.path
 
     static var sotDir: String {
-        get { UserDefaults.standard.string(forKey: "sotDir") ?? "\(home)/.chops" }
+        get { UserDefaults.standard.string(forKey: "sotDir") ?? "\(home)/.fasttalk" }
         set { UserDefaults.standard.set(newValue, forKey: "sotDir") }
     }
 

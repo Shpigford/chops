@@ -1,6 +1,6 @@
-name: Chops
+name: FastTalk
 options:
-  bundleIdPrefix: com.joshpigford
+  bundleIdPrefix: com.fasttalk
   deploymentTarget:
     macOS: "15.0"
   createIntermediateGroups: true
@@ -26,11 +26,11 @@ packages:
     from: "2.1.0"
 
 targets:
-  Chops:
+  FastTalk:
     type: application
     platform: macOS
     sources:
-      - path: Chops
+      - path: FastTalk
         excludes:
           - "*.entitlements"
           - "**/AGENTS.md"
@@ -48,18 +48,18 @@ targets:
         product: ACPRegistry
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.joshpigford.Chops
+        PRODUCT_BUNDLE_IDENTIFIER: com.fasttalk
         MARKETING_VERSION: "1.0.0"
         CURRENT_PROJECT_VERSION: 1
-        INFOPLIST_FILE: Chops/Info.plist
-        CODE_SIGN_ENTITLEMENTS: Chops/Chops.entitlements
+        INFOPLIST_FILE: FastTalk/Info.plist
+        CODE_SIGN_ENTITLEMENTS: FastTalk/FastTalk.entitlements
         MACOSX_DEPLOYMENT_TARGET: "15.0"
         GENERATE_INFOPLIST_FILE: NO
         SWIFT_STRICT_CONCURRENCY: minimal
-        ASSETCATALOG_COMPILER_APPICON_NAME: ChopsAppIcon
+        ASSETCATALOG_COMPILER_APPICON_NAME: FastTalkAppIcon
         ENABLE_HARDENED_RUNTIME: YES
       configs:
         Release:
           CODE_SIGN_IDENTITY: "Developer ID Application"
         LocalRelease:
-          CODE_SIGN_ENTITLEMENTS: Chops/ChopsLocalRelease.entitlements
+          CODE_SIGN_ENTITLEMENTS: FastTalk/FastTalkLocalRelease.entitlements

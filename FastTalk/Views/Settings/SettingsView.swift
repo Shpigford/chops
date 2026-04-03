@@ -110,7 +110,7 @@ struct SettingsView: View {
             Text("Custom Scan Directories")
                 .font(.headline)
 
-            Text("Add a parent directory (e.g. ~/Development) and Chops will scan each project inside it for tool-specific skills and agents.")
+            Text("Add a parent directory (e.g. ~/Development) and FastTalk will scan each project inside it for tool-specific skills and agents.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
@@ -178,7 +178,7 @@ struct SettingsView: View {
                     .frame(width: 80, height: 80)
             }
 
-            Text("Chops")
+            Text("FastTalk")
                 .font(.title)
                 .fontWeight(.bold)
 
@@ -196,7 +196,7 @@ struct SettingsView: View {
                 }
 
                 Button("Website") {
-                    if let url = URL(string: "https://chops.md") { NSWorkspace.shared.open(url) }
+                    if let url = URL(string: "https://fasttalk.md") { NSWorkspace.shared.open(url) }
                 }
 
                 Button("@Shpigford") {
@@ -204,7 +204,7 @@ struct SettingsView: View {
                 }
 
                 Button("GitHub") {
-                    if let url = URL(string: "https://github.com/Shpigford/chops") { NSWorkspace.shared.open(url) }
+                    if let url = URL(string: "https://github.com/Shpigford/fasttalk") { NSWorkspace.shared.open(url) }
                 }
             }
 

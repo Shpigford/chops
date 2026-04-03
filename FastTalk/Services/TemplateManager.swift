@@ -15,7 +15,7 @@ final class TemplateManager {
     private var templatesDirectory: URL {
         let appSupport = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
             ?? fileManager.temporaryDirectory
-        return appSupport.appendingPathComponent("Chops/templates", isDirectory: true)
+        return appSupport.appendingPathComponent("FastTalk/templates", isDirectory: true)
     }
 
     private init() {
@@ -139,7 +139,7 @@ final class TemplateManager {
     }
 
     private func extractVersion(from content: String) -> Int? {
-        let prefix = "<!-- chops-template-version: "
+        let prefix = "<!-- fasttalk-template-version: "
         guard let start = content.range(of: prefix),
               let end = content.range(of: " -->", range: start.upperBound ..< content.endIndex) else {
             return nil
@@ -149,7 +149,7 @@ final class TemplateManager {
 
     private func stripVersionMarker(from content: String) -> String {
         content.replacingOccurrences(
-            of: #"^<!-- chops-template-version: \d+ -->\n?"#,
+            of: #"^<!-- fasttalk-template-version: \d+ -->\n?"#,
             with: "",
             options: .regularExpression
         )
@@ -190,7 +190,7 @@ final class TemplateManager {
     // MARK: - Default Templates
 
     private static let defaultSkillTemplate = """
-    <!-- chops-template-version: 2 -->
+    <!-- fasttalk-template-version: 2 -->
     # Skill Composer
 
     You are helping create or improve a skill definition.
@@ -213,7 +213,7 @@ final class TemplateManager {
     """
 
     private static let defaultNoteTemplate = """
-    <!-- chops-template-version: 1 -->
+    <!-- fasttalk-template-version: 1 -->
     # Note Composer
 
     You are helping create or improve a markdown note.
@@ -239,7 +239,7 @@ final class TemplateManager {
     // MARK: - Default Agent / Rule Templates
 
     private static let defaultAgentTemplate = """
-    <!-- chops-template-version: 1 -->
+    <!-- fasttalk-template-version: 1 -->
     # Agent Composer
 
     You are helping create or improve an agent definition.
@@ -262,7 +262,7 @@ final class TemplateManager {
     """
 
     private static let defaultRuleTemplate = """
-    <!-- chops-template-version: 1 -->
+    <!-- fasttalk-template-version: 1 -->
     # Rule Composer
 
     You are helping create or improve a rule definition.

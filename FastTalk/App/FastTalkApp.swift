@@ -4,14 +4,14 @@ import Sparkle
 import AppKit
 
 @main
-struct ChopsApp: App {
+struct FastTalkApp: App {
     @NSApplicationDelegateAdaptor(AppLifecycleLogger.self) private var lifecycleLogger
     @State private var appState = AppState()
     @AppStorage("ACPDebugLogging") private var debugLoggingEnabled = false
     private let updaterController: SPUStandardUpdaterController
 
     init() {
-        AppLogger.lifecycle.notice("ChopsApp init bundleID=\(Bundle.main.bundleIdentifier ?? "unknown", privacy: .public)")
+        AppLogger.lifecycle.notice("FastTalkApp init bundleID=\(Bundle.main.bundleIdentifier ?? "unknown", privacy: .public)")
         updaterController = SPUStandardUpdaterController(
             startingUpdater: true,
             updaterDelegate: nil,
@@ -26,7 +26,7 @@ struct ChopsApp: App {
             let config = try StoreBootstrap.makeConfiguration(schema: schema)
             return try ModelContainer(
                 for: schema,
-                migrationPlan: ChopsMigrationPlan.self,
+                migrationPlan: FastTalkMigrationPlan.self,
                 configurations: [config]
             )
         } catch {
