@@ -2,6 +2,109 @@ import Foundation
 import SwiftData
 import os
 
+struct NoteMetadata: Sendable {
+    let title: String
+    let excerpt: String
+}
+
+enum NotesService {
+    static let untitledTitle = "Untitled Note"
+
+    private static let fileNameDateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "yyyyMMdd-HHmmss"
+        return formatter
+    }()
+
+    static var notesDirectoryURL: URL {
+        let fm = FileManager.default
+        let documentsURL = fm.urls(for: .documentDirectory, in: .userDomainMask).first
+            ?? fm.homeDirectoryForCurrentUser.appendingPathComponent("Documents", isDirectory: true)
+        return documentsURL
+            .appendingPathComponent("fntalk", isDirectory: true)
+            .appendingPathComponent("notes", isDirectory: true)
+    }
+
+    static var notesDirectoryPath: String { notesDirectoryURL.path }
+
+    static func notesDirectoryExists() -> Bool {
+        FileManager.default.fileExists(atPath: notesDirectoryPath)
+    }
+
+    static func ensureNotesDirectoryExists() throws {
+        try FileManager.default.createDirectory(at: notesDirectoryURL, withIntermediateDirectories: true)
+    }
+
+    static func createBlankNote() throws -> URL {
+        try ensureNotesDirectoryExists()
+
+        let fm = FileManager.default
+        while true {
+            let suffix = UUID().uuidString.prefix(4).lowercased()
+            let name = "note-\(fileNameDateFormatter.string(from: Date()))-\(suffix).md"
+            let fileURL = notesDirectoryURL.appendingPathComponent(name)
+            guard !fm.fileExists(atPath: fileURL.path) else { continue }
+            try "".write(to: fileURL, atomically: true, encoding: .utf8)
+            return fileURL
+        }
+    }
+
+    static func metadata(for content: String) -> NoteMetadata {
+        let lines = content.components(separatedBy: .newlines)
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+
+        guard let firstLine = lines.first else {
+            return NoteMetadata(title: untitledTitle, excerpt: "")
+        }
+
+        let title = normalizedDisplayLine(from: firstLine)
+        let excerpt = lines.dropFirst().first.map(normalizedDisplayLine) ?? ""
+
+        return NoteMetadata(
+            title: title.isEmpty ? untitledTitle : title,
+            excerpt: excerpt
+        )
+    }
+
+    static func makeIndexedNote(
+        fileURL: URL,
+        content: String,
+        fileModifiedDate: Date,
+        fileSize: Int
+    ) -> Skill {
+        let metadata = self.metadata(for: content)
+        let note = Skill(
+            filePath: fileURL.path,
+            toolSource: .custom,
+            isDirectory: false,
+            name: metadata.title,
+            skillDescription: metadata.excerpt,
+            content: content,
+            frontmatter: [:],
+            fileModifiedDate: fileModifiedDate,
+            fileSize: fileSize,
+            isGlobal: true,
+            resolvedPath: fileURL.path,
+            kind: .note
+        )
+        note.installedPaths = [fileURL.path]
+        note.toolSources = [.custom]
+        return note
+    }
+
+    private static func normalizedDisplayLine(from rawLine: String) -> String {
+        let trimmed = rawLine.trimmingCharacters(in: .whitespacesAndNewlines)
+        let strippedHeading = trimmed.replacingOccurrences(
+            of: #"^#{1,6}\s*"#,
+            with: "",
+            options: .regularExpression
+        )
+        return strippedHeading.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+}
+
 /// Data collected from the filesystem for a single skill, before SwiftData persistence.
 struct ScannedSkillData: Sendable {
     let fileURL: URL
@@ -108,6 +211,10 @@ final class SkillScanner {
                 let url = URL(fileURLWithPath: path)
                 collectFromDirectory(url, toolSource: tool, isGlobal: true, kind: .rule, into: &results)
             }
+        }
+
+        if NotesService.notesDirectoryExists() {
+            collectFromDirectory(NotesService.notesDirectoryURL, toolSource: .custom, isGlobal: true, kind: .note, into: &results)
         }
 
         if includePlugins {
@@ -355,9 +462,31 @@ final class SkillScanner {
         // Resolve symlinks for the actual read — fileURL may be a remapped canonical path
         // that does not physically exist when a parent directory is a symlink.
         let physicalURL = fileURL.resolvingSymlinksInPath()
-        guard let parsed = SkillParser.parse(fileURL: physicalURL, toolSource: toolSource) else {
-            AppLogger.scanning.warning("Failed to parse: \(fileURL.path)")
-            return nil
+
+        let parsedContent: String
+        let parsedFrontmatter: [String: String]
+        let parsedDescription: String
+        let parsedName: String
+
+        if kind == .note {
+            guard let content = try? String(contentsOf: physicalURL, encoding: .utf8) else {
+                AppLogger.scanning.warning("Failed to read note: \(fileURL.path)")
+                return nil
+            }
+            let metadata = NotesService.metadata(for: content)
+            parsedContent = content
+            parsedFrontmatter = [:]
+            parsedDescription = metadata.excerpt
+            parsedName = metadata.title
+        } else {
+            guard let parsed = SkillParser.parse(fileURL: physicalURL, toolSource: toolSource) else {
+                AppLogger.scanning.warning("Failed to parse: \(fileURL.path)")
+                return nil
+            }
+            parsedContent = parsed.content
+            parsedFrontmatter = parsed.frontmatter
+            parsedDescription = parsed.description
+            parsedName = parsed.name
         }
 
         let attrs = try? fm.attributesOfItem(atPath: physicalURL.path)
@@ -365,8 +494,8 @@ final class SkillScanner {
         let fileSize = (attrs?[.size] as? Int) ?? 0
 
         let name: String
-        if !parsed.name.isEmpty {
-            name = parsed.name
+        if !parsedName.isEmpty {
+            name = parsedName
         } else if isDirectory {
             name = fileURL.deletingLastPathComponent().lastPathComponent
         } else {
@@ -380,9 +509,9 @@ final class SkillScanner {
             isDirectory: isDirectory,
             isGlobal: isGlobal,
             name: name,
-            skillDescription: parsed.description,
-            content: parsed.content,
-            frontmatter: parsed.frontmatter,
+            skillDescription: parsedDescription,
+            content: parsedContent,
+            frontmatter: parsedFrontmatter,
             modDate: modDate,
             fileSize: fileSize,
             kind: kind

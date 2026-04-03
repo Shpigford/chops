@@ -29,7 +29,7 @@ struct ContentView: View {
         }
         .searchable(text: $appState.searchText, prompt: "Search skills...")
         .onAppear {
-            startScanning()
+            startScanning(syncRemote: true)
         }
         .sheet(isPresented: $appState.showingNewSkillSheet) {
             NewSkillSheet()
@@ -42,11 +42,11 @@ struct ContentView: View {
         }
         .frame(minWidth: 900, minHeight: 500)
         .onReceive(NotificationCenter.default.publisher(for: .customScanPathsChanged)) { _ in
-            scanner?.scanAll()
+            startScanning(syncRemote: false)
         }
     }
 
-    private func startScanning() {
+    private func startScanning(syncRemote: Bool) {
         AppLogger.ui.notice("App started, beginning initial scan")
         let scanner = SkillScanner(modelContext: modelContext)
         self.scanner = scanner
@@ -71,6 +71,9 @@ struct ContentView: View {
         if fm.fileExists(atPath: claudeDesktopSessions) {
             allPaths.append(claudeDesktopSessions)
         }
+        if fm.fileExists(atPath: NotesService.notesDirectoryPath) {
+            allPaths.append(NotesService.notesDirectoryPath)
+        }
         allPaths = Array(Set(allPaths)).sorted()
 
         let watcher = FileWatcher { _ in
@@ -81,9 +84,10 @@ struct ContentView: View {
         self.fileWatcher = watcher
         AppLogger.ui.notice("File watchers active on \(allPaths.count) directories")
 
-        // Sync remote servers in the background
-        Task {
-            await scanner.syncAllRemoteServers()
+        if syncRemote {
+            Task {
+                await scanner.syncAllRemoteServers()
+            }
         }
     }
 }

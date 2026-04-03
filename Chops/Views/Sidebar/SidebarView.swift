@@ -30,6 +30,10 @@ struct SidebarView: View {
                     .badge(allSkills.filter { $0.itemKind == .skill }.count)
                     .tag(SidebarFilter.allSkills)
 
+                Label("Notes", systemImage: "note.text")
+                    .badge(allSkills.filter { $0.itemKind == .note }.count)
+                    .tag(SidebarFilter.allNotes)
+
                 Label("Agents", systemImage: "person.crop.rectangle")
                     .badge(allSkills.filter { $0.itemKind == .agent }.count)
                     .tag(SidebarFilter.allAgents)

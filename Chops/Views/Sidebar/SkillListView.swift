@@ -3,6 +3,7 @@ import SwiftData
 
 struct SkillListView: View {
     private enum ActiveAlert: Identifiable {
+        case createNoteError(String)
         case confirmDelete(Skill)
         case confirmMakeGlobal(Skill)
         case deleteError(String)
@@ -10,6 +11,8 @@ struct SkillListView: View {
 
         var id: String {
             switch self {
+            case .createNoteError(let message):
+                return "create-note-error-\(message)"
             case .confirmDelete(let skill):
                 return "confirm-delete-\(skill.filePath)"
             case .confirmMakeGlobal(let skill):
@@ -32,6 +35,8 @@ struct SkillListView: View {
         var result = allSkills
 
         switch appState.sidebarFilter {
+        case .allNotes:
+            result = result.filter { $0.itemKind == .note }
         case .allSkills:
             result = result.filter { $0.itemKind == .skill }
         case .allAgents:
@@ -61,11 +66,16 @@ struct SkillListView: View {
             }
         }
 
+        if case .allNotes = appState.sidebarFilter {
+            result.sort { $0.fileModifiedDate > $1.fileModifiedDate }
+        }
+
         return result
     }
 
     private var title: String {
         switch appState.sidebarFilter {
+        case .allNotes: "Notes"
         case .allSkills: "Skills"
         case .allAgents: "Agents"
         case .allRules: "Rules"
@@ -80,7 +90,7 @@ struct SkillListView: View {
     /// Whether the current filter shows mixed item types (skills and agents together)
     private var showsTypeBadge: Bool {
         switch appState.sidebarFilter {
-        case .allSkills, .allAgents, .allRules: false
+        case .allNotes, .allSkills, .allAgents, .allRules: false
         case .tool: appState.toolKindFilter == nil
         default: true
         }
@@ -102,6 +112,12 @@ struct SkillListView: View {
             )
         } else {
             switch appState.sidebarFilter {
+            case .allNotes:
+                ContentUnavailableView(
+                    "No Notes",
+                    systemImage: "note.text",
+                    description: Text("Use the + button to create your first note.")
+                )
             case .allAgents:
                 ContentUnavailableView("No Agents", systemImage: "person.crop.rectangle",
                     description: Text("No agents match the current filter."))
@@ -113,6 +129,13 @@ struct SkillListView: View {
                     description: Text("No skills match the current filter."))
             }
         }
+    }
+
+    private var isNotesLibraryView: Bool {
+        if case .allNotes = appState.sidebarFilter {
+            return true
+        }
+        return false
     }
 
     @ViewBuilder
@@ -182,6 +205,29 @@ struct SkillListView: View {
         }
     }
 
+    private func createNote() {
+        do {
+            let fileURL = try NotesService.createBlankNote()
+            let note = NotesService.makeIndexedNote(
+                fileURL: fileURL,
+                content: "",
+                fileModifiedDate: .now,
+                fileSize: 0
+            )
+            modelContext.insert(note)
+            try modelContext.save()
+
+            appState.searchText = ""
+            appState.toolKindFilter = nil
+            appState.sidebarFilter = .allNotes
+            appState.selectedSkill = note
+
+            NotificationCenter.default.post(name: .customScanPathsChanged, object: nil)
+        } catch {
+            activeAlert = .createNoteError(error.localizedDescription)
+        }
+    }
+
     var body: some View {
         @Bindable var appState = appState
 
@@ -224,40 +270,61 @@ struct SkillListView: View {
                             Image(systemName: appState.toolKindFilter != nil ? "ellipsis.circle.fill" : "ellipsis.circle")
                         }
                     }
-                    Menu {
+                    if isNotesLibraryView {
                         Button {
-                            appState.newItemKind = .skill
-                            appState.showingNewSkillSheet = true
+                            createNote()
                         } label: {
-                            Label("New Skill", systemImage: "doc.text")
+                            Image(systemName: "plus")
                         }
-                        Button {
-                            appState.newItemKind = .agent
-                            appState.showingNewSkillSheet = true
+                        .help("New Note")
+                    } else {
+                        Menu {
+                            Button {
+                                createNote()
+                            } label: {
+                                Label("New Note", systemImage: "note.text")
+                            }
+                            Divider()
+                            Button {
+                                appState.newItemKind = .skill
+                                appState.showingNewSkillSheet = true
+                            } label: {
+                                Label("New Skill", systemImage: "doc.text")
+                            }
+                            Button {
+                                appState.newItemKind = .agent
+                                appState.showingNewSkillSheet = true
+                            } label: {
+                                Label("New Agent", systemImage: "person.crop.rectangle")
+                            }
+                            Button {
+                                appState.newItemKind = .rule
+                                appState.showingNewSkillSheet = true
+                            } label: {
+                                Label("New Rule", systemImage: "list.bullet.rectangle")
+                            }
+                            Divider()
+                            Button {
+                                appState.showingRegistrySheet = true
+                            } label: {
+                                Label("Browse Registry", systemImage: "globe")
+                            }
                         } label: {
-                            Label("New Agent", systemImage: "person.crop.rectangle")
+                            Image(systemName: "plus")
                         }
-                        Button {
-                            appState.newItemKind = .rule
-                            appState.showingNewSkillSheet = true
-                        } label: {
-                            Label("New Rule", systemImage: "list.bullet.rectangle")
-                        }
-                        Divider()
-                        Button {
-                            appState.showingRegistrySheet = true
-                        } label: {
-                            Label("Browse Registry", systemImage: "globe")
-                        }
-                    } label: {
-                        Image(systemName: "plus")
+                        .menuIndicator(.hidden)
                     }
-                    .menuIndicator(.hidden)
                 }
             }
         }
         .alert(item: $activeAlert) { alert in
             switch alert {
+            case .createNoteError(let message):
+                return Alert(
+                    title: Text("Create Note Failed"),
+                    message: Text(message),
+                    dismissButton: .default(Text("OK"))
+                )
             case .confirmMakeGlobal(let skill):
                 return Alert(
                     title: Text("Make \"\(skill.name)\" Global?"),
@@ -308,49 +375,82 @@ struct SkillRow: View {
     var showTypeBadge: Bool = false
 
     var body: some View {
-        HStack(spacing: 6) {
-            if showTypeBadge {
-                let kindIcon: String = switch skill.itemKind {
-                case .agent: "person.crop.rectangle"
-                case .rule: "list.bullet.rectangle"
-                case .skill: "doc.text"
+        if skill.itemKind == .note {
+            HStack(alignment: .top, spacing: 8) {
+                VStack(alignment: .leading, spacing: 3) {
+                    HStack(spacing: 6) {
+                        Text(skill.name)
+                            .lineLimit(1)
+
+                        if skill.isFavorite {
+                            Image(systemName: "star.fill")
+                                .font(.caption2)
+                                .foregroundStyle(.yellow)
+                        }
+                    }
+
+                    if !skill.skillDescription.isEmpty {
+                        Text(skill.skillDescription)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(2)
+                    }
                 }
-                Image(systemName: kindIcon)
+
+                Spacer(minLength: 8)
+
+                Text(skill.fileModifiedDate.formatted(.relative(presentation: .named)))
                     .font(.caption2)
-                    .foregroundStyle(.secondary)
-            }
-
-            Text(skill.name)
-                .lineLimit(1)
-
-            if skill.isFavorite {
-                Image(systemName: "star.fill")
-                    .font(.caption2)
-                    .foregroundStyle(.yellow)
-            }
-
-            Spacer()
-
-            if skill.isRemote, let serverLabel = skill.remoteServer?.label {
-                Text(serverLabel)
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
-                    .lineLimit(1)
-            } else if let project = skill.projectName {
-                Text(project)
-                    .font(.caption)
                     .foregroundStyle(.tertiary)
                     .lineLimit(1)
             }
+            .padding(.vertical, 6)
+        } else {
+            HStack(spacing: 6) {
+                if showTypeBadge {
+                    let kindIcon: String = switch skill.itemKind {
+                    case .note: "note.text"
+                    case .agent: "person.crop.rectangle"
+                    case .rule: "list.bullet.rectangle"
+                    case .skill: "doc.text"
+                    }
+                    Image(systemName: kindIcon)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
 
-            HStack(spacing: 3) {
-                ForEach(skill.toolSources, id: \.self) { tool in
-                    ToolIcon(tool: tool, size: 14)
-                        .help(tool.displayName)
-                        .opacity(0.6)
+                Text(skill.name)
+                    .lineLimit(1)
+
+                if skill.isFavorite {
+                    Image(systemName: "star.fill")
+                        .font(.caption2)
+                        .foregroundStyle(.yellow)
+                }
+
+                Spacer()
+
+                if skill.isRemote, let serverLabel = skill.remoteServer?.label {
+                    Text(serverLabel)
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                        .lineLimit(1)
+                } else if let project = skill.projectName {
+                    Text(project)
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                        .lineLimit(1)
+                }
+
+                HStack(spacing: 3) {
+                    ForEach(skill.toolSources, id: \.self) { tool in
+                        ToolIcon(tool: tool, size: 14)
+                            .help(tool.displayName)
+                            .opacity(0.6)
+                    }
                 }
             }
+            .padding(.vertical, 4)
         }
-        .padding(.vertical, 4)
     }
 }

@@ -4,6 +4,7 @@ import Foundation
 
 /// Types of wizard templates for AI-assisted composition
 enum WizardTemplateType: String, CaseIterable, Codable, Identifiable {
+    case note = "note"
     case skill = "skill"
     case agent = "agent"
     case rule = "rule"
@@ -12,6 +13,7 @@ enum WizardTemplateType: String, CaseIterable, Codable, Identifiable {
 
     var displayName: String {
         switch self {
+        case .note: "Notes"
         case .skill: "Skills"
         case .agent: "Agents"
         case .rule: "Rules"
@@ -24,6 +26,7 @@ enum WizardTemplateType: String, CaseIterable, Codable, Identifiable {
 
     var icon: String {
         switch self {
+        case .note: "note.text"
         case .skill: "doc.text"
         case .agent: "person.crop.rectangle"
         case .rule: "list.bullet.rectangle"

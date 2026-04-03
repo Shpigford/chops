@@ -9,63 +9,92 @@ struct SkillMetadataBar: View {
 
     var body: some View {
         HStack(spacing: 16) {
-            HStack(spacing: 6) {
-                ForEach(skill.toolSources) { tool in
-                    ToolIcon(tool: tool, size: 14)
-                }
-            }
-            .help(installedPathsSummary)
-
-            Divider().frame(height: 16)
-
-            if skill.isRemote, let server = skill.remoteServer {
-                Label {
-                    Text(server.label)
-                } icon: {
-                    Image(systemName: "server.rack")
-                }
-                .font(.caption)
-                .foregroundStyle(.indigo)
+            if skill.itemKind == .note {
+                Text(displayPath)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                    .help(installedPathsSummary)
 
                 Divider().frame(height: 16)
-            }
 
-            Text(skill.isRemote ? (skill.remotePath ?? "") : displayPath)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
-                .truncationMode(.middle)
-                .help(skill.isRemote ? (skill.remotePath ?? "") : installedPathsSummary)
+                Text(formattedSize)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
 
-            Divider().frame(height: 16)
+                Divider().frame(height: 16)
 
-            Text(formattedSize)
-                .font(.caption)
-                .foregroundStyle(.secondary)
+                collectionPickerButton
 
-            Divider().frame(height: 16)
+                Spacer()
 
-            Button {
-                showingCollectionPicker.toggle()
-            } label: {
-                Image(systemName: "tray")
+                Text(skill.fileModifiedDate.formatted(.relative(presentation: .named)))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            } else {
+                HStack(spacing: 6) {
+                    ForEach(skill.toolSources) { tool in
+                        ToolIcon(tool: tool, size: 14)
+                    }
+                }
+                .help(installedPathsSummary)
+
+                Divider().frame(height: 16)
+
+                if skill.isRemote, let server = skill.remoteServer {
+                    Label {
+                        Text(server.label)
+                    } icon: {
+                        Image(systemName: "server.rack")
+                    }
+                    .font(.caption)
+                    .foregroundStyle(.indigo)
+                }
+
+                Divider().frame(height: 16)
+
+                Text(skill.isRemote ? (skill.remotePath ?? "") : displayPath)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                    .help(skill.isRemote ? (skill.remotePath ?? "") : installedPathsSummary)
+
+                Divider().frame(height: 16)
+
+                Text(formattedSize)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+                Divider().frame(height: 16)
+
+                collectionPickerButton
+
+                Spacer()
+
+                Text(skill.fileModifiedDate.formatted(.relative(presentation: .named)))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
-            .buttonStyle(.plain)
-            .popover(isPresented: $showingCollectionPicker) {
-                collectionPickerContent
-            }
-
-            Spacer()
-
-            Text(skill.fileModifiedDate.formatted(.relative(presentation: .named)))
-                .font(.caption)
-                .foregroundStyle(.secondary)
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
         .background(.bar)
+    }
+
+    private var collectionPickerButton: some View {
+        Button {
+            showingCollectionPicker.toggle()
+        } label: {
+            Image(systemName: "tray")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .buttonStyle(.plain)
+        .popover(isPresented: $showingCollectionPicker) {
+            collectionPickerContent
+        }
     }
 
     private var displayPath: String {

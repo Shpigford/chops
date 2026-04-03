@@ -2,12 +2,14 @@ import SwiftData
 import Foundation
 
 enum ItemKind: String, Codable, CaseIterable {
+    case note
     case skill
     case agent
     case rule
 
     var displayName: String {
         switch self {
+        case .note: "Notes"
         case .skill: "Skills"
         case .agent: "Agents"
         case .rule: "Rules"
@@ -16,6 +18,7 @@ enum ItemKind: String, Codable, CaseIterable {
 
     var singularName: String {
         switch self {
+        case .note: "Note"
         case .skill: "Skill"
         case .agent: "Agent"
         case .rule: "Rule"
@@ -24,6 +27,7 @@ enum ItemKind: String, Codable, CaseIterable {
 
     var icon: String {
         switch self {
+        case .note: "note.text"
         case .skill: "doc.text"
         case .agent: "person.crop.rectangle"
         case .rule: "list.bullet.rectangle"
@@ -53,6 +57,7 @@ extension Skill {
 
     var displayTypeName: String {
         switch itemKind {
+        case .note: "Note"
         case .agent: "Agent"
         case .rule: "Rule"
         case .skill: "Skill"

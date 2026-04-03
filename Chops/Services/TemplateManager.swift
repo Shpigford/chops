@@ -55,6 +55,7 @@ final class TemplateManager {
 
     private func systemPromptContent(for type: WizardTemplateType) -> String {
         switch type {
+        case .note: Self.defaultNoteSystemPrompt
         case .skill: Self.defaultSkillSystemPrompt
         case .agent: Self.defaultAgentSystemPrompt
         case .rule: Self.defaultRuleSystemPrompt
@@ -179,6 +180,7 @@ final class TemplateManager {
 
     private func defaultTemplateContent(for type: WizardTemplateType) -> String {
         switch type {
+        case .note: Self.defaultNoteTemplate
         case .skill: Self.defaultSkillTemplate
         case .agent: Self.defaultAgentTemplate
         case .rule: Self.defaultRuleTemplate
@@ -208,6 +210,29 @@ final class TemplateManager {
     2. Write clear, actionable instructions
     3. Include examples where helpful
     4. Keep scope focused and composable
+    """
+
+    private static let defaultNoteTemplate = """
+    <!-- chops-template-version: 1 -->
+    # Note Composer
+
+    You are helping create or improve a markdown note.
+
+    ## Context
+    - File type: Note
+    - Notes are local markdown documents intended for capture, drafting, and refinement
+
+    ## Current Content
+    {{file_content}}
+
+    ## User Instructions
+    {{user_instructions}}
+
+    ## Guidelines
+    1. Keep the note readable as plain markdown
+    2. Use concise headings, bullets, and paragraphs when they improve scanability
+    3. Preserve the note's tone and structure unless the user asks for a rewrite
+    4. Prefer improving clarity and organization over adding filler
     """
 
 
@@ -278,6 +303,23 @@ final class TemplateManager {
     Important: Your file writes are proposals that the user must review and accept before they take effect. Frame your responses accordingly — say "I've proposed the changes" or "Here are the changes for your review", not "Done" or "I've updated the file".
     """
 
+    private static let defaultNoteSystemPrompt = """
+    You are an expert in editing markdown notes.
+
+    ## Current note context
+    - Name: {{skill_name}}
+    - Description: {{skill_description}}
+    - File: {{file_path}}
+    - Frontmatter:
+    {{frontmatter}}
+
+    ## Your role
+    When the user asks you to create or update this note, use the ACP `write_text_file` tool to write the complete updated file content directly to the file path shown above.
+    Do not show the content in a code block or ask for confirmation — write it directly via `write_text_file`.
+    Write clean markdown that preserves the note's meaning, structure, and useful unfinished context.
+    Important: Your file writes are proposals that the user must review and accept before they take effect. Frame your responses accordingly — say "I've proposed the changes" or "Here are the changes for your review", not "Done" or "I've updated the file".
+    """
+
     private static let defaultAgentSystemPrompt = """
     You are an expert in writing agent definitions for AI coding assistants.
 
@@ -313,4 +355,3 @@ final class TemplateManager {
     """
 
 }
-

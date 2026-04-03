@@ -79,13 +79,7 @@ final class SkillEditorDocument {
             fullFileContent = editorContent
             hasUnsavedChanges = false
 
-            let parsed = FrontmatterParser.parse(editorContent)
-            if !parsed.name.isEmpty {
-                skill.name = parsed.name
-            }
-            skill.skillDescription = parsed.description
-            skill.content = parsed.content
-            skill.frontmatter = parsed.frontmatter
+            updateIndexedContent(for: skill)
 
             let attrs = try? FileManager.default.attributesOfItem(atPath: skill.filePath)
             skill.fileModifiedDate = (attrs?[.modificationDate] as? Date) ?? skill.fileModifiedDate
@@ -162,13 +156,7 @@ final class SkillEditorDocument {
                     hasUnsavedChanges = false
                     isSavingRemote = false
 
-                    let parsed = FrontmatterParser.parse(editorContent)
-                    if !parsed.name.isEmpty {
-                        skill.name = parsed.name
-                    }
-                    skill.skillDescription = parsed.description
-                    skill.content = parsed.content
-                    skill.frontmatter = parsed.frontmatter
+                    updateIndexedContent(for: skill)
                     skill.fileModifiedDate = .now
                     skill.fileSize = editorContent.utf8.count
                 }
@@ -180,6 +168,25 @@ final class SkillEditorDocument {
                 }
             }
         }
+    }
+
+    private func updateIndexedContent(for skill: Skill) {
+        if skill.itemKind == .note {
+            let metadata = NotesService.metadata(for: editorContent)
+            skill.name = metadata.title
+            skill.skillDescription = metadata.excerpt
+            skill.content = editorContent
+            skill.frontmatter = [:]
+            return
+        }
+
+        let parsed = FrontmatterParser.parse(editorContent)
+        if !parsed.name.isEmpty {
+            skill.name = parsed.name
+        }
+        skill.skillDescription = parsed.description
+        skill.content = parsed.content
+        skill.frontmatter = parsed.frontmatter
     }
 
     deinit {

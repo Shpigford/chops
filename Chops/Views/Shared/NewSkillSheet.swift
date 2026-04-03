@@ -13,6 +13,8 @@ struct NewSkillSheet: View {
 
     private var creatableTools: [ToolSource] {
         switch itemKind {
+        case .note:
+            return [.custom]
         case .skill:
             return [.agents, .amp, .antigravity, .claude, .codex, .cursor, .opencode, .pi]
         case .agent:
@@ -88,6 +90,9 @@ struct NewSkillSheet: View {
         let fileName: String
 
         switch itemKind {
+        case .note:
+            basePath = NotesService.notesDirectoryPath
+            fileName = "\(sanitizedName).md"
         case .agent:
             guard let dir = selectedTool.globalAgentPaths.first else {
                 errorMessage = "This tool doesn't support agents"
@@ -140,32 +145,48 @@ struct NewSkillSheet: View {
                 }
             }
 
-            let parsed = FrontmatterParser.parse(boilerplate)
-            let skill = Skill(
-                filePath: filePath,
-                toolSource: selectedTool,
-                isDirectory: itemKind != .rule,
-                name: skillName,
-                skillDescription: parsed.description,
-                content: parsed.content,
-                frontmatter: parsed.frontmatter,
-                fileModifiedDate: .now,
-                fileSize: boilerplate.count,
-                isGlobal: true,
-                resolvedPath: filePath,
-                kind: itemKind
-            )
-            skill.installedPaths = installedPaths
-            skill.toolSources = toolSources
+            let skill: Skill
+            if itemKind == .note {
+                let url = URL(fileURLWithPath: filePath)
+                skill = NotesService.makeIndexedNote(
+                    fileURL: url,
+                    content: boilerplate,
+                    fileModifiedDate: .now,
+                    fileSize: boilerplate.utf8.count
+                )
+            } else {
+                let parsed = FrontmatterParser.parse(boilerplate)
+                let newSkill = Skill(
+                    filePath: filePath,
+                    toolSource: selectedTool,
+                    isDirectory: itemKind != .rule,
+                    name: skillName,
+                    skillDescription: parsed.description,
+                    content: parsed.content,
+                    frontmatter: parsed.frontmatter,
+                    fileModifiedDate: .now,
+                    fileSize: boilerplate.count,
+                    isGlobal: true,
+                    resolvedPath: filePath,
+                    kind: itemKind
+                )
+                newSkill.installedPaths = installedPaths
+                newSkill.toolSources = toolSources
+                skill = newSkill
+            }
             modelContext.insert(skill)
             try modelContext.save()
 
             switch itemKind {
+            case .note: appState.sidebarFilter = .allNotes
             case .skill: appState.sidebarFilter = .allSkills
             case .agent: appState.sidebarFilter = .allAgents
             case .rule: appState.sidebarFilter = .allRules
             }
             appState.selectedSkill = skill
+            if itemKind == .note {
+                NotificationCenter.default.post(name: .customScanPathsChanged, object: nil)
+            }
             dismiss()
         } catch {
             errorMessage = error.localizedDescription
@@ -174,6 +195,11 @@ struct NewSkillSheet: View {
 
     private func generateBoilerplate(name: String, skillID: String, tool: ToolSource) -> String {
         switch itemKind {
+        case .note:
+            return """
+            # \(name)
+
+            """
         case .agent:
             return """
             ---
