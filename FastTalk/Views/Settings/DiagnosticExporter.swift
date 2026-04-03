@@ -12,7 +12,7 @@ enum DiagnosticExporter {
         let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "?"
         let osVersion = ProcessInfo.processInfo.operatingSystemVersionString
 
-        lines.append("# FastTalk Diagnostic Report")
+        lines.append("# Fast Talk Diagnostic Report")
         lines.append("Generated: \(ISO8601DateFormatter().string(from: .now))")
         lines.append("")
         lines.append("## System")

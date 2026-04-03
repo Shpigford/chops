@@ -110,7 +110,7 @@ struct SettingsView: View {
             Text("Custom Scan Directories")
                 .font(.headline)
 
-            Text("Add a parent directory (e.g. ~/Development) and FastTalk will scan each project inside it for tool-specific skills and agents.")
+            Text("Add a parent directory (e.g. ~/Development) and Fast Talk will scan each project inside it for tool-specific skills and agents.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
@@ -178,7 +178,7 @@ struct SettingsView: View {
                     .frame(width: 80, height: 80)
             }
 
-            Text("FastTalk")
+            Text("Fast Talk")
                 .font(.title)
                 .fontWeight(.bold)
 
