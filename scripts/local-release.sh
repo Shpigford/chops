@@ -80,6 +80,51 @@ remote_exec_path() {
   printf '$HOME/%s/%s.app/Contents/MacOS/%s' "$remote_subdir" "$APP_NAME" "$APP_NAME"
 }
 
+stop_remote_app() {
+  local host="${1:-}"
+  local remote_subdir="${2:-Desktop}"
+
+  [ -n "$host" ] || fail "remote host is required to stop the app"
+
+  require_command ssh
+
+  local remote_path
+  remote_path="$(remote_app_path "$remote_subdir")"
+  local remote_exec
+  remote_exec="$(remote_exec_path "$remote_subdir")"
+
+  ssh "$host" /bin/bash -s -- "$remote_path" "$remote_exec" <<'EOF'
+set -euo pipefail
+
+remote_path="${1/#\$HOME/$HOME}"
+remote_exec="${2/#\$HOME/$HOME}"
+
+[ -d "$remote_path" ] || exit 0
+
+if pgrep -f "$remote_exec" >/dev/null 2>&1; then
+  echo "Stopping existing app process for $remote_exec"
+  pkill -TERM -f "$remote_exec" || true
+  for _ in 1 2 3 4 5; do
+    if ! pgrep -f "$remote_exec" >/dev/null 2>&1; then
+      break
+    fi
+    sleep 1
+  done
+
+  if pgrep -f "$remote_exec" >/dev/null 2>&1; then
+    echo "Escalating to SIGKILL for $remote_exec"
+    pkill -KILL -f "$remote_exec" || true
+    sleep 1
+  fi
+fi
+
+if pgrep -f "$remote_exec" >/dev/null 2>&1; then
+  echo "failed to stop existing app process for $remote_exec" >&2
+  exit 1
+fi
+EOF
+}
+
 build_local_release() {
   require_command xcodebuild
   require_command ditto
@@ -128,6 +173,9 @@ copy_to_remote() {
   local remote_path
   remote_path="$(remote_app_path "$remote_subdir")"
 
+  log_step "Stopping existing remote app on $host before overwrite"
+  stop_remote_app "$host" "$remote_subdir"
+
   log_step "Preparing remote destination on $host"
   ssh "$host" "mkdir -p \"\$HOME/$remote_subdir\" && rm -rf \"$remote_path\""
 
@@ -152,6 +200,7 @@ open_remote_app() {
   remote_exec="$(remote_exec_path "$remote_subdir")"
 
   log_step "Restarting app bundle on $host"
+  stop_remote_app "$host" "$remote_subdir"
   ssh "$host" /bin/bash -s -- "$remote_path" "$remote_exec" <<'EOF'
 set -euo pipefail
 
@@ -162,28 +211,6 @@ remote_exec="${2/#\$HOME/$HOME}"
   echo "missing remote app bundle at $remote_path" >&2
   exit 1
 }
-
-if pgrep -f "$remote_exec" >/dev/null 2>&1; then
-  echo "Stopping existing app process for $remote_exec"
-  pkill -TERM -f "$remote_exec" || true
-  for _ in 1 2 3 4 5; do
-    if ! pgrep -f "$remote_exec" >/dev/null 2>&1; then
-      break
-    fi
-    sleep 1
-  done
-
-  if pgrep -f "$remote_exec" >/dev/null 2>&1; then
-    echo "Escalating to SIGKILL for $remote_exec"
-    pkill -KILL -f "$remote_exec" || true
-    sleep 1
-  fi
-fi
-
-if pgrep -f "$remote_exec" >/dev/null 2>&1; then
-  echo "failed to stop existing app process for $remote_exec" >&2
-  exit 1
-fi
 
 open -na "$remote_path"
 sleep 2
