@@ -1,7 +1,7 @@
 <?xml version="1.0" standalone="yes"?>
 <rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0">
   <channel>
-    <title>Chops</title>
+    <title>Fast Talk</title>
     <item>
       <title>Version 1.13.1</title>
       <sparkle:version>1.13.1</sparkle:version>
@@ -10,7 +10,7 @@
       <pubDate>Tue, 31 Mar 2026 21:27:21 +0000</pubDate>
       <description><![CDATA[<ul><li>Prevents data loss when the database schema changes between versions</li></ul>]]></description>
       <enclosure
-        url="https://github.com/Shpigford/chops/releases/download/v1.13.1/Chops.dmg"
+        url="https://github.com/Shpigford/fasttalk/releases/download/v1.13.1/FastTalk.dmg"
         sparkle:edSignature="dnxFZ7ZuJJf1JDQ1ftQlwNi7pQ8S8BVlsnRUz3+4pTu8hWhzdRyC22CGC48YZI5J2/nTTm0gRnr06+pQE6JGDw=="
         length="5951732"
         type="application/octet-stream"
@@ -24,7 +24,7 @@
       <pubDate>Tue, 31 Mar 2026 17:32:31 +0000</pubDate>
       <description><![CDATA[<ul><li>New skills default to Global and are automatically symlinked to all installed agents</li><li>Convert any tool-specific skill to Global via the right-click menu</li><li>Global tool source now appears in the sidebar when skills exist</li><li>AI Assist no longer writes files until you accept the diff</li><li>Fixed false "not installed" detection for tools using symlinked agent directories</li></ul>]]></description>
       <enclosure
-        url="https://github.com/Shpigford/chops/releases/download/v1.13.0/Chops.dmg"
+        url="https://github.com/Shpigford/fasttalk/releases/download/v1.13.0/FastTalk.dmg"
         sparkle:edSignature="6qjRyTb8p5VRH5F+Nstf+WM3XTO3259d+CthO7gZ48h6N4mT5Ea5rI4NuR9I6TnomaoxjhVrFFYord658pXjAw=="
         length="5949433"
         type="application/octet-stream"
@@ -38,7 +38,7 @@
       <pubDate>Tue, 31 Mar 2026 10:56:05 +0000</pubDate>
       <description><![CDATA[<ul><li>Browse and install skills from OpenClaw directly on your machine</li><li>Organize skills, rules, and agents into separate categories</li><li>Skills inside custom scan directories are now detected correctly</li><li>Registry browsing no longer hits GitHub API rate limits</li></ul>]]></description>
       <enclosure
-        url="https://github.com/Shpigford/chops/releases/download/v1.12.0/Chops.dmg"
+        url="https://github.com/Shpigford/fasttalk/releases/download/v1.12.0/FastTalk.dmg"
         sparkle:edSignature="Iqi4fNbCjbILOLdlyDGuyIhxRMN7fef5WyI14+PjpS4X76yyicML9b85577IwoCjwnl5awz6eNh9KbXUMkMPDA=="
         length="5901259"
         type="application/octet-stream"
@@ -50,9 +50,9 @@
       <sparkle:shortVersionString>1.11.0</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
       <pubDate>Sun, 29 Mar 2026 00:14:42 +0000</pubDate>
-      <description><![CDATA[<ul><li>Chat with AI agents directly inside Chops (ACP support)</li><li>Cancel in-progress AI requests</li><li>Floating AI button for quick access to the compose panel</li><li>Improved compose panel layout and usability</li></ul>]]></description>
+      <description><![CDATA[<ul><li>Chat with AI agents directly inside Fast Talk (ACP support)</li><li>Cancel in-progress AI requests</li><li>Floating AI button for quick access to the compose panel</li><li>Improved compose panel layout and usability</li></ul>]]></description>
       <enclosure
-        url="https://github.com/Shpigford/chops/releases/download/v1.11.0/Chops.dmg"
+        url="https://github.com/Shpigford/fasttalk/releases/download/v1.11.0/FastTalk.dmg"
         sparkle:edSignature="VoAIFNjRVMUwqUsuTdEN+MHKD6o61PWqKl51RdzEFkLcOIahsXp5WcZd3joqcYmdM92RFcJ+6O2iZuqd+7LnCg=="
         length="5825308"
         type="application/octet-stream"
@@ -66,7 +66,7 @@
       <pubDate>Fri, 27 Mar 2026 23:59:11 +0000</pubDate>
       <description><![CDATA[<ul><li>Native markdown editor with syntax highlighting and formatting shortcuts (bold, italic, headings, links, lists)</li><li>Select and copy text from the skill preview</li><li>Find bar in the skill editor (Cmd+F)</li><li>Auto-save skill files after 1 second of inactivity</li></ul>]]></description>
       <enclosure
-        url="https://github.com/Shpigford/chops/releases/download/v1.10.0/Chops.dmg"
+        url="https://github.com/Shpigford/fasttalk/releases/download/v1.10.0/FastTalk.dmg"
         sparkle:edSignature="/mNmqpaHj33NSPue4AHFXyuLqxwUpfr/7lVFY3b9EZkrnPOGbLwLGD2D/CrRsfmeXX3ohloopq4JOsk2JqxuDQ=="
         length="4529350"
         type="application/octet-stream"
@@ -80,7 +80,7 @@
       <pubDate>Fri, 27 Mar 2026 11:52:04 +0000</pubDate>
       <description><![CDATA[<ul><li>Scan and display agents alongside skills</li></ul>]]></description>
       <enclosure
-        url="https://github.com/Shpigford/chops/releases/download/v1.9.0/Chops.dmg"
+        url="https://github.com/Shpigford/fasttalk/releases/download/v1.9.0/FastTalk.dmg"
         sparkle:edSignature="Ux0cW/DAVJLNRYALQXACS8c5eZ4WrneLoDFF9ah1zq0D2ig3nQhfkSIphlSwveGCUy2STeqMhG6KzC6Bb5ruCA=="
         length="5117326"
         type="application/octet-stream"
@@ -94,7 +94,7 @@
       <pubDate>Wed, 25 Mar 2026 11:45:30 +0000</pubDate>
       <description><![CDATA[<ul><li>Add skills to collections via right-click context menu</li><li>Drag and drop skills into sidebar collections</li><li>Detect skills from Claude Desktop and CLI plugins</li><li>Faster skill preview loading (eliminated ~2s delay)</li></ul>]]></description>
       <enclosure
-        url="https://github.com/Shpigford/chops/releases/download/v1.8.0/Chops.dmg"
+        url="https://github.com/Shpigford/fasttalk/releases/download/v1.8.0/FastTalk.dmg"
         sparkle:edSignature="61CLO9ZmLNdIEP3ItN9Qw/YNJKzJvkOb+b+o4CFmxQCDAoX23fvzMVFL9yfUnuoSr5DgBkMApJrkWZl/Wbo0Cg=="
         length="5092967"
         type="application/octet-stream"
@@ -108,7 +108,7 @@
       <pubDate>Wed, 25 Mar 2026 01:00:41 +0000</pubDate>
       <description><![CDATA[<ul><li>Rich markdown theme in skill preview</li><li>Support for Antigravity, OpenCode, Pi, Global Agents, and Copilot CLI as tool sources</li><li>Sidebar hides tools that aren't installed</li><li>Non-skill config files hidden from All Skills view</li><li>Fixed Sparkle minimum macOS version requirement</li></ul>]]></description>
       <enclosure
-        url="https://github.com/Shpigford/chops/releases/download/v1.7.0/Chops.dmg"
+        url="https://github.com/Shpigford/fasttalk/releases/download/v1.7.0/FastTalk.dmg"
         sparkle:edSignature="igfT1d3JChZNaJt6/o5bLuGAGVbejCvOeNhsfF0SKVls/ypS+cBIbo1G5Rr+TLi3I72qj/I+x/uDct7uEOCpAQ=="
         length="5066617"
         type="application/octet-stream"
@@ -122,7 +122,7 @@
       <pubDate>Sun, 22 Mar 2026 21:29:20 +0000</pubDate>
       <description><![CDATA[<ul><li>Fix layout freeze when selecting a skill</li><li>Press Enter to quickly create new collections</li><li>Rename collections from the right-click menu</li></ul>]]></description>
       <enclosure
-        url="https://github.com/Shpigford/chops/releases/download/v1.6.0/Chops.dmg"
+        url="https://github.com/Shpigford/fasttalk/releases/download/v1.6.0/FastTalk.dmg"
         sparkle:edSignature="c1/GR3wH3ToIK7Ie+Pd1pnVfIBRNRfO1XB62/E/6bH2KsPwJdYGoGjc2+EMKbNWtVuYh//E+Xa2ZG0VrvdNuDA=="
         length="5031217"
         type="application/octet-stream"
@@ -136,7 +136,7 @@
       <pubDate>Sat, 21 Mar 2026 17:17:31 +0000</pubDate>
       <description><![CDATA[<ul><li>Connect to remote servers (such as OpenClaw) to discover, browse, and edit skills (@t2)</li></ul>]]></description>
       <enclosure
-        url="https://github.com/Shpigford/chops/releases/download/v1.5.0/Chops.dmg"
+        url="https://github.com/Shpigford/fasttalk/releases/download/v1.5.0/FastTalk.dmg"
         sparkle:edSignature="LKJq0Pl5JbGei5RMgkTbckCYOOUUIzN+8ICYHh7pxMjfuq5b5PsnjIYsZj/tORGssYg68NVq2sHoTRfcP/+oAQ=="
         length="5028073"
         type="application/octet-stream"
@@ -150,7 +150,7 @@
       <pubDate>Sat, 21 Mar 2026 15:26:57 +0000</pubDate>
       <description><![CDATA[<ul><li>Delete skills directly from the context menu or toolbar</li><li>Diagnostic logging and fixes for UI freezing</li></ul>]]></description>
       <enclosure
-        url="https://github.com/Shpigford/chops/releases/download/v1.4.0/Chops.dmg"
+        url="https://github.com/Shpigford/fasttalk/releases/download/v1.4.0/FastTalk.dmg"
         sparkle:edSignature="BmqlyXVbU1nH7deMBivz82uLAQr1hAWX83k0ymE0HRQyh+1BSm6UMUnJdCGkffZtBT/MaAg5dqcs7HYj4Ic6Cw=="
         length="4854431"
         type="application/octet-stream"
@@ -164,7 +164,7 @@
       <pubDate>Sat, 21 Mar 2026 12:59:53 +0000</pubDate>
       <description><![CDATA[<ul><li>Markdown preview mode with syntax highlighting in the skill editor</li></ul>]]></description>
       <enclosure
-        url="https://github.com/Shpigford/chops/releases/download/v1.3.0/Chops.dmg"
+        url="https://github.com/Shpigford/fasttalk/releases/download/v1.3.0/FastTalk.dmg"
         sparkle:edSignature="pwIDvkJulZ+sySL8kHl11S1zBSUwW51CIbFLbBJHc8HU9VS7caO8aXm5q8aLppuHcJP6jRr2xheCpNt4AwDNBA=="
         length="4800773"
         type="application/octet-stream"
@@ -178,7 +178,7 @@
       <pubDate>Sat, 21 Mar 2026 12:00:18 +0000</pubDate>
       <description><![CDATA[<ul><li>Skills registry browser for discovering and installing community skills</li></ul>]]></description>
       <enclosure
-        url="https://github.com/Shpigford/chops/releases/download/v1.2.0/Chops.dmg"
+        url="https://github.com/Shpigford/fasttalk/releases/download/v1.2.0/FastTalk.dmg"
         sparkle:edSignature="LtEzDqwAraqYmW3MIdREbPGHkisMXZJbTp37gBHE3hiTFUytnVBHgGdHt1CYEaKGLxbWElf/LT6RTBvxQxI4DQ=="
         length="3359757"
         type="application/octet-stream"
@@ -191,7 +191,7 @@
       <sparkle:minimumSystemVersion>15.0</sparkle:minimumSystemVersion>
       <pubDate>Thu, 19 Mar 2026 12:24:55 +0000</pubDate>
       <enclosure
-        url="https://github.com/Shpigford/chops/releases/download/v1.1.0/Chops.dmg"
+        url="https://github.com/Shpigford/fasttalk/releases/download/v1.1.0/FastTalk.dmg"
         sparkle:edSignature="8mJcAK7hO2JjAgr5rph42cBNQFMpyW/pwexBERFka4kvNQRL+0jvT4JfDxnFuC+ZG300K9n0dvR0EZqxLuieCw=="
         length="3225001"
         type="application/octet-stream"

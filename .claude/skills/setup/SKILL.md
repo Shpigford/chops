@@ -1,9 +1,9 @@
 ---
 name: setup
-description: Get a new developer up and running with the Chops codebase — prerequisites, build, architecture, and common tasks.
+description: Get a new developer up and running with the Fast Talk codebase — prerequisites, build, architecture, and common tasks.
 ---
 
-Set up the Chops development environment and orient a new contributor to the codebase.
+Set up the Fast Talk development environment and orient a new contributor to the codebase.
 
 ## Instructions
 
@@ -22,38 +22,38 @@ Verify these are installed. If any are missing, tell the user what to install an
 xcodegen generate
 ```
 
-This reads `project.yml` (the source of truth for all Xcode project settings) and generates `Chops.xcodeproj`. Re-run this anytime `project.yml` changes. Never edit the `.xcodeproj` directly.
+This reads `project.yml` (the source of truth for all Xcode project settings) and generates `FastTalk.xcodeproj`. Re-run this anytime `project.yml` changes. Never edit the `.xcodeproj` directly.
 
 ### Step 3: Build and run
 
 ```bash
-xcodebuild -scheme Chops -configuration Debug build
+xcodebuild -scheme FastTalk -configuration Debug build
 ```
 
 Or open in Xcode and hit Cmd+R:
 
 ```bash
-open Chops.xcodeproj
+open FastTalk.xcodeproj
 ```
 
 ### Step 4: Orient the developer
 
 Share this architecture overview:
 
-**Entry point:** `Chops/App/ChopsApp.swift` — sets up SwiftData ModelContainer (Skill + SkillCollection), starts Sparkle updater, injects AppState into environment.
+**Entry point:** `FastTalk/App/FastTalkApp.swift` — sets up SwiftData ModelContainer (Skill + SkillCollection), starts Sparkle updater, injects AppState into environment.
 
-**State:** `Chops/App/AppState.swift` — `@Observable` singleton holding UI state (selected tool, selected skill, search text, sidebar filter).
+**State:** `FastTalk/App/AppState.swift` — `@Observable` singleton holding UI state (selected tool, selected skill, search text, sidebar filter).
 
 **Models (SwiftData):**
-- `Chops/Models/Skill.swift` — a discovered skill file, uniquely identified by resolved symlink path
-- `Chops/Models/Collection.swift` — user-created groupings of skills
-- `Chops/Models/ToolSource.swift` — enum of supported tools with display names, icons, colors, and filesystem paths
+- `FastTalk/Models/Skill.swift` — a discovered skill file, uniquely identified by resolved symlink path
+- `FastTalk/Models/Collection.swift` — user-created groupings of skills
+- `FastTalk/Models/ToolSource.swift` — enum of supported tools with display names, icons, colors, and filesystem paths
 
 **Services:**
-- `Chops/Services/SkillScanner.swift` — probes tool directories, parses frontmatter, upserts into SwiftData. Deduplicates via resolved symlink paths.
-- `Chops/Services/FileWatcher.swift` — FSEvents via DispatchSource, triggers re-scan on file changes
-- `Chops/Services/SkillParser.swift` — dispatches to FrontmatterParser (.md) or MDCParser (.mdc)
-- `Chops/Services/SearchService.swift` — in-memory full-text search
+- `FastTalk/Services/SkillScanner.swift` — probes tool directories, parses frontmatter, upserts into SwiftData. Deduplicates via resolved symlink paths.
+- `FastTalk/Services/FileWatcher.swift` — FSEvents via DispatchSource, triggers re-scan on file changes
+- `FastTalk/Services/SkillParser.swift` — dispatches to FrontmatterParser (.md) or MDCParser (.mdc)
+- `FastTalk/Services/SearchService.swift` — in-memory full-text search
 
 **Views:** Three-column NavigationSplitView (Sidebar → List → Detail). Editor wraps NSTextView for native text editing. Cmd+S save via FocusedValues.
 
@@ -76,11 +76,11 @@ Copilot and Aider detect project-level skills only (no global paths).
 
 ## Common tasks to be aware of
 
-**Add a new tool:** Add a case to `ToolSource` enum in `Chops/Models/ToolSource.swift`. Fill in `displayName`, `iconName`, `color`, `globalPaths`. Update `SkillScanner` if the tool uses a non-standard file layout.
+**Add a new tool:** Add a case to `ToolSource` enum in `FastTalk/Models/ToolSource.swift`. Fill in `displayName`, `iconName`, `color`, `globalPaths`. Update `SkillScanner` if the tool uses a non-standard file layout.
 
-**Modify parsing:** Frontmatter → `Chops/Utilities/FrontmatterParser.swift`. Cursor .mdc → `Chops/Utilities/MDCParser.swift`. Dispatch logic → `Chops/Services/SkillParser.swift`.
+**Modify parsing:** Frontmatter → `FastTalk/Utilities/FrontmatterParser.swift`. Cursor .mdc → `FastTalk/Utilities/MDCParser.swift`. Dispatch logic → `FastTalk/Services/SkillParser.swift`.
 
-**Change UI:** Views are in `Chops/Views/` (Sidebar/, Detail/, Settings/, Shared/). Main layout is `Chops/App/ContentView.swift`.
+**Change UI:** Views are in `FastTalk/Views/` (Sidebar/, Detail/, Settings/, Shared/). Main layout is `FastTalk/App/ContentView.swift`.
 
 ## Important Rules
 

@@ -1,19 +1,19 @@
 <p align="center">
-  <img src="site/public/favicon.png" width="128" height="128" alt="Chops icon" />
+  <img src="site/public/favicon.png" width="128" height="128" alt="Fast Talk icon" />
 </p>
 
-<h1 align="center">Chops</h1>
+<h1 align="center">Fast Talk</h1>
 
 <p align="center">Your AI skills and agents, finally organized.</p>
 
 <p align="center">
-  <a href="https://github.com/Shpigford/chops/releases/latest/download/Chops.dmg">Download</a> &middot;
-  <a href="https://chops.md">Website</a> &middot;
+  <a href="https://github.com/Shpigford/fasttalk/releases/latest/download/FastTalk.dmg">Download</a> &middot;
+  <a href="https://fasttalk.md">Website</a> &middot;
   <a href="https://x.com/Shpigford">@Shpigford</a>
 </p>
 
 <p align="center">
-  <img src="site/public/screenshot.png" width="720" alt="Chops screenshot" />
+  <img src="site/public/screenshot.png" width="720" alt="Fast Talk screenshot" />
 </p>
 
 One macOS app to discover, organize, and edit coding agent skills and agents across Claude Code, Cursor, Codex, Windsurf, and Amp. Stop digging through dotfiles.
@@ -41,11 +41,11 @@ Sparkle (auto-update framework) is the only external dependency and is pulled au
 ## Quick Start
 
 ```bash
-git clone https://github.com/Shpigford/chops.git
-cd chops
+git clone https://github.com/Shpigford/fasttalk.git
+cd fasttalk
 brew install xcodegen    # skip if already installed
-xcodegen generate        # generates Chops.xcodeproj from project.yml
-open Chops.xcodeproj     # opens in Xcode
+xcodegen generate        # generates FastTalk.xcodeproj from project.yml
+open FastTalk.xcodeproj     # opens in Xcode
 ```
 
 Then hit **Cmd+R** to build and run.
@@ -55,15 +55,15 @@ Then hit **Cmd+R** to build and run.
 ### CLI build (no Xcode GUI)
 
 ```bash
-xcodebuild -scheme Chops -configuration Debug build
+xcodebuild -scheme FastTalk -configuration Debug build
 ```
 
 ## Project Structure
 
 ```
-Chops/
+FastTalk/
 ├── App/
-│   ├── ChopsApp.swift        # @main entry — SwiftData ModelContainer + Sparkle
+│   ├── FastTalkApp.swift        # @main entry — SwiftData ModelContainer + Sparkle
 │   ├── AppState.swift         # @Observable singleton — filters, selection, search
 │   └── ContentView.swift      # Three-column NavigationSplitView, kicks off scanning
 ├── Models/
@@ -84,7 +84,7 @@ Chops/
 │   ├── Settings/              # Preferences & update UI
 │   └── Shared/                # Reusable components (ToolBadge, NewSkillSheet)
 ├── Resources/                 # Asset catalog (tool icons, colors)
-└── Chops.entitlements         # Disables sandbox (intentional)
+└── FastTalk.entitlements         # Disables sandbox (intentional)
 
 project.yml          # xcodegen config — source of truth for Xcode project settings
 scripts/             # Release pipeline (release.sh)
@@ -97,7 +97,7 @@ site/                # Marketing website (Astro 6)
 
 ### App lifecycle
 
-1. `ChopsApp` initializes a SwiftData `ModelContainer` (persists `Skill` and `SkillCollection`)
+1. `FastTalkApp` initializes a SwiftData `ModelContainer` (persists `Skill` and `SkillCollection`)
 2. Sparkle updater starts in the background
 3. `AppState` is created and injected into the SwiftUI environment
 4. `ContentView` renders and calls `startScanning()`
@@ -123,7 +123,7 @@ Three-column `NavigationSplitView`:
 
 ## Supported Tools
 
-Chops scans these directories for skills and agents:
+FastTalk scans these directories for skills and agents:
 
 | Tool | Skills | Agents |
 |------|--------|--------|
@@ -136,26 +136,26 @@ Chops scans these directories for skills and agents:
 
 Copilot and Aider are also supported but only detect project-level skills and agents (no global paths). Custom scan paths can be added for any tool.
 
-Tool definitions live in `Chops/Models/ToolSource.swift` — each enum case knows its display name, icon, color, and filesystem paths.
+Tool definitions live in `FastTalk/Models/ToolSource.swift` — each enum case knows its display name, icon, color, and filesystem paths.
 
 ## Common Dev Tasks
 
 ### Add support for a new tool
 
-1. Add a new case to the `ToolSource` enum in `Chops/Models/ToolSource.swift`
+1. Add a new case to the `ToolSource` enum in `FastTalk/Models/ToolSource.swift`
 2. Fill in `displayName`, `iconName`, `color`, and `globalPaths`
 3. Optionally add a logo to the asset catalog and return it from `logoAssetName`
 4. Update `SkillScanner` if the new tool uses a non-standard file layout
 
 ### Modify skill parsing
 
-- **Frontmatter (`.md`)** — edit `Chops/Utilities/FrontmatterParser.swift`
-- **Cursor `.mdc` files** — edit `Chops/Utilities/MDCParser.swift`
-- **Dispatch logic** — edit `Chops/Services/SkillParser.swift` (decides which parser to use)
+- **Frontmatter (`.md`)** — edit `FastTalk/Utilities/FrontmatterParser.swift`
+- **Cursor `.mdc` files** — edit `FastTalk/Utilities/MDCParser.swift`
+- **Dispatch logic** — edit `FastTalk/Services/SkillParser.swift` (decides which parser to use)
 
 ### Change the UI
 
-Views are in `Chops/Views/`, organized by column (Sidebar, Detail) and shared components. The main layout is in `Chops/App/ContentView.swift`.
+Views are in `FastTalk/Views/`, organized by column (Sidebar, Detail) and shared components. The main layout is in `FastTalk/App/ContentView.swift`.
 
 ## Testing
 

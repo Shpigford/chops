@@ -1,4 +1,4 @@
-# Changelog
+# Fast Talk Changelog
 
 ## [Unreleased]
 
@@ -23,7 +23,7 @@
 
 ## [1.11.0] - 2026-03-28
 
-- Chat with AI agents directly inside Chops (ACP support)
+- Chat with AI agents directly inside Fast Talk (ACP support)
 - Cancel in-progress AI requests
 - Floating AI button for quick access to the compose panel
 - Improved compose panel layout and usability
@@ -95,4 +95,4 @@
 - Three-column layout with sidebar, skill list, and markdown editor
 - Support for Claude Code, Cursor, Codex, Windsurf, Copilot, Aider, Amp
 - Sparkle auto-updates with EdDSA signing
-- Marketing site at chops.md
+- Marketing site at fasttalk.md

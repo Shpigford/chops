@@ -17,7 +17,7 @@ body:
       label: Steps to reproduce
       description: How can we see this bug?
       placeholder: |
-        1. Open Chops...
+        1. Open Fast Talk...
         2. Navigate to...
         3. See...
     validations:
@@ -27,7 +27,7 @@ body:
     id: app-version
     attributes:
       label: App version
-      description: "Found in Chops → Settings → About"
+      description: "Found in Fast Talk → Settings → About"
       placeholder: "e.g. 1.9.0"
     validations:
       required: true

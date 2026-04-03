@@ -3,7 +3,7 @@ name: release
 description: Determine the next version, update the marketing site, and run the full release pipeline.
 ---
 
-Cut a new release of Chops. Determines the version from git history, updates the marketing site, and runs the release script.
+Cut a new release of Fast Talk. Determines the version from git history, updates the marketing site, and runs the release script.
 
 ## Instructions
 
@@ -101,7 +101,7 @@ git push
 
 Tell the user:
 - The version that was released
-- Link: `https://github.com/Shpigford/chops/releases/tag/v<VERSION>`
+- Link: `https://github.com/Shpigford/fasttalk/releases/tag/v<VERSION>`
 - Remind them to deploy the marketing site if needed (`npm run build` from `site/`)
 
 ## Important Rules
