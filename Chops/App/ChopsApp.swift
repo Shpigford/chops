@@ -94,6 +94,7 @@ final class AppLifecycleLogger: NSObject, NSApplicationDelegate {
         AppLogger.lifecycle.notice("applicationDidFinishLaunching")
         AppRuntimeDiagnostics.logSnapshot(reason: "applicationDidFinishLaunching")
         scheduleLaunchSnapshots()
+        scheduleWindowRecovery()
     }
 
     func applicationDidBecomeActive(_ notification: Notification) {
@@ -119,6 +120,9 @@ final class AppLifecycleLogger: NSObject, NSApplicationDelegate {
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
         AppLogger.lifecycle.notice("applicationShouldHandleReopen hasVisibleWindows=\(flag)")
         AppRuntimeDiagnostics.logSnapshot(reason: "applicationShouldHandleReopen")
+        if !flag {
+            AppRuntimeDiagnostics.ensureVisibleWindow(reason: "applicationShouldHandleReopen")
+        }
         return true
     }
 
@@ -155,6 +159,13 @@ final class AppLifecycleLogger: NSObject, NSApplicationDelegate {
                 try? await Task.sleep(nanoseconds: delay)
                 AppRuntimeDiagnostics.logSnapshot(reason: reason)
             }
+        }
+    }
+
+    private func scheduleWindowRecovery() {
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 750_000_000)
+            AppRuntimeDiagnostics.ensureVisibleWindow(reason: "post-launch recovery +750ms")
         }
     }
 }
@@ -194,6 +205,40 @@ enum AppRuntimeDiagnostics {
         let message = "\(label) title=\(window.title) visible=\(window.isVisible) key=\(window.isKeyWindow) main=\(window.isMainWindow) miniaturized=\(window.isMiniaturized) occlusion=\(window.occlusionState.rawValue)"
         AppLogger.windows.notice("\(message, privacy: .public)")
         logSnapshot(reason: "window-notification \(label)")
+    }
+
+    static func ensureVisibleWindow(reason: String) {
+        guard let app = NSApp else {
+            AppLogger.windows.notice("\(reason, privacy: .public) cannot recover window without NSApp")
+            return
+        }
+
+        let candidateWindows = app.windows.filter { !$0.isMiniaturized }
+        guard let window = candidateWindows.first else {
+            AppLogger.windows.notice("\(reason, privacy: .public) no candidate windows to surface")
+            return
+        }
+
+        let hasVisibleWindow = candidateWindows.contains(where: \.isVisible)
+        let needsActivation = !app.isActive || app.mainWindow == nil || app.keyWindow == nil
+
+        guard !hasVisibleWindow || needsActivation else {
+            AppLogger.windows.notice("\(reason, privacy: .public) skipped recovery because the app is already visible and active")
+            return
+        }
+
+        AppLogger.windows.notice("\(reason, privacy: .public) forcing primary window foreground visible")
+
+        if window.screen == nil {
+            window.center()
+        }
+
+        app.unhide(nil)
+        NSRunningApplication.current.activate(options: [.activateIgnoringOtherApps])
+        window.orderFrontRegardless()
+        window.makeKeyAndOrderFront(nil)
+
+        logSnapshot(reason: "\(reason) after ensureVisibleWindow")
     }
 
     private static func windowDescription(_ window: NSWindow) -> String {

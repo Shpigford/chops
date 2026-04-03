@@ -7,6 +7,7 @@ struct ContentView: View {
     @Query(sort: \Skill.name) private var skills: [Skill]
     @State private var scanner: SkillScanner?
     @State private var fileWatcher: FileWatcher?
+    @State private var watcherGeneration = 0
     @State private var columnVisibility: NavigationSplitViewVisibility = .all
 
     private var searchPrompt: LocalizedStringKey {
@@ -155,12 +156,22 @@ struct ContentView: View {
             scanner.scanAll()
             scanner.removeDeletedSkills()
         }
-        watcher.watchDirectories(allPaths)
-        self.fileWatcher = watcher
-        AppLogger.ui.notice("File watchers active on \(allPaths.count) directories")
+        watcherGeneration += 1
+        let generation = watcherGeneration
         let watchedPaths = allPaths.joined(separator: " | ")
-        AppLogger.ui.notice("Watching paths: \(watchedPaths, privacy: .public)")
-        AppRuntimeDiagnostics.logSnapshot(reason: "startScanning configured watchers")
+        DispatchQueue.global(qos: .utility).async {
+            watcher.watchDirectories(allPaths)
+            DispatchQueue.main.async {
+                guard self.watcherGeneration == generation else {
+                    watcher.stopAll()
+                    return
+                }
+                self.fileWatcher = watcher
+                AppLogger.ui.notice("File watchers active on \(allPaths.count) directories")
+                AppLogger.ui.notice("Watching paths: \(watchedPaths, privacy: .public)")
+                AppRuntimeDiagnostics.logSnapshot(reason: "startScanning configured watchers")
+            }
+        }
 
         if syncRemote {
             Task {
