@@ -28,8 +28,11 @@
 ## Data And State
 - Keep `Skill.resolvedPath` semantics intact. It is the identity boundary that merges symlinked installs, plugin installs, and remote records.
 - Keep the canonical global skill location centered on `~/.agents/skills`. Local installs and registry installs fan out from that canonical directory through symlinks.
+- Keep local notes filesystem-backed under `NotesService.notesDirectoryURL`. Notes use fixed timestamp filenames on disk while the visible title stays content-derived from markdown.
 - Keep SwiftData focused on `Skill`, `SkillCollection`, and `RemoteServer` plus their derived helpers. Put workflow logic in services or document objects, not in schema definitions.
+- Keep shell selection in `AppState` set-backed for the middle list and derive single-item detail from that selection. The detail pane is intentionally single-item only.
 - Reuse the existing invalidation notifications when the meaning is the same: `saveCurrentSkill` for explicit save requests and `customScanPathsChanged` for scan-affecting settings or installs.
+- Reuse `newNoteRequested` when a shell-level command should trigger the same direct note-creation flow as the Notes toolbar.
 - Add new app-wide invalidation notifications only when neither existing notification matches the meaning. Prefer extending the existing scan/save pathways over inventing parallel ones.
 
 ## Validation

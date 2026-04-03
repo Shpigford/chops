@@ -6,6 +6,7 @@
 
 ## Ownership
 - Keep `SkillScanner` responsible for collecting skills, canonicalizing identity, applying SwiftData upserts, remote sync, and stale-record cleanup.
+- Keep `NotesService` responsible for the notes root path, timestamped note filenames, seeded note content, and note title/excerpt extraction.
 - Keep `StoreBootstrap` responsible for explicit store-path setup and legacy-store migration.
 - Keep `SSHService` responsible for `/usr/bin/ssh` invocation, quoting, batching, and remote file transfer behavior.
 - Keep ACP transport and session logic inside the ACP service layer. Let views consume agent state; do not move transport behavior into SwiftUI code.
@@ -18,12 +19,14 @@
 - Keep pure file collection off the main actor and return to the main actor only for SwiftData mutation and UI-observable state changes.
 - Reuse canonical-path logic whenever scan identity, symlink merging, or plugin normalization is involved.
 - Preserve the existing distinction between local/plugin records and remote records.
+- Keep note metadata derived from content, not filenames: prefer the first H1-H4 heading in document order, otherwise the first non-empty line, and keep excerpt extraction aligned with that chosen title line.
 - Reuse the existing shell escaping and batching strategy in `SSHService` when expanding remote behavior.
 - Keep vendor-specific ACP behavior behind `BaseACPAgent` hooks and `ACPAgentFactory`, not scattered across views.
 - Keep registry or template services side-effect-light; let higher layers decide how results surface in the UI.
 - Preserve the current scan-file precedence inside directories: prefer `SKILL.md`, then `AGENTS.md`, then the single preferred agent/rule file when the subtree explicitly supports that fallback.
 - Preserve the ignored loose-markdown allowlist for config/meta files such as `AGENTS.md`, `CLAUDE.md`, `README.md`, and `CHANGELOG.md` so scans do not turn repository docs into user skills.
 - Keep `FileWatcher` debounced and main-thread-callback-based. Do not trade correctness for more frequent rescans without proving the shell still behaves well under bursty file changes.
+- Keep note creation in `NotesService` deterministic: filename format `yyyy-MM-dd--HH-mm-ss` with `-1`, `-2`, and so on on collisions, and initial content seeded as `# `.
 - Keep `SkillRegistry.install` sanitized-name rules and the canonical `~/.agents/skills/<name>` write path in sync with `Skill.makeGlobal()`.
 - Keep ACP pending writes deferred until explicit acceptance unless bypass mode is intentionally enabled at the ACP layer.
 

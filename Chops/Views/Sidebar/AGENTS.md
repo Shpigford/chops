@@ -15,6 +15,10 @@
 - Keep list filtering in memory over the existing `@Query` result unless the repository intentionally redesigns search and indexing. Do not bolt a second search backend onto this subtree casually.
 - Keep current filter semantics aligned across shell and list: kind filters, favorites, collection membership, server scope, tool scope, and text search should continue to compose predictably.
 - Keep row actions explicit and immediate: favorite toggles, collection membership, show in Finder, make global, and delete all save at the action boundary.
+- Keep Notes creation direct in this subtree. When the Notes library filter is active, the toolbar `+` and `Cmd-N` must call the same immediate blank-note creation flow instead of opening `NewSkillSheet`.
+- Keep middle-list selection set-backed for Shift/Cmd multi-select convenience. Multi-selection is for bulk actions like Trash; it does not imply a multi-item detail surface.
+- Keep local delete actions routed through move-to-Trash plus undo, including delete-key handling. Do not show permanent-delete confirmation for the current local list workflow.
+- Keep note rows note-taking oriented: content-derived title, short excerpt, and relative modified date, without tool-badge clutter.
 - Preserve drag-and-drop into collections as a sidebar/list interaction pattern.
 - Keep server actions limited to explicit user-triggered sync/test affordances that call existing services. Do not make the sidebar its own sync coordinator.
 

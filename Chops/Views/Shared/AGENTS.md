@@ -18,6 +18,7 @@
 - Use `RegistrySheet` as the reference pattern for searchable install/browse flows that fetch external content and then apply a filesystem-backed install.
 - Keep `ComposePanel` wired through `ACPConfiguration.shared`, `TemplateManager.shared`, and `ACPAgentFactory`. Do not fork assistant setup logic into feature-specific panels.
 - Keep assistant-proposed writes reviewable by default: pending writes stay deferred until accept/reject unless ACP bypass mode is explicitly in effect.
+- Keep `NewSkillSheet` for explicit named creation flows. Do not route the primary Notes creation experience through it when the shell already supports immediate blank-note creation.
 
 ## UI Consistency
 - Keep shared workflow panels compact, technical, and low-chrome.

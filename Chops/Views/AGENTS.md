@@ -16,6 +16,8 @@
 - Use `@Environment(\\.modelContext)` for persisted mutations and save at the user-action boundary.
 - Use `@Query` for view-driven lists that mirror SwiftData state.
 - Keep view-local `@State` for ephemeral presentation, progress, and short-lived workflow state.
+- Keep the middle list selection set-backed and the detail pane single-item only. If multiple items are selected, show the shell empty state instead of inventing multi-edit UI.
+- Keep local destructive actions reversible: move deletable local items to Trash, register undo, and avoid confirmation alerts unless the action is truly irreversible.
 
 ## AppKit Bridges
 - Prefer SwiftUI first, then add narrow AppKit wrappers when the behavior is genuinely editor- or platform-specific.
