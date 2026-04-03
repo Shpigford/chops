@@ -104,12 +104,15 @@ final class ClaudeACPAgent: BaseACPAgent {
             if let existing = pendingWrites.firstIndex(where: {
                 URL(fileURLWithPath: $0.path).resolvingSymlinksInPath().path == resolvedPath
             }) {
+                // Preserve the existing content — handleFileWriteRequest may have
+                // already set it to the full file. d.newText can be a partial fragment.
+                let prev = pendingWrites[existing]
                 pendingWrites[existing] = PendingWrite(
-                    path: d.path,
-                    content: d.newText,
-                    originalText: pendingWrites[existing].originalText,
-                    originalData: pendingWrites[existing].originalData,
-                    existedBefore: pendingWrites[existing].existedBefore
+                    path: prev.path,
+                    content: prev.content,
+                    originalText: prev.originalText ?? oldText,
+                    originalData: prev.originalData ?? oldData,
+                    existedBefore: prev.existedBefore
                 )
             } else {
                 pendingWrites.append(

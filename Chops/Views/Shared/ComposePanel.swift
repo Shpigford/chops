@@ -777,11 +777,10 @@ struct ComposePanel: View {
         Task {
             do {
                 let fp = filePath
-                let original: String? = await readFile(at: fp)
-                guard let original else {
-                    messages.append(ChatMessage(id: assistantId, role: .assistant, text: "Cannot read file: \(filePath)", isError: true))
-                    return
-                }
+                // Use the editor binding — it's the ground truth the user sees.
+                // readFile(at:) reads disk, which may be stale (auto-save debounce).
+                let original = content
+                client.primeDeferredContent(for: fp, content: original)
                 let prompt = buildPrompt(text: text, originalContent: original)
                 try await client.prompt(prompt)
                 isFirstTurn = false
@@ -872,16 +871,16 @@ struct ComposePanel: View {
             let original: String?
             let originalData: Data?
             let existedBefore: Bool
-            if let embedded = write.originalText {
-                // Agent supplied the pre-edit content (e.g. DiffContent.oldText) — use it directly.
-                original = embedded
-                originalData = write.originalData
-                existedBefore = write.existedBefore
-            } else if write.path == filePath || writtenResolved == resolvedFilePath {
-                // Path matches (accounting for symlinks) — use the in-memory content from before the turn.
+            if write.path == filePath || writtenResolved == resolvedFilePath {
+                // Current file: always use our own snapshot from turn start.
+                // The agent's oldText can be empty or wrong; fallbackOriginal is ground truth.
                 original = fallbackOriginal
                 originalData = fallbackOriginal.data(using: .utf8)
                 existedBefore = true
+            } else if let embedded = write.originalText {
+                original = embedded
+                originalData = write.originalData
+                existedBefore = write.existedBefore
             } else {
                 original = write.originalText
                 originalData = write.originalData

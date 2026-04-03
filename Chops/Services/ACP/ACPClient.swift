@@ -240,6 +240,12 @@ open class BaseACPAgent: ClientDelegate {
 
     func clearPendingWrites() { pendingWrites = []; deferredContent = [:] }
 
+    /// Seed the virtual file map so same-turn reads see the editor state rather than stale disk.
+    func primeDeferredContent(for path: String, content: String) {
+        let resolved = URL(fileURLWithPath: path).resolvingSymlinksInPath().path
+        deferredContent[resolved] = content
+    }
+
     /// Sends a session/cancel notification to the agent to interrupt the current turn.
     func cancelPrompt() {
         guard let client = acpClient, let sid = sessionId else { return }
@@ -316,6 +322,19 @@ open class BaseACPAgent: ClientDelegate {
                     originalData: snapshot.1,
                     existedBefore: snapshot.0
                 )
+            )
+        } else if let idx = pendingWrites.firstIndex(where: {
+            URL(fileURLWithPath: $0.path).resolvingSymlinksInPath().path == resolvedIncoming
+        }) {
+            // captureDiffs may have set content to a partial diff fragment.
+            // Replace with the full file content from write_text_file.
+            let existing = pendingWrites[idx]
+            pendingWrites[idx] = PendingWrite(
+                path: existing.path,
+                content: content,
+                originalText: existing.originalText,
+                originalData: existing.originalData,
+                existedBefore: existing.existedBefore
             )
         }
         // Store proposed content so subsequent agent reads return it.
