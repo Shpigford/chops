@@ -91,7 +91,14 @@ struct ContentView: View {
         }
         .searchable(text: $appState.searchText, prompt: searchPrompt)
         .onAppear {
+            AppLogger.lifecycle.notice("ContentView onAppear sidebarFilter=\(String(describing: appState.sidebarFilter), privacy: .public)")
+            AppRuntimeDiagnostics.logSnapshot(reason: "ContentView.onAppear before scan")
             startScanning(syncRemote: true)
+            AppRuntimeDiagnostics.logSnapshot(reason: "ContentView.onAppear after scan setup")
+        }
+        .onDisappear {
+            AppLogger.lifecycle.notice("ContentView onDisappear")
+            AppRuntimeDiagnostics.logSnapshot(reason: "ContentView.onDisappear")
         }
         .sheet(isPresented: $appState.showingNewSkillSheet) {
             NewSkillSheet()
@@ -101,15 +108,18 @@ struct ContentView: View {
         }
         .onChange(of: appState.sidebarFilter) {
             appState.toolKindFilter = nil
+            AppLogger.ui.notice("Sidebar filter changed to \(String(describing: appState.sidebarFilter), privacy: .public)")
         }
         .frame(minWidth: 900, minHeight: 500)
         .onReceive(NotificationCenter.default.publisher(for: .customScanPathsChanged)) { _ in
+            AppLogger.lifecycle.notice("Received customScanPathsChanged notification")
+            AppRuntimeDiagnostics.logSnapshot(reason: "customScanPathsChanged before rescan")
             startScanning(syncRemote: false)
         }
     }
 
     private func startScanning(syncRemote: Bool) {
-        AppLogger.ui.notice("App started, beginning initial scan")
+        AppLogger.ui.notice("startScanning syncRemote=\(syncRemote)")
         do {
             try NotesService.ensureNotesDirectoryExists()
         } catch {
@@ -148,6 +158,9 @@ struct ContentView: View {
         watcher.watchDirectories(allPaths)
         self.fileWatcher = watcher
         AppLogger.ui.notice("File watchers active on \(allPaths.count) directories")
+        let watchedPaths = allPaths.joined(separator: " | ")
+        AppLogger.ui.notice("Watching paths: \(watchedPaths, privacy: .public)")
+        AppRuntimeDiagnostics.logSnapshot(reason: "startScanning configured watchers")
 
         if syncRemote {
             Task {
