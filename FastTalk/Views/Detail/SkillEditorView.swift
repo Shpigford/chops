@@ -11,6 +11,7 @@ final class SkillEditorDocument {
         }
     }
     var preferredCursorLocation: Int?
+    var editorFocusRequestID: Int?
     var hasUnsavedChanges = false
     var isLoadingRemote = false
     var isSavingRemote = false
@@ -21,6 +22,7 @@ final class SkillEditorDocument {
     private var isLoading = false
     private var loadTask: Task<Void, Never>?
     private var loadGeneration = 0
+    private var nextEditorFocusRequestID = 0
 
     func load(from skill: Skill) {
         if skill.isRemote {
@@ -68,6 +70,7 @@ final class SkillEditorDocument {
                 self.editorContent = data
                 self.fullFileContent = data
                 self.preferredCursorLocation = self.initialCursorLocation(isNote: isNote, content: data)
+                self.editorFocusRequestID = self.initialFocusRequestID(isNote: isNote, content: data)
                 self.isLoading = false
                 self.hasUnsavedChanges = false
                 self.showingSaveError = false
@@ -122,6 +125,7 @@ final class SkillEditorDocument {
                     editorContent = content
                     fullFileContent = content
                     preferredCursorLocation = initialCursorLocation(isNote: isNote, content: content)
+                    editorFocusRequestID = initialFocusRequestID(isNote: isNote, content: content)
                     isLoading = false
                     isLoadingRemote = false
                     hasUnsavedChanges = false
@@ -135,6 +139,7 @@ final class SkillEditorDocument {
                     editorContent = fallbackContent
                     fullFileContent = fallbackContent
                     preferredCursorLocation = initialCursorLocation(isNote: isNote, content: fallbackContent)
+                    editorFocusRequestID = initialFocusRequestID(isNote: isNote, content: fallbackContent)
                     isLoading = false
                     isLoadingRemote = false
                     hasUnsavedChanges = false
@@ -203,6 +208,15 @@ final class SkillEditorDocument {
         return NotesService.initialContent.utf16.count
     }
 
+    private func initialFocusRequestID(isNote: Bool, content: String) -> Int? {
+        guard isNote, content == NotesService.initialContent else {
+            return nil
+        }
+
+        nextEditorFocusRequestID += 1
+        return nextEditorFocusRequestID
+    }
+
     deinit {
         loadTask?.cancel()
     }
@@ -224,6 +238,7 @@ struct SkillEditorView: View {
                 HighlightedTextEditor(
                     text: $document.editorContent,
                     preferredCursorLocation: $document.preferredCursorLocation,
+                    editorFocusRequestID: $document.editorFocusRequestID,
                     isEditable: isEditable
                 )
             }
@@ -255,6 +270,7 @@ extension Notification.Name {
 struct HighlightedTextEditor: NSViewRepresentable {
     @Binding var text: String
     @Binding var preferredCursorLocation: Int?
+    @Binding var editorFocusRequestID: Int?
     var isEditable: Bool = true
     @Environment(\.colorScheme) private var colorScheme
 
@@ -373,6 +389,19 @@ struct HighlightedTextEditor: NSViewRepresentable {
 
             DispatchQueue.main.async {
                 self.preferredCursorLocation = nil
+            }
+        }
+
+        if let editorFocusRequestID {
+            DispatchQueue.main.async {
+                guard self.editorFocusRequestID == editorFocusRequestID else { return }
+                guard let window = textView.window else { return }
+
+                let selectedRange = textView.selectedRange()
+                window.makeFirstResponder(textView)
+                textView.setSelectedRange(selectedRange)
+                textView.scrollRangeToVisible(selectedRange)
+                self.editorFocusRequestID = nil
             }
         }
     }
