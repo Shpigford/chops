@@ -4,9 +4,9 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-APP_NAME="Chops"
-PROJECT_FILE="Chops.xcodeproj"
-SCHEME="Chops"
+APP_NAME="FastTalk"
+PROJECT_FILE="FastTalk.xcodeproj"
+SCHEME="FastTalk"
 CONFIGURATION="LocalRelease"
 BUILD_ROOT="$ROOT_DIR/build/local-release"
 DERIVED_DATA_PATH="$BUILD_ROOT/DerivedData"

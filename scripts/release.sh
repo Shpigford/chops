@@ -69,7 +69,7 @@ extract_changelog_markdown() {
 TEAM_ID="${APPLE_TEAM_ID:?Set APPLE_TEAM_ID}"
 SIGNING_IDENTITY="Developer ID Application: ${SIGNING_IDENTITY_NAME:?Set SIGNING_IDENTITY_NAME} ($TEAM_ID)"
 APPLE_ID="${APPLE_ID:?Set APPLE_ID}"
-BUNDLE_ID="com.joshpigford.Chops"
+BUNDLE_ID="com.fasttalk"
 
 if ! xcrun notarytool history --keychain-profile "AC_PASSWORD" >/dev/null 2>&1; then
   echo "❌ Unable to use notarytool keychain profile \"AC_PASSWORD\"."
@@ -78,22 +78,22 @@ if ! xcrun notarytool history --keychain-profile "AC_PASSWORD" >/dev/null 2>&1; 
   exit 1
 fi
 
-create_chops_dmg() {
-  hdiutil detach "/Volumes/Chops" 2>/dev/null || true
-  rm -f build/Chops.dmg build/Chops_rw.dmg
+create_fasttalk_dmg() {
+  hdiutil detach "/Volumes/Fast Talk" 2>/dev/null || true
+  rm -f build/FastTalk.dmg build/FastTalk_rw.dmg
 
   # Create writable DMG from the app
-  hdiutil create -volname "Chops" -srcfolder build/export/Chops.app -fs HFS+ -format UDRW build/Chops_rw.dmg
+  hdiutil create -volname "Fast Talk" -srcfolder build/export/FastTalk.app -fs HFS+ -format UDRW build/FastTalk_rw.dmg
 
   # Mount, add Applications symlink and background, apply Finder styling
-  hdiutil attach build/Chops_rw.dmg
-  ln -s /Applications "/Volumes/Chops/Applications"
-  mkdir -p "/Volumes/Chops/.background"
-  cp scripts/dmg-background.png "/Volumes/Chops/.background/background.png"
+  hdiutil attach build/FastTalk_rw.dmg
+  ln -s /Applications "/Volumes/Fast Talk/Applications"
+  mkdir -p "/Volumes/Fast Talk/.background"
+  cp scripts/dmg-background.png "/Volumes/Fast Talk/.background/background.png"
 
   osascript <<'APPLESCRIPT'
 tell application "Finder"
-  tell disk "Chops"
+  tell disk "Fast Talk"
     open
     tell container window
       set current view to icon view
@@ -106,11 +106,11 @@ tell application "Finder"
       set icon size to 128
       set text size to 13
       set arrangement to not arranged
-      set background picture to POSIX file "/Volumes/Chops/.background/background.png"
+      set background picture to POSIX file "/Volumes/Fast Talk/.background/background.png"
     end tell
-    set position of item "Chops.app" to {195, 220}
+    set position of item "FastTalk.app" to {195, 220}
     set position of item "Applications" to {595, 220}
-    set the extension hidden of item "Chops.app" to true
+    set the extension hidden of item "FastTalk.app" to true
     close
     open
     delay 1
@@ -126,12 +126,12 @@ tell application "Finder"
 end tell
 APPLESCRIPT
 
-  hdiutil detach "/Volumes/Chops"
-  hdiutil convert build/Chops_rw.dmg -format UDZO -o build/Chops.dmg
-  rm -f build/Chops_rw.dmg
+  hdiutil detach "/Volumes/Fast Talk"
+  hdiutil convert build/FastTalk_rw.dmg -format UDZO -o build/FastTalk.dmg
+  rm -f build/FastTalk_rw.dmg
 }
 
-echo "🔨 Building Chops v$VERSION..."
+echo "🔨 Building Fast Talk v$VERSION..."
 
 # Generate Xcode project
 xcodegen generate
@@ -141,10 +141,10 @@ rm -rf build
 mkdir -p build
 
 # Archive
-xcodebuild -project Chops.xcodeproj \
-  -scheme Chops \
+xcodebuild -project FastTalk.xcodeproj \
+  -scheme FastTalk \
   -configuration Release \
-  -archivePath build/Chops.xcarchive \
+  -archivePath build/FastTalk.xcarchive \
   archive \
   DEVELOPMENT_TEAM="$TEAM_ID" \
   MARKETING_VERSION="$VERSION" \
@@ -153,30 +153,30 @@ xcodebuild -project Chops.xcodeproj \
 # Export
 sed "s/\${APPLE_TEAM_ID}/$TEAM_ID/g" ExportOptions.plist > build/ExportOptions.plist
 xcodebuild -exportArchive \
-  -archivePath build/Chops.xcarchive \
+  -archivePath build/FastTalk.xcarchive \
   -exportOptionsPlist build/ExportOptions.plist \
   -exportPath build/export
 
 echo "📦 Creating DMG..."
-create_chops_dmg
+create_fasttalk_dmg
 
 echo "🔏 Notarizing..."
-xcrun notarytool submit build/Chops.dmg \
+xcrun notarytool submit build/FastTalk.dmg \
   --keychain-profile "AC_PASSWORD" \
   --wait
 
 echo "📎 Stapling..."
-xcrun stapler staple build/export/Chops.app
-create_chops_dmg
-xcrun stapler staple build/Chops.dmg || echo "⚠️  DMG staple failed (normal — CDN propagation delay). App inside is stapled."
+xcrun stapler staple build/export/FastTalk.app
+create_fasttalk_dmg
+xcrun stapler staple build/FastTalk.dmg || echo "⚠️  DMG staple failed (normal — CDN propagation delay). App inside is stapled."
 
 echo "🏷️  Tagging v$VERSION..."
 git tag "v$VERSION"
 git push --tags
 
 echo "📡 Generating Sparkle appcast..."
-SPARKLE_BIN=$(find ~/Library/Developer/Xcode/DerivedData/Chops-*/SourcePackages/artifacts/sparkle/Sparkle/bin -maxdepth 0 2>/dev/null | head -1)
-SIGNATURE=$("$SPARKLE_BIN/sign_update" build/Chops.dmg 2>&1)
+SPARKLE_BIN=$(find ~/Library/Developer/Xcode/DerivedData/FastTalk-*/SourcePackages/artifacts/sparkle/Sparkle/bin -maxdepth 0 2>/dev/null | head -1)
+SIGNATURE=$("$SPARKLE_BIN/sign_update" build/FastTalk.dmg 2>&1)
 ED_SIG=$(echo "$SIGNATURE" | grep -o 'sparkle:edSignature="[^"]*"' | cut -d'"' -f2)
 LENGTH=$(echo "$SIGNATURE" | grep -o 'length="[^"]*"' | cut -d'"' -f2)
 PUB_DATE=$(date -u +"%a, %d %b %Y %H:%M:%S +0000")
@@ -210,7 +210,7 @@ cat > build/appcast.xml << APPCAST
 <?xml version="1.0" standalone="yes"?>
 <rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0">
   <channel>
-    <title>Chops</title>
+    <title>Fast Talk</title>
     <item>
       <title>Version $VERSION</title>
       <sparkle:version>$VERSION</sparkle:version>
@@ -219,7 +219,7 @@ cat > build/appcast.xml << APPCAST
       <pubDate>$PUB_DATE</pubDate>
 $DESC_ELEMENT
       <enclosure
-        url="https://github.com/Shpigford/chops/releases/download/v$VERSION/Chops.dmg"
+        url="https://github.com/Shpigford/fasttalk/releases/download/v$VERSION/FastTalk.dmg"
         sparkle:edSignature="$ED_SIG"
         length="$LENGTH"
         type="application/octet-stream"
@@ -239,13 +239,13 @@ git push
 echo "🚀 Creating GitHub Release..."
 CHANGELOG_MD=$(extract_changelog_markdown "$VERSION" "CHANGELOG.md")
 if [ -n "$CHANGELOG_MD" ]; then
-  gh release create "v$VERSION" build/Chops.dmg \
-    --title "Chops v$VERSION" \
+  gh release create "v$VERSION" build/FastTalk.dmg \
+    --title "Fast Talk v$VERSION" \
     --notes "$CHANGELOG_MD"
 else
-  gh release create "v$VERSION" build/Chops.dmg \
-    --title "Chops v$VERSION" \
+  gh release create "v$VERSION" build/FastTalk.dmg \
+    --title "Fast Talk v$VERSION" \
     --generate-notes
 fi
 
-echo "✅ Done! Release: https://github.com/Shpigford/chops/releases/tag/v$VERSION"
+echo "✅ Done! Release: https://github.com/Shpigford/fasttalk/releases/tag/v$VERSION"

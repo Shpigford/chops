@@ -9,7 +9,7 @@ REMOTE_SUBDIR ?= Desktop
 help:
 	@printf "%s\n" \
 		"Targets:" \
-		"  make bundle-local-release                Bundle and stage build/local-release/artifacts/Chops.app" \
+		"  make bundle-local-release                Bundle and stage build/local-release/artifacts/FastTalk.app" \
 		"  make copy-to-macbook REMOTE_HOST=...     Copy the staged app bundle to a remote Mac" \
 		"  make open-on-macbook REMOTE_HOST=...     Restart the copied app bundle on the remote Mac" \
 		"  make restart-on-macbook REMOTE_HOST=...  Alias for open-on-macbook" \
