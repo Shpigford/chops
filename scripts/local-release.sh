@@ -19,14 +19,16 @@ PROJECT_PBXPROJ_PATH="$ROOT_DIR/$PROJECT_FILE/project.pbxproj"
 usage() {
   cat <<'EOF'
 Usage:
-  ./scripts/local-release.sh build
+  ./scripts/local-release.sh bundle
   ./scripts/local-release.sh copy <host> [remote_subdir]
-  ./scripts/local-release.sh build-and-copy <host> [remote_subdir]
+  ./scripts/local-release.sh open <host> [remote_subdir]
+  ./scripts/local-release.sh copy-and-open <host> [remote_subdir]
 
 Examples:
-  ./scripts/local-release.sh build
+  ./scripts/local-release.sh bundle
   ./scripts/local-release.sh copy macbook Desktop
-  ./scripts/local-release.sh build-and-copy macbook Desktop
+  ./scripts/local-release.sh open macbook Desktop
+  ./scripts/local-release.sh copy-and-open macbook Desktop
 EOF
 }
 
@@ -64,6 +66,11 @@ generate_or_validate_project() {
 
 verify_local_artifact_exists() {
   [ -d "$STAGED_APP_PATH" ] || fail "staged app bundle not found at $STAGED_APP_PATH; run build first"
+}
+
+remote_app_path() {
+  local remote_subdir="${1:-Desktop}"
+  printf '$HOME/%s/%s.app' "$remote_subdir" "$APP_NAME"
 }
 
 build_local_release() {
@@ -111,31 +118,64 @@ copy_to_remote() {
   require_command rsync
   verify_local_artifact_exists
 
+  local remote_path
+  remote_path="$(remote_app_path "$remote_subdir")"
+
   log_step "Preparing remote destination on $host"
-  ssh "$host" "mkdir -p \"\$HOME/$remote_subdir\" && rm -rf \"\$HOME/$remote_subdir/$APP_NAME.app\""
+  ssh "$host" "mkdir -p \"\$HOME/$remote_subdir\" && rm -rf \"$remote_path\""
 
   log_step "Copying app bundle to $host"
-  rsync -a --delete "$STAGED_APP_PATH/" "$host:~/$remote_subdir/$APP_NAME.app/"
+  rsync -a --delete "$STAGED_APP_PATH/" "$host:\"$remote_path/\""
 
   log_step "Verifying remote app bundle on $host"
-  ssh "$host" "codesign --verify --deep --strict --verbose=2 \"\$HOME/$remote_subdir/$APP_NAME.app\" >/dev/null && ls -ld \"\$HOME/$remote_subdir/$APP_NAME.app\" && du -sh \"\$HOME/$remote_subdir/$APP_NAME.app\""
+  ssh "$host" "codesign --verify --deep --strict --verbose=2 \"$remote_path\" >/dev/null && ls -ld \"$remote_path\" && du -sh \"$remote_path\""
+}
+
+open_remote_app() {
+  local host="${1:-}"
+  local remote_subdir="${2:-Desktop}"
+
+  [ -n "$host" ] || fail "remote host is required for open"
+
+  require_command ssh
+
+  local remote_path
+  remote_path="$(remote_app_path "$remote_subdir")"
+
+  log_step "Opening app bundle on $host"
+  ssh "$host" "[ -d \"$remote_path\" ] || { echo \"missing remote app bundle at $remote_path\" >&2; exit 1; }; open -na \"$remote_path\""
 }
 
 main() {
   local command="${1:-}"
 
   case "$command" in
-    build)
+    bundle|build)
       build_local_release
       ;;
     copy)
       shift || true
       copy_to_remote "${1:-}" "${2:-Desktop}"
       ;;
-    build-and-copy)
+    open)
+      shift || true
+      open_remote_app "${1:-}" "${2:-Desktop}"
+      ;;
+    copy-and-open)
+      shift || true
+      copy_to_remote "${1:-}" "${2:-Desktop}"
+      open_remote_app "${1:-}" "${2:-Desktop}"
+      ;;
+    bundle-and-copy|build-and-copy)
       shift || true
       build_local_release
       copy_to_remote "${1:-}" "${2:-Desktop}"
+      ;;
+    bundle-and-copy-and-open)
+      shift || true
+      build_local_release
+      copy_to_remote "${1:-}" "${2:-Desktop}"
+      open_remote_app "${1:-}" "${2:-Desktop}"
       ;;
     ""|-h|--help|help)
       usage
