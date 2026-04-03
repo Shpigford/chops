@@ -1,16 +1,16 @@
 ---
 name: release
-description: Determine the next version, update the marketing site, and run the full release pipeline.
+description: Determine the next version, update release-facing docs, and create a private notarized build.
 ---
 
-Cut a new release of Fast Talk. Determines the version from git history, updates the marketing site, and runs the release script.
+Create a private Fast Talk release build. Determine the version from git history, update release-facing docs, and run the packaging script.
 
 ## Instructions
 
 ### Step 1: Verify prerequisites
 
 1. Confirm `.env` exists in the project root. If it does not, stop and tell the user:
-   "Missing `.env` file. Copy `.env.example` to `.env` and fill in APPLE_TEAM_ID, APPLE_ID, and SIGNING_IDENTITY_NAME."
+   "Missing `.env` file. Copy `.env.example` to `.env` and fill in APPLE_TEAM_ID and APPLE_ID."
 2. Confirm the notarytool keychain profile `AC_PASSWORD` works:
    ```bash
    xcrun notarytool history --keychain-profile "AC_PASSWORD" >/dev/null 2>&1
@@ -68,7 +68,7 @@ If the user picks "Use a different version", ask them for the version number. If
 3. Rename `## [Unreleased]` to `## [VERSION] - YYYY-MM-DD` (today's date).
 4. Add a new empty `## [Unreleased]` section above it.
 
-### Step 4: Update the marketing site version
+### Step 4: Update release-facing docs
 
 1. Edit `site/src/pages/index.astro`. Find the line containing `class="requires"` and replace it with:
    ```html
@@ -88,26 +88,22 @@ If the user picks "Use a different version", ask them for the version number. If
 ./scripts/release.sh <VERSION>
 ```
 
-This handles: xcodegen → archive → export → DMG → notarize → staple → git tag → appcast → push → GitHub Release.
+This handles: xcodegen → archive → export → DMG → notarize → staple.
 
 Let it run to completion. If it fails, report the error output to the user and stop. Do NOT retry automatically.
 
-### Step 6: Push and report
-
-Ensure all commits are on the remote:
-```bash
-git push
-```
+### Step 6: Report the artifacts
 
 Tell the user:
-- The version that was released
-- Link: `https://github.com/Shpigford/fasttalk/releases/tag/v<VERSION>`
-- Remind them to deploy the marketing site if needed (`npm run build` from `site/`)
+- The version that was packaged
+- DMG path: `build/FastTalk.dmg`
+- App path: `build/export/FastTalk.app`
+- Remind them to deploy the site separately if they changed `site/`
 
 ## Important Rules
 
 - ALWAYS confirm the version with the user before proceeding
 - NEVER run the release script if `.env` is missing or the working tree is dirty
-- NEVER skip the marketing site version update
+- NEVER skip the release-facing doc updates when they changed
 - If the release script fails, do NOT retry — report the error and stop
-- The release script handles git tagging and GitHub release creation — do not duplicate those steps
+- The release script handles packaging only — do not invent appcast or GitHub release steps around it

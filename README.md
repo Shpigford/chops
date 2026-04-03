@@ -7,9 +7,7 @@
 <p align="center">Your AI skills and agents, finally organized.</p>
 
 <p align="center">
-  <a href="https://github.com/Shpigford/fasttalk/releases/latest/download/FastTalk.dmg">Download</a> &middot;
-  <a href="https://fasttalk.md">Website</a> &middot;
-  <a href="https://x.com/Shpigford">@Shpigford</a>
+  <a href="https://fast.talk">Website</a>
 </p>
 
 <p align="center">
@@ -36,12 +34,12 @@ One macOS app to discover, organize, and edit coding agent skills and agents acr
 - **Homebrew** ([brew.sh](https://brew.sh))
 - **xcodegen** — `brew install xcodegen`
 
-Sparkle (auto-update framework) is the only external dependency and is pulled automatically by Xcode via Swift Package Manager. No manual setup needed.
+Dependencies are pulled automatically by Xcode via Swift Package Manager. No manual setup needed.
 
 ## Quick Start
 
 ```bash
-git clone https://github.com/Shpigford/fasttalk.git
+git clone <private-fast-talk-repo-url>
 cd fasttalk
 brew install xcodegen    # skip if already installed
 xcodegen generate        # generates FastTalk.xcodeproj from project.yml
@@ -63,7 +61,7 @@ xcodebuild -scheme FastTalk -configuration Debug build
 ```
 FastTalk/
 ├── App/
-│   ├── FastTalkApp.swift        # @main entry — SwiftData ModelContainer + Sparkle
+│   ├── FastTalkApp.swift        # @main entry — SwiftData ModelContainer + shell commands
 │   ├── AppState.swift         # @Observable singleton — filters, selection, search
 │   └── ContentView.swift      # Three-column NavigationSplitView, kicks off scanning
 ├── Models/
@@ -98,11 +96,10 @@ site/                # Marketing website (Astro 6)
 ### App lifecycle
 
 1. `FastTalkApp` initializes a SwiftData `ModelContainer` (persists `Skill` and `SkillCollection`)
-2. Sparkle updater starts in the background
-3. `AppState` is created and injected into the SwiftUI environment
-4. `ContentView` renders and calls `startScanning()`
-5. `SkillScanner` probes all tool directories and upserts discovered skills
-6. `FileWatcher` attaches FSEvents listeners — on any change, the scanner re-runs automatically
+2. `AppState` is created and injected into the SwiftUI environment
+3. `ContentView` renders and calls `startScanning()`
+4. `SkillScanner` probes all tool directories and upserts discovered skills
+5. `FileWatcher` attaches FSEvents listeners — on any change, the scanner re-runs automatically
 
 ### Key design decisions
 
@@ -123,7 +120,7 @@ Three-column `NavigationSplitView`:
 
 ## Supported Tools
 
-FastTalk scans these directories for skills and agents:
+Fast Talk scans these directories for skills and agents:
 
 | Tool | Skills | Agents |
 |------|--------|--------|

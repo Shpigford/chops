@@ -95,4 +95,4 @@
 - Three-column layout with sidebar, skill list, and markdown editor
 - Support for Claude Code, Cursor, Codex, Windsurf, Copilot, Aider, Amp
 - Sparkle auto-updates with EdDSA signing
-- Marketing site at fasttalk.md
+- Marketing site at fast.talk

@@ -26,7 +26,6 @@
 ## Change Routing
 - Use `FastTalk/AGENTS.md` for all app code.
 - Use `scripts/AGENTS.md` for release automation or packaging changes.
-- Treat `site/public/appcast.xml` as release output owned by the release script, not as a hand-edited marketing file.
 
 ## Never
 - Never add a second source-of-truth layer for files already backed by disk or SSH state.

@@ -40,7 +40,7 @@ open FastTalk.xcodeproj
 
 Share this architecture overview:
 
-**Entry point:** `FastTalk/App/FastTalkApp.swift` — sets up SwiftData ModelContainer (Skill + SkillCollection), starts Sparkle updater, injects AppState into environment.
+**Entry point:** `FastTalk/App/FastTalkApp.swift` — sets up SwiftData ModelContainer (Skill + SkillCollection), injects AppState into environment, and wires shell commands.
 
 **State:** `FastTalk/App/AppState.swift` — `@Observable` singleton holding UI state (selected tool, selected skill, search text, sidebar filter).
 
@@ -85,6 +85,6 @@ Copilot and Aider detect project-level skills only (no global paths).
 ## Important Rules
 
 - `project.yml` is the source of truth for Xcode settings — never edit `.xcodeproj` directly
-- Sparkle (auto-updates) is the only external dependency — pulled automatically via SPM
+- Dependencies are pulled automatically via SPM
 - There is no test suite — always validate changes by building and running the app manually
 - The app runs without sandbox — this is intentional and required
