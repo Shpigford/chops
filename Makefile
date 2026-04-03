@@ -11,8 +11,8 @@ help:
 		"Targets:" \
 		"  make bundle-local-release                Bundle and stage build/local-release/artifacts/Chops.app" \
 		"  make copy-to-macbook REMOTE_HOST=...     Copy the staged app bundle to a remote Mac" \
-		"  make open-on-macbook REMOTE_HOST=...     Open the copied app bundle on the remote Mac" \
-		"  make macbook REMOTE_HOST=...             Bundle, verify, copy, and open the app on the remote Mac"
+		"  make open-on-macbook REMOTE_HOST=...     Restart the copied app bundle on the remote Mac" \
+		"  make macbook REMOTE_HOST=...             Bundle, verify, copy, stop old remote app, and relaunch it"
 
 bundle-local-release:
 	$(BUILD_SCRIPT) bundle

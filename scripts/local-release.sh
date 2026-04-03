@@ -73,6 +73,11 @@ remote_app_path() {
   printf '$HOME/%s/%s.app' "$remote_subdir" "$APP_NAME"
 }
 
+remote_exec_path() {
+  local remote_subdir="${1:-Desktop}"
+  printf '$HOME/%s/%s.app/Contents/MacOS/%s' "$remote_subdir" "$APP_NAME" "$APP_NAME"
+}
+
 build_local_release() {
   require_command xcodebuild
   require_command ditto
@@ -141,9 +146,47 @@ open_remote_app() {
 
   local remote_path
   remote_path="$(remote_app_path "$remote_subdir")"
+  local remote_exec
+  remote_exec="$(remote_exec_path "$remote_subdir")"
 
-  log_step "Opening app bundle on $host"
-  ssh "$host" "[ -d \"$remote_path\" ] || { echo \"missing remote app bundle at $remote_path\" >&2; exit 1; }; open -na \"$remote_path\""
+  log_step "Restarting app bundle on $host"
+  ssh "$host" /bin/bash -s -- "$remote_path" "$remote_exec" <<'EOF'
+set -euo pipefail
+
+remote_path="${1/#\$HOME/$HOME}"
+remote_exec="${2/#\$HOME/$HOME}"
+
+[ -d "$remote_path" ] || {
+  echo "missing remote app bundle at $remote_path" >&2
+  exit 1
+}
+
+if pgrep -f "$remote_exec" >/dev/null 2>&1; then
+  echo "Stopping existing app process for $remote_exec"
+  pkill -TERM -f "$remote_exec" || true
+  for _ in 1 2 3 4 5; do
+    if ! pgrep -f "$remote_exec" >/dev/null 2>&1; then
+      break
+    fi
+    sleep 1
+  done
+
+  if pgrep -f "$remote_exec" >/dev/null 2>&1; then
+    echo "Escalating to SIGKILL for $remote_exec"
+    pkill -KILL -f "$remote_exec" || true
+    sleep 1
+  fi
+fi
+
+if pgrep -f "$remote_exec" >/dev/null 2>&1; then
+  echo "failed to stop existing app process for $remote_exec" >&2
+  exit 1
+fi
+
+open -na "$remote_path"
+sleep 2
+pgrep -fal "$remote_exec"
+EOF
 }
 
 main() {
