@@ -3,10 +3,15 @@
 ## Start Here
 - Read this file first, then read the nearest nested `AGENTS.md` before editing code in that subtree.
 - Prefix every shell command with `rtk`.
-- Commit every discrete unit of work immediately with a descriptive message that names the area changed.
+- Finish every discrete unit of work by validating it, then commit immediately with a descriptive message that names the area changed.
 - Start unfamiliar exploration with semantic/codebase search when available; use `rg` for exact follow-up lookups.
 
 ## Build And Validation
+- Prefer the `Makefile` entrypoints for end-to-end validation and deployment workflows instead of retyping the script commands by hand.
+- After any repo change, run the narrowest appropriate `rtk make` target before declaring the task done.
+- Use `rtk make bundle-local-release` as the default finish-line validation for app changes.
+- Use `rtk make macbook` when the task includes remote deployment, remote launch, or explicit “run it on the MacBook” verification.
+- Use `rtk make restart-on-macbook` only when the bundle is already copied and you only need to stop and relaunch the remote app.
 - Run `rtk xcodegen generate` after every `project.yml` edit. Install `xcodegen` first if it is missing.
 - Use `rtk open FastTalk.xcodeproj` when you need to validate or inspect the app in Xcode.
 - Use `rtk xcodebuild -project FastTalk.xcodeproj -scheme FastTalk -configuration LocalRelease build` for local validation outside Xcode.
@@ -32,3 +37,4 @@
 - Never hardcode tool paths, install-detection rules, or scan roots outside the registries and services that already own them.
 - Never replace the existing compact native macOS UI language with bespoke styling unless the closest subtree instructions explicitly require it.
 - Never leave the repo without a commit once a discrete implementation unit is complete.
+- Never skip the final `make` validation step for a repo change and still call the task finished.
