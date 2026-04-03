@@ -10,6 +10,7 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
     case copilot
     case aider
     case amp
+    case hermes
     case openclaw
     case opencode
     case pi
@@ -39,6 +40,7 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
         case .copilot: "Copilot"
         case .aider: "Aider"
         case .amp: "Amp"
+        case .hermes: "Hermes"
         case .openclaw: "OpenClaw"
         case .opencode: "OpenCode"
         case .pi: "Pi"
@@ -60,6 +62,7 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
         case .copilot: "airplane"
         case .aider: "wrench.and.screwdriver"
         case .amp: "bolt.fill"
+        case .hermes: "bolt.horizontal.circle"
         case .openclaw: "server.rack"
         case .opencode: "terminal"
         case .pi: "sparkles"
@@ -97,6 +100,7 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
         case .copilot: .purple
         case .aider: .yellow
         case .amp: .pink
+        case .hermes: .brown
         case .openclaw: .indigo
         case .opencode: .red
         case .pi: .cyan
@@ -134,6 +138,13 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
         case .copilot: return ["\(home)/.copilot/skills"]
         case .aider: return []
         case .amp: return ["\(configHome)/amp/skills"]
+        case .hermes:
+            var paths: [String] = []
+            let skillsRoot = "\(home)/.hermes/skills"
+            if FileManager.default.fileExists(atPath: skillsRoot) {
+                paths.append(skillsRoot)
+            }
+            return paths
         case .openclaw:
             var paths: [String] = []
             // Main skills directory
@@ -240,6 +251,9 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
                 || Self.cliBinaryExists("openclaw")
                 || fm.fileExists(atPath: "/opt/homebrew/lib/node_modules/openclaw")
                 || fm.fileExists(atPath: "/usr/local/lib/node_modules/openclaw")
+        case .hermes:
+            return fm.fileExists(atPath: "\(home)/.hermes")
+                || Self.cliBinaryExists("hermes")
         case .aider, .custom:
             return true
         }
