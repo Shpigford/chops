@@ -33,6 +33,7 @@ targets:
       - path: Chops
         excludes:
           - "*.entitlements"
+          - "**/AGENTS.md"
           - Info.plist
     dependencies:
       - package: Sparkle
@@ -55,7 +56,7 @@ targets:
         MACOSX_DEPLOYMENT_TARGET: "15.0"
         GENERATE_INFOPLIST_FILE: NO
         SWIFT_STRICT_CONCURRENCY: minimal
-        ASSETCATALOG_COMPILER_APPICON_NAME: ChopsIcon
+        ASSETCATALOG_COMPILER_APPICON_NAME: ChopsAppIcon
         ENABLE_HARDENED_RUNTIME: YES
       configs:
         Release:

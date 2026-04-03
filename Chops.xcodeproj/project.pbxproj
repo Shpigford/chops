@@ -52,7 +52,6 @@
 		BFF9964529E6C48F4F7BCB97 /* MarkdownSyntaxHighlighter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 135976FA0E8358E099157DE1 /* MarkdownSyntaxHighlighter.swift */; };
 		C2A028F40A1C665D29495DB6 /* StoreBootstrap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D23D43EC788E51ED1C265FE /* StoreBootstrap.swift */; };
 		C30BEAE03E54BD36F257A925 /* ToolFilterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A5774429CCE83C2AFBE046C /* ToolFilterView.swift */; };
-		C6CFF37CC0B155E8846344A4 /* ChopsIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 04C3C644B72DD508A7CBC403 /* ChopsIcon.icon */; };
 		C983C685C6296C2EF73CE57D /* CursorACPAgent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07899C351E63B32277272A59 /* CursorACPAgent.swift */; };
 		CBD8FECF1C5A453C8B021665 /* FrontmatterParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C77C5B30E6C885B39444E5B /* FrontmatterParser.swift */; };
 		CCD92CB102DFA0965D6AFDB5 /* SidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CF7822031FD82A28978D9C5 /* SidebarView.swift */; };
@@ -73,7 +72,6 @@
 
 /* Begin PBXFileReference section */
 		03AA4FA049E1DADB40552060 /* LibrarySettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibrarySettingsView.swift; sourceTree = "<group>"; };
-		04C3C644B72DD508A7CBC403 /* ChopsIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = wrapper.icon; path = ChopsIcon.icon; sourceTree = "<group>"; };
 		07899C351E63B32277272A59 /* CursorACPAgent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CursorACPAgent.swift; sourceTree = "<group>"; };
 		12C5CD1627D4EFF58AEF4F71 /* TemplateManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateManager.swift; sourceTree = "<group>"; };
 		135976FA0E8358E099157DE1 /* MarkdownSyntaxHighlighter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownSyntaxHighlighter.swift; sourceTree = "<group>"; };
@@ -169,7 +167,6 @@
 		198DFCB0614727F57F6D073D /* Chops */ = {
 			isa = PBXGroup;
 			children = (
-				04C3C644B72DD508A7CBC403 /* ChopsIcon.icon */,
 				55B50A6F7E2143E2A7160C6D /* App */,
 				75334DE5CD1545A8E1E63699 /* Models */,
 				D17AEFDEFE1C95D34F0F5771 /* Resources */,
@@ -393,7 +390,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				CECE9BEEC1D933C543B66A4E /* Assets.xcassets in Resources */,
-				C6CFF37CC0B155E8846344A4 /* ChopsIcon.icon in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -523,7 +519,7 @@
 		48F3C139C64DA85863FE9C21 /* LocalRelease */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = ChopsIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = ChopsAppIcon;
 				CODE_SIGN_ENTITLEMENTS = Chops/ChopsLocalRelease.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -545,7 +541,7 @@
 		52738EE717474F8671BFB266 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = ChopsIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = ChopsAppIcon;
 				CODE_SIGN_ENTITLEMENTS = Chops/Chops.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -567,7 +563,7 @@
 		58C6E63A67ADDC4C7CB7ED9D /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = ChopsIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = ChopsAppIcon;
 				CODE_SIGN_ENTITLEMENTS = Chops/Chops.entitlements;
 				CODE_SIGN_IDENTITY = "Developer ID Application";
 				COMBINE_HIDPI_IMAGES = YES;
