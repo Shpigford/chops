@@ -92,6 +92,7 @@ final class AppLifecycleLogger: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         AppLogger.lifecycle.notice("applicationDidFinishLaunching")
+        NSApp?.setActivationPolicy(.regular)
         AppRuntimeDiagnostics.logSnapshot(reason: "applicationDidFinishLaunching")
         scheduleLaunchSnapshots()
         scheduleWindowRecovery()
@@ -164,8 +165,14 @@ final class AppLifecycleLogger: NSObject, NSApplicationDelegate {
 
     private func scheduleWindowRecovery() {
         Task { @MainActor in
-            try? await Task.sleep(nanoseconds: 750_000_000)
-            AppRuntimeDiagnostics.ensureVisibleWindow(reason: "post-launch recovery +750ms")
+            for (delay, reason) in [
+                (UInt64(250_000_000), "post-launch recovery +250ms"),
+                (UInt64(500_000_000), "post-launch recovery +750ms"),
+                (UInt64(750_000_000), "post-launch recovery +1.5s"),
+            ] {
+                try? await Task.sleep(nanoseconds: delay)
+                AppRuntimeDiagnostics.ensureVisibleWindow(reason: reason)
+            }
         }
     }
 }
@@ -191,7 +198,8 @@ enum AppRuntimeDiagnostics {
         }
 
         let windowDescriptions = app.windows.map(windowDescription).joined(separator: " || ")
-        let message = "\(reason) policy=\(activationPolicy) isActive=\(app.isActive) hidden=\(app.isHidden) windows=\(app.windows.count) orderedWindows=\(app.orderedWindows.count) mainWindow=\(app.mainWindow?.title ?? "<nil>") keyWindow=\(app.keyWindow?.title ?? "<nil>") windows=[\(windowDescriptions)]"
+        let frontmostApp = NSWorkspace.shared.frontmostApplication?.localizedName ?? "<nil>"
+        let message = "\(reason) policy=\(activationPolicy) isActive=\(app.isActive) hidden=\(app.isHidden) frontmostApp=\(frontmostApp) windows=\(app.windows.count) orderedWindows=\(app.orderedWindows.count) mainWindow=\(app.mainWindow?.title ?? "<nil>") keyWindow=\(app.keyWindow?.title ?? "<nil>") windows=[\(windowDescriptions)]"
         AppLogger.windows.notice("\(message, privacy: .public)")
     }
 
@@ -229,16 +237,31 @@ enum AppRuntimeDiagnostics {
 
         AppLogger.windows.notice("\(reason, privacy: .public) forcing primary window foreground visible")
 
+        if app.activationPolicy() != .regular {
+            app.setActivationPolicy(.regular)
+        }
+
         if window.screen == nil {
             window.center()
         }
 
+        var collectionBehavior = window.collectionBehavior
+        collectionBehavior.insert(.moveToActiveSpace)
+        window.collectionBehavior = collectionBehavior
+
         app.unhide(nil)
-        NSRunningApplication.current.activate(options: [.activateIgnoringOtherApps])
+        app.activate(ignoringOtherApps: true)
         window.orderFrontRegardless()
+        window.makeMain()
         window.makeKeyAndOrderFront(nil)
+        app.arrangeInFront(nil)
+        app.activate(ignoringOtherApps: true)
 
         logSnapshot(reason: "\(reason) after ensureVisibleWindow")
+
+        if !app.isActive, NSWorkspace.shared.frontmostApplication?.bundleIdentifier == "com.apple.loginwindow" {
+            AppLogger.windows.error("\(reason, privacy: .public) app is running in a loginwindow-fronted session; launch from the Aqua desktop session to surface the UI")
+        }
     }
 
     private static func windowDescription(_ window: NSWindow) -> String {
