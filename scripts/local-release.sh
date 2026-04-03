@@ -1,0 +1,150 @@
+#!/bin/bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+APP_NAME="Chops"
+PROJECT_FILE="Chops.xcodeproj"
+SCHEME="Chops"
+CONFIGURATION="LocalRelease"
+BUILD_ROOT="$ROOT_DIR/build/local-release"
+DERIVED_DATA_PATH="$BUILD_ROOT/DerivedData"
+ARTIFACTS_DIR="$BUILD_ROOT/artifacts"
+LOCAL_PRODUCT_PATH="$DERIVED_DATA_PATH/Build/Products/$CONFIGURATION/$APP_NAME.app"
+STAGED_APP_PATH="$ARTIFACTS_DIR/$APP_NAME.app"
+PROJECT_SPEC_FILE="$ROOT_DIR/project.yml"
+PROJECT_PBXPROJ_PATH="$ROOT_DIR/$PROJECT_FILE/project.pbxproj"
+
+usage() {
+  cat <<'EOF'
+Usage:
+  ./scripts/local-release.sh build
+  ./scripts/local-release.sh copy <host> [remote_subdir]
+  ./scripts/local-release.sh build-and-copy <host> [remote_subdir]
+
+Examples:
+  ./scripts/local-release.sh build
+  ./scripts/local-release.sh copy macbook Desktop
+  ./scripts/local-release.sh build-and-copy macbook Desktop
+EOF
+}
+
+log_step() {
+  printf '\n==> %s\n' "$1"
+}
+
+fail() {
+  printf 'error: %s\n' "$1" >&2
+  exit 1
+}
+
+require_command() {
+  command -v "$1" >/dev/null 2>&1 || fail "required command not found: $1"
+}
+
+generate_or_validate_project() {
+  if command -v xcodegen >/dev/null 2>&1; then
+    log_step "Generating Xcode project"
+    (
+      cd "$ROOT_DIR"
+      xcodegen generate
+    )
+    return
+  fi
+
+  [ -f "$PROJECT_PBXPROJ_PATH" ] || fail "xcodegen is not installed and $PROJECT_PBXPROJ_PATH is missing"
+
+  if [ -f "$PROJECT_SPEC_FILE" ] && [ "$PROJECT_SPEC_FILE" -nt "$PROJECT_PBXPROJ_PATH" ]; then
+    fail "xcodegen is not installed and $PROJECT_SPEC_FILE is newer than $PROJECT_PBXPROJ_PATH"
+  fi
+
+  log_step "Using committed Xcode project (xcodegen not installed)"
+}
+
+verify_local_artifact_exists() {
+  [ -d "$STAGED_APP_PATH" ] || fail "staged app bundle not found at $STAGED_APP_PATH; run build first"
+}
+
+build_local_release() {
+  require_command xcodebuild
+  require_command ditto
+  require_command codesign
+  require_command du
+
+  generate_or_validate_project
+
+  log_step "Preparing build directories"
+  rm -rf "$BUILD_ROOT"
+  mkdir -p "$ARTIFACTS_DIR"
+
+  log_step "Building $APP_NAME ($CONFIGURATION)"
+  (
+    cd "$ROOT_DIR"
+    xcodebuild \
+      -project "$PROJECT_FILE" \
+      -scheme "$SCHEME" \
+      -configuration "$CONFIGURATION" \
+      -derivedDataPath "$DERIVED_DATA_PATH" \
+      clean build
+  )
+
+  [ -d "$LOCAL_PRODUCT_PATH" ] || fail "expected app bundle missing at $LOCAL_PRODUCT_PATH"
+
+  log_step "Staging app bundle"
+  ditto "$LOCAL_PRODUCT_PATH" "$STAGED_APP_PATH"
+
+  log_step "Verifying local app bundle"
+  codesign --verify --deep --strict --verbose=2 "$STAGED_APP_PATH"
+  du -sh "$STAGED_APP_PATH"
+
+  printf '\nLocal artifact: %s\n' "$STAGED_APP_PATH"
+}
+
+copy_to_remote() {
+  local host="${1:-}"
+  local remote_subdir="${2:-Desktop}"
+
+  [ -n "$host" ] || fail "remote host is required for copy"
+
+  require_command ssh
+  require_command rsync
+  verify_local_artifact_exists
+
+  log_step "Preparing remote destination on $host"
+  ssh "$host" "mkdir -p \"\$HOME/$remote_subdir\" && rm -rf \"\$HOME/$remote_subdir/$APP_NAME.app\""
+
+  log_step "Copying app bundle to $host"
+  rsync -a --delete "$STAGED_APP_PATH/" "$host:~/$remote_subdir/$APP_NAME.app/"
+
+  log_step "Verifying remote app bundle on $host"
+  ssh "$host" "codesign --verify --deep --strict --verbose=2 \"\$HOME/$remote_subdir/$APP_NAME.app\" >/dev/null && ls -ld \"\$HOME/$remote_subdir/$APP_NAME.app\" && du -sh \"\$HOME/$remote_subdir/$APP_NAME.app\""
+}
+
+main() {
+  local command="${1:-}"
+
+  case "$command" in
+    build)
+      build_local_release
+      ;;
+    copy)
+      shift || true
+      copy_to_remote "${1:-}" "${2:-Desktop}"
+      ;;
+    build-and-copy)
+      shift || true
+      build_local_release
+      copy_to_remote "${1:-}" "${2:-Desktop}"
+      ;;
+    ""|-h|--help|help)
+      usage
+      ;;
+    *)
+      usage
+      fail "unknown command: $command"
+      ;;
+  esac
+}
+
+main "$@"
