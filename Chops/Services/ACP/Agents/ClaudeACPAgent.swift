@@ -126,6 +126,46 @@ final class ClaudeACPAgent: BaseACPAgent {
         }
     }
 
+    // MARK: - Config Option Enrichment
+
+    /// Claude Code's ACP adapter omits Opus from the model picker due to an upstream SDK bug
+    /// (anthropics/claude-agent-sdk-typescript#117). Inject it client-side so users can select it.
+    /// Self-healing: if the upstream fix ships, hasOpus detects it and skips injection.
+    override func processConfigOptions(_ options: [SessionConfigOption]) -> [SessionConfigOption] {
+        options.map { option in
+            guard option.name == "Model", case .select(let select) = option.kind else { return option }
+
+            let existingOptions: [SessionConfigSelectOption]
+            switch select.options {
+            case .ungrouped(let opts): existingOptions = opts
+            case .grouped(let groups): existingOptions = groups.flatMap(\.options)
+            }
+
+            let hasOpus = existingOptions.contains { $0.value.value == "opus" }
+            guard !hasOpus else { return option }
+
+            var newOptions = existingOptions
+            let insertIndex = newOptions.lastIndex(where: { $0.value.value.contains("sonnet") })
+                .map { newOptions.index(after: $0) } ?? newOptions.endIndex
+
+            newOptions.insert(contentsOf: [
+                SessionConfigSelectOption(value: SessionConfigValueId("opus"), name: "Opus"),
+                SessionConfigSelectOption(value: SessionConfigValueId("opus[1m]"), name: "Opus (1M context)"),
+            ], at: insertIndex)
+
+            return SessionConfigOption(
+                id: option.id,
+                name: option.name,
+                description: option.description,
+                category: option.category,
+                kind: .select(SessionConfigSelect(
+                    currentValue: select.currentValue,
+                    options: .ungrouped(newOptions)
+                ))
+            )
+        }
+    }
+
     // MARK: - Response Post-Processing
 
     override func postProcess(_ text: String) -> String {

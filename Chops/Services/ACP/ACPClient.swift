@@ -131,7 +131,7 @@ open class BaseACPAgent: ClientDelegate {
         let sessionResp = try await client.newSession(workingDirectory: cwd.path)
         guard !Task.isCancelled else { await client.terminate(); return }
         sessionId = sessionResp.sessionId
-        sessionConfigOptions = sessionResp.configOptions ?? []
+        sessionConfigOptions = processConfigOptions(sessionResp.configOptions ?? [])
         acpLog.debug("Session created: \(sessionResp.sessionId) (\(sessionConfigOptions.count) config options)")
 
         acpClient = client
@@ -210,7 +210,7 @@ open class BaseACPAgent: ClientDelegate {
     func setConfigOption(id: SessionConfigId, value: SessionConfigValueId) async throws {
         guard let client = acpClient, let sid = sessionId else { return }
         let resp = try await client.setConfigOption(sessionId: sid, configId: id, value: value)
-        sessionConfigOptions = resp.configOptions
+        sessionConfigOptions = processConfigOptions(resp.configOptions)
     }
 
     // MARK: - Prompt
@@ -370,7 +370,7 @@ open class BaseACPAgent: ClientDelegate {
         case .agentThoughtChunk(let c):   onThoughtChunk(c)
         case .toolCall(let t):            onToolCall(t)
         case .toolCallUpdate(let d):      onToolCallUpdate(d)
-        case .configOptionUpdate(let u):  sessionConfigOptions = u
+        case .configOptionUpdate(let u):  sessionConfigOptions = processConfigOptions(u)
         case .sessionInfoUpdate(let i):   if let t = i.title { acpLog.debug("Session: \(t)") }
         default:                          break
         }
@@ -400,6 +400,7 @@ open class BaseACPAgent: ClientDelegate {
 
     func additionalFlags() -> [String] { [] }
     func sessionCwd(for workingDirectory: URL) -> URL { workingDirectory }
+    func processConfigOptions(_ options: [SessionConfigOption]) -> [SessionConfigOption] { options }
     func postProcess(_ text: String) -> String { text }
     func conversationalText(from text: String) -> String { postProcess(text) }
 
