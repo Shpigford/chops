@@ -9,6 +9,68 @@ struct ContentView: View {
     @State private var fileWatcher: FileWatcher?
     @State private var columnVisibility: NavigationSplitViewVisibility = .all
 
+    private var searchPrompt: LocalizedStringKey {
+        switch appState.sidebarFilter {
+        case .allNotes:
+            "Search notes..."
+        case .allAgents:
+            "Search agents..."
+        case .allRules:
+            "Search rules..."
+        case .allSkills:
+            "Search skills..."
+        case .favorites:
+            "Search favorites..."
+        case .tool, .collection, .server:
+            "Search items..."
+        }
+    }
+
+    private var emptySelectionTitle: LocalizedStringKey {
+        switch appState.sidebarFilter {
+        case .allNotes:
+            "Select a Note"
+        case .allAgents:
+            "Select an Agent"
+        case .allRules:
+            "Select a Rule"
+        case .allSkills:
+            "Select a Skill"
+        case .favorites, .tool, .collection, .server:
+            "Select an Item"
+        }
+    }
+
+    private var emptySelectionIcon: String {
+        switch appState.sidebarFilter {
+        case .allNotes:
+            ItemKind.note.icon
+        case .allAgents:
+            ItemKind.agent.icon
+        case .allRules:
+            ItemKind.rule.icon
+        case .allSkills, .favorites, .tool, .collection, .server:
+            ItemKind.skill.icon
+        }
+    }
+
+    private var emptySelectionDescription: LocalizedStringKey {
+        switch appState.sidebarFilter {
+        case .allNotes:
+            "Choose a note from the sidebar to view and edit it."
+        case .allAgents:
+            "Choose an agent from the sidebar to view and edit it."
+        case .allRules:
+            "Choose a rule from the sidebar to view and edit it."
+        case .allSkills:
+            "Choose a skill from the sidebar to view and edit it."
+        case .favorites:
+            "Choose an item from favorites to view and edit it."
+        case .tool, .collection, .server:
+            "Choose an item from the list to view and edit it."
+        }
+    }
+
     var body: some View {
         @Bindable var appState = appState
 
@@ -21,13 +83,13 @@ struct ContentView: View {
                 SkillDetailView(skill: skill)
             } else {
                 ContentUnavailableView(
-                    "Select a Skill",
-                    systemImage: "doc.text",
-                    description: Text("Choose a skill from the sidebar to view and edit it.")
+                    emptySelectionTitle,
+                    systemImage: emptySelectionIcon,
+                    description: Text(emptySelectionDescription)
                 )
             }
         }
-        .searchable(text: $appState.searchText, prompt: "Search skills...")
+        .searchable(text: $appState.searchText, prompt: searchPrompt)
         .onAppear {
             startScanning(syncRemote: true)
         }
@@ -48,6 +110,11 @@ struct ContentView: View {
 
     private func startScanning(syncRemote: Bool) {
         AppLogger.ui.notice("App started, beginning initial scan")
+        do {
+            try NotesService.ensureNotesDirectoryExists()
+        } catch {
+            AppLogger.fileIO.error("Failed to prepare notes directory: \(error.localizedDescription)")
+        }
         let scanner = SkillScanner(modelContext: modelContext)
         self.scanner = scanner
         scanner.removeDeletedSkills()
@@ -71,9 +138,7 @@ struct ContentView: View {
         if fm.fileExists(atPath: claudeDesktopSessions) {
             allPaths.append(claudeDesktopSessions)
         }
-        if fm.fileExists(atPath: NotesService.notesDirectoryPath) {
-            allPaths.append(NotesService.notesDirectoryPath)
-        }
+        allPaths.append(NotesService.notesDirectoryPath)
         allPaths = Array(Set(allPaths)).sorted()
 
         let watcher = FileWatcher { _ in
