@@ -139,7 +139,7 @@ struct SettingsView: View {
                         }
                     }
                 }
-                .background(Color(NSColor.controlBackgroundColor))
+                .background(.regularMaterial)
                 .clipShape(RoundedRectangle(cornerRadius: 6))
             } else {
                 Text("No custom directories added.")

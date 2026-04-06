@@ -288,10 +288,10 @@ struct ComposePanel: View {
             if let error = acpClient?.lastError {
                 HStack(spacing: 4) {
                     Image(systemName: "exclamationmark.circle.fill")
-                        .foregroundStyle(.red)
+                        .foregroundStyle(Color(NSColor.systemRed))
                     Text(error)
                         .font(.caption)
-                        .foregroundStyle(.red)
+                        .foregroundStyle(Color(NSColor.systemRed))
                         .lineLimit(1)
                 }
                 .frame(maxWidth: 200)
@@ -582,7 +582,7 @@ struct ComposePanel: View {
         case .accepted:
             HStack(spacing: 6) {
                 Label("Changes accepted", systemImage: "checkmark.circle.fill")
-                    .foregroundStyle(.green)
+                    .foregroundStyle(Color(NSColor.systemGreen))
                 Text("· \(diff.path.split(separator: "/").last.map(String.init) ?? diff.path)")
                     .foregroundStyle(.secondary)
             }

@@ -142,7 +142,7 @@ struct RegistrySheet: View {
             if let error {
                 Text(error)
                     .font(.caption)
-                    .foregroundStyle(.red)
+                    .foregroundStyle(Color(NSColor.systemRed))
                     .padding(.horizontal, 20)
                     .padding(.bottom, 8)
             }
@@ -243,14 +243,14 @@ struct RegistrySheet: View {
                     if let error {
                         Text(error)
                             .font(.caption)
-                            .foregroundStyle(.red)
+                            .foregroundStyle(Color(NSColor.systemRed))
                             .lineLimit(2)
                     }
 
                     if installSuccess {
                         Label("Installed!", systemImage: "checkmark.circle.fill")
                             .font(.caption)
-                            .foregroundStyle(.green)
+                            .foregroundStyle(Color(NSColor.systemGreen))
                     }
 
                     Spacer()

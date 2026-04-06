@@ -154,7 +154,7 @@ private struct ServerRow: View {
             if let error = server.lastSyncError {
                 Text("Error: \(error)")
                     .font(.caption)
-                    .foregroundStyle(.red)
+                    .foregroundStyle(Color(NSColor.systemRed))
                     .textSelection(.enabled)
             }
 
@@ -256,7 +256,7 @@ private struct AddServerSheet: View {
             if let testError {
                 Text(testError)
                     .font(.caption)
-                    .foregroundStyle(.red)
+                    .foregroundStyle(Color(NSColor.systemRed))
             }
 
             if testPassed {

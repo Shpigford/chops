@@ -47,7 +47,7 @@ struct NewSkillSheet: View {
             if let error = errorMessage {
                 Text(error)
                     .font(.caption)
-                    .foregroundStyle(.red)
+                    .foregroundStyle(Color(NSColor.systemRed))
             }
 
             HStack {
