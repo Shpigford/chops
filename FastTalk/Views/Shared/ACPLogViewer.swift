@@ -70,7 +70,7 @@ struct ACPLogViewer: View {
                         .id("bottom")
                 }
                 .onChange(of: logContent) { _, _ in
-                    withAnimation {
+                    withAnimation(.easeOut(duration: 0.12)) {
                         proxy.scrollTo("bottom", anchor: .bottom)
                     }
                 }

@@ -265,6 +265,7 @@ extension Notification.Name {
     static let saveCurrentSkill = Notification.Name("saveCurrentSkill")
     static let newNoteRequested = Notification.Name("newNoteRequested")
     static let toggleComposePanelRequested = Notification.Name("toggleComposePanelRequested")
+    static let toggleEditPreviewRequested = Notification.Name("toggleEditPreviewRequested")
 }
 
 // MARK: - Syntax-highlighted NSTextView wrapper

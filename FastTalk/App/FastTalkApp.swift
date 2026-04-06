@@ -35,6 +35,7 @@ struct FastTalkApp: App {
         }
         .modelContainer(sharedModelContainer)
         .defaultSize(width: 960, height: 640)
+        .windowResizability(.contentSize)
         .windowToolbarStyle(.unified(showsTitle: false))
         .commands {
             TextEditingCommands()
@@ -78,6 +79,12 @@ struct FastTalkApp: App {
                 .keyboardShortcut("i", modifiers: .command)
             }
             CommandGroup(before: .toolbar) {
+                Button("Toggle Edit / Preview") {
+                    NotificationCenter.default.post(name: .toggleEditPreviewRequested, object: nil)
+                }
+                .keyboardShortcut("e", modifiers: .command)
+                .disabled(appState.selectedSkill == nil)
+
                 Button("Toggle Compose Panel") {
                     NotificationCenter.default.post(name: .toggleComposePanelRequested, object: nil)
                 }
@@ -148,6 +155,10 @@ final class AppLifecycleLogger: NSObject, NSApplicationDelegate {
     func applicationDidUnhide(_ notification: Notification) {
         AppLogger.lifecycle.notice("applicationDidUnhide")
         AppRuntimeDiagnostics.logSnapshot(reason: "applicationDidUnhide")
+    }
+
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+        false
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
@@ -288,6 +299,7 @@ enum AppRuntimeDiagnostics {
         window.makeKeyAndOrderFront(nil)
         app.arrangeInFront(nil)
         app.activate(ignoringOtherApps: true)
+        window.collectionBehavior.remove(.moveToActiveSpace)
 
         logSnapshot(reason: "\(reason) after ensureVisibleWindow")
 

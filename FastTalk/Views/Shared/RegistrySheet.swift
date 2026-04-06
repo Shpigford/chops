@@ -60,8 +60,10 @@ struct RegistrySheet: View {
 
             if let skill = selectedSkill {
                 installView(skill: skill)
+                    .transition(.opacity)
             } else {
                 searchView
+                    .transition(.opacity)
             }
         }
         .frame(width: 560, height: 500)

@@ -64,7 +64,7 @@ struct SettingsView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
         .frame(width: 520)
-        .fixedSize(horizontal: false, vertical: true)
+        .fixedSize()
         .onAppear {
             loadCustomPaths()
         }

@@ -164,6 +164,7 @@ struct ComposePanel: View {
     // MARK: - Views
 
     @Environment(\.openSettings) private var openSettings
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var agentPickerEmptyState: some View {
         ZStack(alignment: .topTrailing) {
@@ -384,18 +385,26 @@ struct ComposePanel: View {
                 }
                 .background(.ultraThinMaterial)
                 .onChange(of: messages.count) { _, _ in
-                    withAnimation { proxy.scrollTo("live-assistant", anchor: .bottom) }
+                    withAnimation(reduceMotion ? nil : .easeOut(duration: 0.18)) {
+                        proxy.scrollTo("live-assistant", anchor: .bottom)
+                    }
                 }
                 .onChange(of: isProcessing) { _, active in
                     if active {
-                        withAnimation { proxy.scrollTo("live-assistant", anchor: .bottom) }
+                        withAnimation(reduceMotion ? nil : .easeOut(duration: 0.18)) {
+                            proxy.scrollTo("live-assistant", anchor: .bottom)
+                        }
                     } else if let last = messages.last {
-                        withAnimation { proxy.scrollTo(last.id, anchor: .bottom) }
+                        withAnimation(reduceMotion ? nil : .easeOut(duration: 0.18)) {
+                            proxy.scrollTo(last.id, anchor: .bottom)
+                        }
                     }
                 }
                 .onChange(of: acpClient?.currentActivity) { _, _ in
                     if isProcessing {
-                        withAnimation { proxy.scrollTo("live-assistant", anchor: .bottom) }
+                        withAnimation(reduceMotion ? nil : .easeOut(duration: 0.18)) {
+                            proxy.scrollTo("live-assistant", anchor: .bottom)
+                        }
                     }
                 }
             }

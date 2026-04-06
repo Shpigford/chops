@@ -110,7 +110,7 @@ private struct MarkdownWebView: NSViewRepresentable {
         line-height: 1.6;
         max-width: 672px;
         margin: 0 auto;
-        padding: 24px 24px 40px;
+        padding: 24px 24px 20px;
         color: #222222;
         background-color: #FAFAFA;
         -webkit-font-smoothing: antialiased;
@@ -214,6 +214,10 @@ private struct MarkdownWebView: NSViewRepresentable {
         color: inherit;
         padding: 0;
         font-size: 0.85em;
+    }
+
+    pre.frontmatter {
+        letter-spacing: 0.02em;
     }
 
     pre.highlighted-code {

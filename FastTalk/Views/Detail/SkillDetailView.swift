@@ -87,6 +87,7 @@ struct SkillDetailView: View {
     @State private var activeAlert: ActiveAlert?
     @State private var autoSaveTask: Task<Void, Never>?
     @State private var showingComposePanel = false
+    @State private var showingDeleteConfirm = false
 
     var body: some View {
         @Bindable var document = document
@@ -165,6 +166,11 @@ struct SkillDetailView: View {
                 showingComposePanel.toggle()
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .toggleEditPreviewRequested)) { _ in
+            withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.18)) {
+                preferPreview.toggle()
+            }
+        }
         .alert("Save Error", isPresented: $document.showingSaveError) {
             Button("OK") {}
         } message: {
@@ -204,7 +210,7 @@ struct SkillDetailView: View {
             if !skill.isReadOnly {
                 ToolbarItem {
                     Button {
-                        deleteSkill()
+                        showingDeleteConfirm = true
                     } label: {
                         Image(systemName: "trash")
                     }
@@ -224,6 +230,18 @@ struct SkillDetailView: View {
                     .accessibilityLabel("Make Global")
                 }
             }
+        }
+        .confirmationDialog(
+            "Delete \"\(skill.name)\"?",
+            isPresented: $showingDeleteConfirm,
+            titleVisibility: .visible
+        ) {
+            Button("Delete", role: .destructive) {
+                deleteSkill()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This moves the \(skill.displayTypeName.lowercased()) to Trash.")
         }
         .alert(item: $activeAlert) { alert in
             switch alert {

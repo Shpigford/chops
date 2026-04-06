@@ -10,6 +10,7 @@ struct CollectionListView: View {
     @State private var newCollectionIcon = "folder"
     @State private var editingCollectionID: PersistentIdentifier?
     @State private var editingName = ""
+    @State private var collectionToDelete: SkillCollection?
     @State private var errorMessage: String?
     @FocusState private var isRenameFocused: Bool
 
@@ -80,6 +81,16 @@ struct CollectionListView: View {
         }
     }
 
+    private func deleteCollection(_ collection: SkillCollection) {
+        modelContext.delete(collection)
+
+        do {
+            try modelContext.save()
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
     private func handleDrop(_ resolvedPaths: [String], onto collection: SkillCollection) -> Bool {
         var added = false
         for path in resolvedPaths {
@@ -135,8 +146,7 @@ struct CollectionListView: View {
                             editingCollectionID = collection.persistentModelID
                         }
                         Button("Delete", role: .destructive) {
-                            modelContext.delete(collection)
-                            try? modelContext.save()
+                            collectionToDelete = collection
                         }
                     }
             }
@@ -207,6 +217,25 @@ struct CollectionListView: View {
             Button("OK") {}
         } message: {
             Text(errorMessage ?? "")
+        }
+        .confirmationDialog(
+            "Delete Collection?",
+            isPresented: Binding(
+                get: { collectionToDelete != nil },
+                set: { if !$0 { collectionToDelete = nil } }
+            ),
+            titleVisibility: .visible,
+            presenting: collectionToDelete
+        ) { collection in
+            Button("Delete", role: .destructive) {
+                deleteCollection(collection)
+                collectionToDelete = nil
+            }
+            Button("Cancel", role: .cancel) {
+                collectionToDelete = nil
+            }
+        } message: { collection in
+            Text("Delete \"\(collection.name)\"? This won't delete the skills inside it.")
         }
     }
 }

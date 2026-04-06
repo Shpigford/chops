@@ -291,6 +291,13 @@ struct SkillListView: View {
                     .tag(skill.resolvedPath)
                     .draggable(skill.resolvedPath)
                     .contextMenu { contextMenu(for: skill) }
+                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                        if !skill.isRemote && !skill.isReadOnly {
+                            Button("Delete", role: .destructive) {
+                                trashSkills([skill], restoreSelectionOnUndo: true)
+                            }
+                        }
+                    }
             }
         }
         .listStyle(.plain)

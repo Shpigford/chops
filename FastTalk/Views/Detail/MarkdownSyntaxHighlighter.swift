@@ -124,7 +124,7 @@ final class MarkdownSyntaxHighlighter: NSObject {
                         textStorage.addAttribute(.foregroundColor, value: EditorTheme.syntaxColor, range: syntaxRange)
                         textStorage.addAttributes([
                             .foregroundColor: EditorTheme.headingColor,
-                            .font: NSFont.monospacedSystemFont(ofSize: EditorTheme.editorFontSize + 4, weight: .bold)
+                            .font: NSFont.monospacedSystemFont(ofSize: EditorTheme.editorFontSize * 1.3, weight: .bold)
                         ], range: contentRange)
                     }
 
