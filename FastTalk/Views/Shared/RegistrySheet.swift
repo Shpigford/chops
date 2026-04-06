@@ -212,7 +212,7 @@ struct RegistrySheet: View {
                                     } label: {
                                         HStack(spacing: 8) {
                                             Image(systemName: selectedAgents.contains(agent.id) ? "checkmark.circle.fill" : "circle")
-                                                .foregroundStyle(selectedAgents.contains(agent.id) ? .tint : .secondary)
+                                                .foregroundStyle(selectedAgents.contains(agent.id) ? Color.accentColor : Color.secondary)
                                                 .font(.body)
 
                                             Text(agent.displayName)
