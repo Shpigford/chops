@@ -432,23 +432,14 @@ struct SkillRow: View {
     var body: some View {
         if skill.itemKind == .note {
             HStack(alignment: .top, spacing: 8) {
-                VStack(alignment: .leading, spacing: 3) {
-                    HStack(spacing: 6) {
-                        Text(skill.name)
-                            .lineLimit(1)
+                HStack(spacing: 6) {
+                    Text(skill.name)
+                        .lineLimit(1)
 
-                        if skill.isFavorite {
-                            Image(systemName: "star.fill")
-                                .font(.caption2)
-                                .foregroundStyle(.yellow)
-                        }
-                    }
-
-                    if !skill.skillDescription.isEmpty {
-                        Text(skill.skillDescription)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .lineLimit(2)
+                    if skill.isFavorite {
+                        Image(systemName: "star.fill")
+                            .font(.caption2)
+                            .foregroundStyle(.yellow)
                     }
                 }
 
