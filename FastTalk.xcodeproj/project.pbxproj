@@ -49,6 +49,7 @@
 		AC4DCAEA9F1F48EAF9DC8B0A /* SkillScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7704D1B43B563CFCB9CC525F /* SkillScanner.swift */; };
 		B0A806D334B0988667A02555 /* FastTalkSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD1DCD94BF35422FE1664667 /* FastTalkSettings.swift */; };
 		B14D8C2201A671CA5A4860A7 /* CursorACPAgent.swift in Sources */ = {isa = PBXBuildFile; fileRef = E533E0EB1B2B05225714B95B /* CursorACPAgent.swift */; };
+		B50177CD37BE9FDE6ED06952 /* NavigationSplitViewVisibility+RawRepresentable.swift in Sources */ = {isa = PBXBuildFile; fileRef = E26F62EDAC587398F933836C /* NavigationSplitViewVisibility+RawRepresentable.swift */; };
 		BF619A68B7DB905A122FB981 /* ACPConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFCE3D0D098A66843418F40E /* ACPConfiguration.swift */; };
 		BFD1E4D2334D9D51ADE21709 /* ACPAgentFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AD42D885D666121044766AD /* ACPAgentFactory.swift */; };
 		C41C608F6EE4A25A87678794 /* SkillMetadataBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 373EE34F6EADBA7C50C73810 /* SkillMetadataBar.swift */; };
@@ -121,6 +122,7 @@
 		CD49D5F9815047EB5F08F5AC /* StoreBootstrap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreBootstrap.swift; sourceTree = "<group>"; };
 		D2CE1F7B894DDA18D70FBA84 /* ACPLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ACPLogger.swift; sourceTree = "<group>"; };
 		E245050BB4E68F899E7B5DA3 /* SkillListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillListView.swift; sourceTree = "<group>"; };
+		E26F62EDAC587398F933836C /* NavigationSplitViewVisibility+RawRepresentable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NavigationSplitViewVisibility+RawRepresentable.swift"; sourceTree = "<group>"; };
 		E533E0EB1B2B05225714B95B /* CursorACPAgent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CursorACPAgent.swift; sourceTree = "<group>"; };
 		F08538C45998CCDA1B2DF82C /* FastTalkTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FastTalkTextView.swift; sourceTree = "<group>"; };
 		F398EEDAC369673541F4E7B9 /* RemoteServersSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteServersSettingsView.swift; sourceTree = "<group>"; };
@@ -196,6 +198,7 @@
 				3B98FC0D4288A0F986470596 /* FrontmatterParser.swift */,
 				00806F5E5524C3D1EAE746F4 /* MarkdownRenderer.swift */,
 				9A30FB7129468FD1CC257F0E /* MDCParser.swift */,
+				E26F62EDAC587398F933836C /* NavigationSplitViewVisibility+RawRepresentable.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -425,6 +428,7 @@
 				5E2597D17E22264106D7A674 /* MarkdownMessageView.swift in Sources */,
 				8FAFF14142449EB2B7E248C2 /* MarkdownRenderer.swift in Sources */,
 				FC6CB1D5BE1A3ADE85F1B332 /* MarkdownSyntaxHighlighter.swift in Sources */,
+				B50177CD37BE9FDE6ED06952 /* NavigationSplitViewVisibility+RawRepresentable.swift in Sources */,
 				E07575A722AB903FDA543B95 /* NewSkillSheet.swift in Sources */,
 				4658375E3EC7C614670C2EE0 /* RegistrySheet.swift in Sources */,
 				D539D8AC56FD91F9B614F823 /* RemoteServer.swift in Sources */,

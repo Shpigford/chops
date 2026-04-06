@@ -8,7 +8,7 @@ struct ContentView: View {
     @State private var scanner: SkillScanner?
     @State private var fileWatcher: FileWatcher?
     @State private var watcherGeneration = 0
-    @State private var columnVisibility: NavigationSplitViewVisibility = .all
+    @SceneStorage("columnVisibility") private var columnVisibility: NavigationSplitViewVisibility = .all
 
     private var searchPrompt: LocalizedStringKey {
         switch appState.sidebarFilter {
@@ -89,8 +89,10 @@ struct ContentView: View {
 
         NavigationSplitView(columnVisibility: $columnVisibility) {
             SidebarView()
+                .navigationSplitViewColumnWidth(min: 160, ideal: 220, max: 300)
         } content: {
             SkillListView()
+                .navigationSplitViewColumnWidth(min: 220, ideal: 280, max: 400)
         } detail: {
             if let skill = appState.selectedSkill {
                 SkillDetailView(skill: skill)
@@ -102,6 +104,7 @@ struct ContentView: View {
                 )
             }
         }
+        .navigationSplitViewStyle(.balanced)
         .searchable(text: $appState.searchText, prompt: searchPrompt)
         .onAppear {
             AppLogger.lifecycle.notice("ContentView onAppear sidebarFilter=\(String(describing: appState.sidebarFilter), privacy: .public)")
