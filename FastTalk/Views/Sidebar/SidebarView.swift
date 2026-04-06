@@ -73,21 +73,24 @@ struct SidebarView: View {
                             Spacer()
 
                             if let error = serverErrors[server.id] {
-                                Image(systemName: "exclamationmark.triangle.fill")
-                                    .font(.caption)
-                                    .foregroundStyle(.red)
-                                    .popover(isPresented: Binding(
-                                        get: { showingErrorForServer == server.id },
-                                        set: { if !$0 { showingErrorForServer = nil } }
-                                    )) {
-                                        Text(error)
-                                            .font(.caption)
-                                            .padding()
-                                            .frame(maxWidth: 250)
-                                    }
-                                    .onTapGesture {
-                                        showingErrorForServer = server.id
-                                    }
+                                Button {
+                                    showingErrorForServer = server.id
+                                } label: {
+                                    Image(systemName: "exclamationmark.triangle.fill")
+                                        .imageScale(.small)
+                                        .symbolRenderingMode(.multicolor)
+                                }
+                                .buttonStyle(.plain)
+                                .accessibilityLabel("Sync error for \(server.label)")
+                                .popover(isPresented: Binding(
+                                    get: { showingErrorForServer == server.id },
+                                    set: { if !$0 { showingErrorForServer = nil } }
+                                )) {
+                                    Text(error)
+                                        .font(.caption)
+                                        .padding()
+                                        .frame(maxWidth: 250)
+                                }
                             }
 
                             Button {
@@ -98,12 +101,13 @@ struct SidebarView: View {
                                         .controlSize(.small)
                                 } else {
                                     Image(systemName: "arrow.triangle.2.circlepath")
-                                        .font(.caption)
+                                        .imageScale(.small)
                                         .foregroundStyle(.secondary)
                                 }
                             }
                             .buttonStyle(.plain)
                             .help("Sync skills from server")
+                            .accessibilityLabel("Sync \(server.label)")
                             .disabled(syncingServerIDs.contains(server.id))
                         }
                         .badge(server.skills.count)
@@ -117,7 +121,6 @@ struct SidebarView: View {
             }
         }
         .listStyle(.sidebar)
-        .navigationTitle("Fast Talk")
     }
 
     private func syncServer(_ server: RemoteServer) {
