@@ -38,6 +38,7 @@ struct RegistrySheet: View {
                         Label("Back", systemImage: "chevron.left")
                     }
                     .buttonStyle(.plain)
+                    .keyboardShortcut("[", modifiers: .command)
                 }
 
                 Spacer()
@@ -158,7 +159,7 @@ struct RegistrySheet: View {
                 // Content preview
                 ScrollView {
                     Text(content)
-                        .font(.system(.caption, design: .monospaced))
+                        .font(.system(.callout, design: .monospaced))
                         .textSelection(.enabled)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(16)

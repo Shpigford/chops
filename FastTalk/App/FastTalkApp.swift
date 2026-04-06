@@ -39,17 +39,49 @@ struct FastTalkApp: App {
         .commands {
             TextEditingCommands()
             CommandGroup(replacing: .newItem) {
-                Button("New Note") {
-                    NotificationCenter.default.post(name: .newNoteRequested, object: nil)
+                Button("New Item") {
+                    switch appState.sidebarFilter {
+                    case .allNotes:
+                        NotificationCenter.default.post(name: .newNoteRequested, object: nil)
+                    case .allSkills:
+                        appState.newItemKind = .skill
+                        appState.showingNewSkillSheet = true
+                    case .allAgents:
+                        appState.newItemKind = .agent
+                        appState.showingNewSkillSheet = true
+                    case .allRules:
+                        appState.newItemKind = .rule
+                        appState.showingNewSkillSheet = true
+                    default:
+                        appState.newItemKind = .skill
+                        appState.showingNewSkillSheet = true
+                    }
                 }
                 .keyboardShortcut("n", modifiers: .command)
-                .disabled(appState.sidebarFilter != .allNotes)
             }
             CommandGroup(replacing: .saveItem) {
                 Button("Save") {
                     NotificationCenter.default.post(name: .saveCurrentSkill, object: nil)
                 }
                 .keyboardShortcut("s", modifiers: .command)
+                .disabled(appState.selectedSkill == nil || appState.selectedSkill?.isReadOnly == true)
+            }
+            CommandMenu("Format") {
+                Button("Bold") {
+                    NSApp.sendAction(#selector(FastTalkTextView.toggleBold(_:)), to: nil, from: nil)
+                }
+                .keyboardShortcut("b", modifiers: .command)
+
+                Button("Italic") {
+                    NSApp.sendAction(#selector(FastTalkTextView.toggleItalic(_:)), to: nil, from: nil)
+                }
+                .keyboardShortcut("i", modifiers: .command)
+            }
+            CommandGroup(before: .toolbar) {
+                Button("Toggle Compose Panel") {
+                    NotificationCenter.default.post(name: .toggleComposePanelRequested, object: nil)
+                }
+                .keyboardShortcut("j", modifiers: .command)
                 .disabled(appState.selectedSkill == nil || appState.selectedSkill?.isReadOnly == true)
             }
             CommandGroup(after: .appInfo) {

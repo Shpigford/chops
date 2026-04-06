@@ -42,7 +42,7 @@ struct ThinkingView: View {
             if isExpanded {
                 ScrollView(.vertical) {
                     Text(text)
-                        .font(.caption.monospaced())
+                        .font(.callout)
                         .foregroundStyle(.secondary)
                         .opacity(0.75)
                         .frame(maxWidth: .infinity, alignment: .leading)

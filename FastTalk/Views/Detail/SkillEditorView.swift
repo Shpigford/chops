@@ -264,6 +264,7 @@ struct SkillEditorView: View {
 extension Notification.Name {
     static let saveCurrentSkill = Notification.Name("saveCurrentSkill")
     static let newNoteRequested = Notification.Name("newNoteRequested")
+    static let toggleComposePanelRequested = Notification.Name("toggleComposePanelRequested")
 }
 
 // MARK: - Syntax-highlighted NSTextView wrapper

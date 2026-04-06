@@ -115,7 +115,7 @@ struct ACPSettingsView: View {
                     }
                 }
             }
-            .padding(4)
+            .padding(8)
             .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 6))
         }
     }
@@ -136,8 +136,7 @@ struct ACPSettingsView: View {
                 .scrollContentBackground(.hidden)
                 .frame(height: 200)
                 .padding(6)
-                .background(Color(NSColor.textBackgroundColor))
-                .clipShape(RoundedRectangle(cornerRadius: 4))
+                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 4))
 
             HStack {
                 if templateChanges.contains(type) {

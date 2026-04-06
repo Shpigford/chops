@@ -459,7 +459,7 @@ struct SkillRow: View {
                 }
                 .padding(.vertical, 4)
             } else {
-                HStack(spacing: 6) {
+                HStack(spacing: 8) {
                     if showTypeBadge {
                         let kindIcon: String = switch skill.itemKind {
                         case .note: "note.text"
@@ -495,7 +495,7 @@ struct SkillRow: View {
                             .lineLimit(1)
                     }
 
-                    HStack(spacing: 3) {
+                    HStack(spacing: 4) {
                         ForEach(skill.toolSources, id: \.self) { tool in
                             ToolIcon(tool: tool, size: 14)
                                 .help(tool.displayName)

@@ -7,6 +7,7 @@ struct SkillPreviewView: View {
     var body: some View {
         MarkdownWebView(content: content)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .accessibilityLabel("Skill preview")
     }
 }
 
@@ -105,7 +106,7 @@ private struct MarkdownWebView: NSViewRepresentable {
 
     body {
         font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
-        font-size: 16px;
+        font-size: 13px;
         line-height: 1.6;
         max-width: 672px;
         margin: 0 auto;
@@ -303,7 +304,8 @@ private struct MarkdownWebView: NSViewRepresentable {
 
     pre.frontmatter {
         font-family: "SF Mono", SFMono-Regular, Menlo, monospace;
-        font-size: 12px;
+        font-size: 11px;
+        letter-spacing: 0.02em;
         line-height: 1.5;
         color: #333333;
         background-color: #F0F0F0;

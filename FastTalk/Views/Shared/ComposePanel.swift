@@ -149,7 +149,7 @@ struct ComposePanel: View {
             .keyboardShortcut(.cancelAction)
             .foregroundStyle(.secondary)
         }
-        .padding(24)
+        .padding(20)
         .frame(minWidth: 320, maxWidth: 440)
     }
 
@@ -676,6 +676,7 @@ struct ComposePanel: View {
         }
         .frame(maxWidth: .infinity)
         .contentShape(Rectangle())
+        .accessibilityHidden(true)
         .onHover { hovering in
             if hovering {
                 NSCursor.resizeUpDown.push()
@@ -721,6 +722,7 @@ struct ComposePanel: View {
         .buttonStyle(.plain)
         .help(isConnected ? "Disconnect" : isConnecting ? "Cancel connection" : "Connect to \(selectedAgent?.name ?? "agent")")
         .accessibilityLabel(isConnected ? "Disconnect" : "Connect")
+        .accessibilityValue(isConnected ? "Connected" : isConnecting ? "Connecting" : "Disconnected")
         .disabled(selectedAgentId == nil)
     }
 

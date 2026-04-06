@@ -88,9 +88,11 @@ private struct ServerRow: View {
                     case .success:
                         Image(systemName: "checkmark.circle.fill")
                             .symbolRenderingMode(.multicolor)
+                            .accessibilityLabel("Connection test passed")
                     case .failure:
                         Image(systemName: "xmark.circle.fill")
                             .symbolRenderingMode(.multicolor)
+                            .accessibilityLabel("Connection test failed")
                     }
                 }
 
@@ -271,7 +273,7 @@ private struct AddServerSheet: View {
                 .disabled(label.isEmpty || host.isEmpty || username.isEmpty || basePath.isEmpty)
             }
         }
-        .padding()
+        .padding(20)
         .frame(width: 400)
     }
 
@@ -397,7 +399,7 @@ private struct EditServerSheet: View {
                 .disabled(label.isEmpty || host.isEmpty || username.isEmpty || basePath.isEmpty)
             }
         }
-        .padding()
+        .padding(20)
         .frame(width: 400)
         .onAppear {
             label = server.label
