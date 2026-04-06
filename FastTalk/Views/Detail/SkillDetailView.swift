@@ -81,6 +81,7 @@ struct SkillDetailView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.undoManager) private var undoManager
     @Environment(AppState.self) private var appState
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @AppStorage("preferPreview") private var preferPreview = false
     @State private var document = SkillEditorDocument()
     @State private var activeAlert: ActiveAlert?
@@ -94,14 +95,17 @@ struct SkillDetailView: View {
             ZStack(alignment: .bottomTrailing) {
                 if preferPreview {
                     SkillPreviewView(content: document.editorContent)
+                        .transition(.opacity)
                 } else {
                     SkillEditorView(document: document, isEditable: !skill.isReadOnly)
+                        .transition(.opacity)
                 }
 
                 if !showingComposePanel && !skill.isReadOnly {
                     composeFloatingButton
                 }
             }
+            .animation(reduceMotion ? nil : .easeInOut(duration: 0.18), value: preferPreview)
 
             // Inline compose panel
             if showingComposePanel {
@@ -117,6 +121,7 @@ struct SkillDetailView: View {
                     onAccept: { document.save(to: skill) }
                 )
                 .id(skill.filePath)
+                .transition(.opacity)
             }
 
             Divider()
@@ -166,6 +171,7 @@ struct SkillDetailView: View {
                     Image(systemName: "eye").tag(true)
                 }
                 .pickerStyle(.segmented)
+                .help("Toggle Edit / Preview")
             }
             ToolbarItem {
                 Button {
@@ -173,8 +179,10 @@ struct SkillDetailView: View {
                     try? modelContext.save()
                 } label: {
                     Image(systemName: skill.isFavorite ? "star.fill" : "star")
-                        .foregroundStyle(skill.isFavorite ? .yellow : .secondary)
+                        .foregroundStyle(skill.isFavorite ? Color(NSColor.systemYellow) : .secondary)
                 }
+                .help(skill.isFavorite ? "Remove from Favorites" : "Add to Favorites")
+                .accessibilityLabel(skill.isFavorite ? "Remove from Favorites" : "Add to Favorites")
             }
             if !skill.isRemote {
                 ToolbarItem {
@@ -184,6 +192,7 @@ struct SkillDetailView: View {
                         Image(systemName: "folder")
                     }
                     .help("Show in Finder")
+                    .accessibilityLabel("Show in Finder")
                 }
             }
             if !skill.isReadOnly {
@@ -194,6 +203,7 @@ struct SkillDetailView: View {
                         Image(systemName: "trash")
                     }
                     .help("Delete \(skill.displayTypeName)")
+                    .accessibilityLabel("Delete \(skill.displayTypeName)")
                 }
             }
             if skill.canMakeGlobal {
@@ -204,6 +214,7 @@ struct SkillDetailView: View {
                         Image(systemName: "globe")
                     }
                     .help("Make Global")
+                    .accessibilityLabel("Make Global")
                 }
             }
         }
@@ -237,11 +248,15 @@ struct SkillDetailView: View {
     private var composeFloatingButton: some View {
         Image(systemName: "sparkles")
             .font(.system(size: 14, weight: .semibold))
-            .foregroundStyle(.white)
+            .foregroundStyle(Color(NSColor.alternateSelectedControlTextColor))
             .frame(width: 36, height: 36)
             .background(Circle().fill(Color.accentColor))
             .shadow(color: .black.opacity(0.25), radius: 4, y: 2)
-            .overlay(ClickableCursorOverlay(action: { [self] in showingComposePanel.toggle() }))
+            .overlay(ClickableCursorOverlay(action: { [self] in
+                withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.2)) {
+                    showingComposePanel.toggle()
+                }
+            }))
             .help("Compose with AI")
             .padding(16)
     }
