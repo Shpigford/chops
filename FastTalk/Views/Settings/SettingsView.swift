@@ -7,7 +7,7 @@ extension Notification.Name {
 // MARK: - Settings Tab Definition
 
 enum SettingsTab: String, CaseIterable, Identifiable {
-    case general, library, aiAssist, scanDirs, servers, about
+    case general, library, aiAssist, scanDirs, servers
 
     var id: String { rawValue }
 
@@ -18,7 +18,6 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         case .aiAssist: "AI Assist"
         case .scanDirs: "Scan Directories"
         case .servers: "Servers"
-        case .about: "About"
         }
     }
 
@@ -29,7 +28,6 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         case .aiAssist: "sparkles"
         case .scanDirs: "folder.badge.gearshape"
         case .servers: "server.rack"
-        case .about: "info.circle"
         }
     }
 }
@@ -39,7 +37,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
 struct SettingsView: View {
     private static let logger = AppLogger.settings
 
-    @State private var selectedTab: SettingsTab = .general
+    @AppStorage("settingsSelectedTab") private var selectedTab: SettingsTab = .general
     @State private var customPaths: [String] = []
     @AppStorage("defaultTool") private var defaultTool: ToolSource = .claude
 
@@ -49,7 +47,9 @@ struct SettingsView: View {
             HStack(spacing: 1) {
                 ForEach(SettingsTab.allCases) { tab in
                     SettingsTabButton(tab: tab, isSelected: selectedTab == tab) {
-                        selectedTab = tab
+                        withAnimation(.easeInOut(duration: 0.15)) {
+                            selectedTab = tab
+                        }
                     }
                 }
             }
@@ -83,8 +83,6 @@ struct SettingsView: View {
             scanSettings
         case .servers:
             RemoteServersSettingsView()
-        case .about:
-            aboutView
         }
     }
 
@@ -98,6 +96,7 @@ struct SettingsView: View {
                     Text(tool.displayName).tag(tool)
                 }
             }
+            .pickerStyle(.menu)
             .frame(maxWidth: 300)
         }
         .padding()
@@ -127,9 +126,10 @@ struct SettingsView: View {
                                 saveCustomPaths()
                             } label: {
                                 Image(systemName: "minus.circle.fill")
-                                    .foregroundStyle(.red)
+                                    .symbolRenderingMode(.multicolor)
                             }
                             .buttonStyle(.plain)
+                            .accessibilityLabel("Remove \(path)")
                         }
                         .padding(.vertical, 6)
                         .padding(.horizontal, 8)
@@ -162,50 +162,10 @@ struct SettingsView: View {
                         }
                     }
                 }
+                .buttonStyle(.bordered)
             }
         }
         .padding()
-    }
-
-    private var aboutView: some View {
-        VStack(spacing: 16) {
-            if let icon = NSApp.applicationIconImage {
-                Image(nsImage: icon)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 80, height: 80)
-            }
-
-            Text("Fast Talk")
-                .font(.title)
-                .fontWeight(.bold)
-
-            Text("Version \(appVersion)")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-
-            Text("Your AI skills and agents, finally organized.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-
-            HStack {
-                Button("Website") {
-                    if let url = URL(string: "https://fast.talk") { NSWorkspace.shared.open(url) }
-                }
-            }
-
-            Text("Private macOS app for organizing AI skills and agents.")
-                .font(.caption)
-                .foregroundStyle(.tertiary)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 30)
-    }
-
-    private var appVersion: String {
-        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
-        let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "?"
-        return "\(version) (\(build))"
     }
 
     private func loadCustomPaths() {
@@ -229,7 +189,7 @@ private struct SettingsTabButton: View {
         Button(action: action) {
             VStack(spacing: 2) {
                 Image(systemName: tab.icon)
-                    .font(.system(size: 16))
+                    .font(.title3)
                     .frame(height: 20)
                 Text(tab.title)
                     .font(.caption2)
@@ -244,5 +204,6 @@ private struct SettingsTabButton: View {
         }
         .buttonStyle(.plain)
         .foregroundStyle(isSelected ? .primary : .secondary)
+        .accessibilityAddTraits(isSelected ? [.isSelected] : [])
     }
 }

@@ -33,6 +33,7 @@ struct RemoteServersSettingsView: View {
                 Button("Add Server...") {
                     showingAddSheet = true
                 }
+                .buttonStyle(.bordered)
             }
         }
         .padding()
@@ -85,10 +86,10 @@ private struct ServerRow: View {
                     switch result {
                     case .success:
                         Image(systemName: "checkmark.circle.fill")
-                            .foregroundStyle(.green)
+                            .symbolRenderingMode(.multicolor)
                     case .failure:
                         Image(systemName: "xmark.circle.fill")
-                            .foregroundStyle(.red)
+                            .symbolRenderingMode(.multicolor)
                     }
                 }
 
@@ -127,9 +128,10 @@ private struct ServerRow: View {
                     try? modelContext.save()
                 } label: {
                     Image(systemName: "minus.circle.fill")
-                        .foregroundStyle(.red)
+                        .symbolRenderingMode(.multicolor)
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel("Remove server \(server.label)")
             }
 
             if let error = server.lastSyncError {
@@ -218,12 +220,12 @@ private struct AddServerSheet: View {
                 .font(.headline)
 
             Form {
-                TextField("Label", text: $label, prompt: Text("Production Server"))
-                TextField("Host", text: $host, prompt: Text("192.168.1.100"))
-                TextField("Port", text: $port, prompt: Text("22"))
-                TextField("Username", text: $username, prompt: Text("root"))
-                TextField("Base Path", text: $basePath, prompt: Text("e.g. ~/.openclaw, ~/skills"))
-                TextField("SSH Key Path", text: $sshKeyPath, prompt: Text("Optional — e.g. ~/.ssh/id_ed25519"))
+                TextField("Label:", text: $label, prompt: Text("Production Server"))
+                TextField("Host:", text: $host, prompt: Text("192.168.1.100"))
+                TextField("Port:", text: $port, prompt: Text("22"))
+                TextField("Username:", text: $username, prompt: Text("root"))
+                TextField("Base Path:", text: $basePath, prompt: Text("e.g. ~/.openclaw, ~/skills"))
+                TextField("SSH Key Path:", text: $sshKeyPath, prompt: Text("Optional — e.g. ~/.ssh/id_ed25519"))
             }
             .formStyle(.grouped)
 
@@ -235,7 +237,7 @@ private struct AddServerSheet: View {
 
             if testPassed {
                 Label("Connection successful", systemImage: "checkmark.circle.fill")
-                    .foregroundStyle(.green)
+                    .symbolRenderingMode(.multicolor)
                     .font(.caption)
             }
 
@@ -243,6 +245,7 @@ private struct AddServerSheet: View {
                 Button("Cancel") {
                     dismiss()
                 }
+                .buttonStyle(.bordered)
                 .keyboardShortcut(.cancelAction)
 
                 Spacer()
@@ -256,6 +259,7 @@ private struct AddServerSheet: View {
                     addServer()
                     dismiss()
                 }
+                .buttonStyle(.borderedProminent)
                 .keyboardShortcut(.defaultAction)
                 .disabled(label.isEmpty || host.isEmpty || username.isEmpty || basePath.isEmpty)
             }
@@ -333,12 +337,12 @@ private struct EditServerSheet: View {
                 .font(.headline)
 
             Form {
-                TextField("Label", text: $label, prompt: Text("Production Server"))
-                TextField("Host", text: $host, prompt: Text("192.168.1.100"))
-                TextField("Port", text: $port, prompt: Text("22"))
-                TextField("Username", text: $username, prompt: Text("root"))
-                TextField("Base Path", text: $basePath, prompt: Text("e.g. ~/.openclaw, ~/skills"))
-                TextField("SSH Key Path", text: $sshKeyPath, prompt: Text("Optional — e.g. ~/.ssh/id_ed25519"))
+                TextField("Label:", text: $label, prompt: Text("Production Server"))
+                TextField("Host:", text: $host, prompt: Text("192.168.1.100"))
+                TextField("Port:", text: $port, prompt: Text("22"))
+                TextField("Username:", text: $username, prompt: Text("root"))
+                TextField("Base Path:", text: $basePath, prompt: Text("e.g. ~/.openclaw, ~/skills"))
+                TextField("SSH Key Path:", text: $sshKeyPath, prompt: Text("Optional — e.g. ~/.ssh/id_ed25519"))
             }
             .formStyle(.grouped)
 
@@ -346,6 +350,7 @@ private struct EditServerSheet: View {
                 Button("Cancel") {
                     dismiss()
                 }
+                .buttonStyle(.bordered)
                 .keyboardShortcut(.cancelAction)
 
                 Spacer()
@@ -380,6 +385,7 @@ private struct EditServerSheet: View {
                         }
                     }
                 }
+                .buttonStyle(.borderedProminent)
                 .keyboardShortcut(.defaultAction)
                 .disabled(label.isEmpty || host.isEmpty || username.isEmpty || basePath.isEmpty)
             }

@@ -22,6 +22,7 @@ struct ACPSettingsView: View {
                     Button("Refresh Registry") {
                         Task { await configuration.refreshRegistry() }
                     }
+                    .buttonStyle(.bordered)
                     .disabled(configuration.isLoadingRegistry)
                 }
 
@@ -54,7 +55,7 @@ struct ACPSettingsView: View {
             } else if let error = configuration.registryError {
                 HStack(spacing: 6) {
                     Image(systemName: "exclamationmark.triangle.fill")
-                        .foregroundStyle(.orange)
+                        .symbolRenderingMode(.multicolor)
                     Text(error)
                         .font(.caption)
                         .foregroundStyle(.secondary)
@@ -72,8 +73,7 @@ struct ACPSettingsView: View {
                     }
                 }
                 .padding(8)
-                .background(Color(NSColor.controlBackgroundColor))
-                .clipShape(RoundedRectangle(cornerRadius: 6))
+                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 6))
             }
         }
     }
@@ -87,35 +87,28 @@ struct ACPSettingsView: View {
 
             VStack(spacing: 0) {
                 ForEach(WizardTemplateType.allCases) { type in
-                    VStack(spacing: 0) {
-                        Button {
-                            withAnimation(.easeInOut(duration: 0.15)) {
-                                if expandedTemplates.contains(type) {
-                                    expandedTemplates.remove(type)
-                                } else {
-                                    expandedTemplates.insert(type)
+                    DisclosureGroup(
+                        isExpanded: Binding(
+                            get: { expandedTemplates.contains(type) },
+                            set: { newValue in
+                                withAnimation(.easeInOut(duration: 0.15)) {
+                                    if newValue {
+                                        expandedTemplates.insert(type)
+                                    } else {
+                                        expandedTemplates.remove(type)
+                                    }
                                 }
                             }
-                        } label: {
-                            HStack {
-                                Image(systemName: "chevron.right")
-                                    .font(.caption2)
-                                    .rotationEffect(expandedTemplates.contains(type) ? .degrees(90) : .zero)
-                                Label(type.displayName, systemImage: type.icon)
-                                Spacer()
-                            }
+                        )
+                    ) {
+                        templateEditor(for: type)
                             .padding(.horizontal, 8)
-                            .padding(.vertical, 8)
-                            .contentShape(Rectangle())
-                        }
-                        .buttonStyle(.plain)
-
-                        if expandedTemplates.contains(type) {
-                            templateEditor(for: type)
-                                .padding(.horizontal, 8)
-                                .padding(.bottom, 8)
-                        }
+                            .padding(.bottom, 8)
+                    } label: {
+                        Label(type.displayName, systemImage: type.icon)
                     }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
 
                     if type != WizardTemplateType.allCases.last {
                         Divider()
@@ -123,8 +116,7 @@ struct ACPSettingsView: View {
                 }
             }
             .padding(4)
-            .background(Color(NSColor.controlBackgroundColor))
-            .clipShape(RoundedRectangle(cornerRadius: 6))
+            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 6))
         }
     }
 
@@ -156,11 +148,10 @@ struct ACPSettingsView: View {
 
                 Spacer()
 
-                Button("Reset to Default") {
+                Button("Reset to Default", role: .destructive) {
                     showingResetConfirm = type
                 }
                 .buttonStyle(.plain)
-                .foregroundStyle(.red)
                 .font(.caption)
 
                 Button("Save") {
@@ -236,7 +227,7 @@ private struct AgentRow: View {
                     .foregroundStyle(.tertiary)
             }
             Spacer()
-            Toggle("", isOn: Binding(
+            Toggle(agent.name, isOn: Binding(
                 get: { configuration.isEnabled(agent.id) },
                 set: { configuration.setEnabled(agent.id, $0) }
             ))
