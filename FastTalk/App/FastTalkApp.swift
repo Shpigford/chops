@@ -2,6 +2,10 @@ import SwiftUI
 import SwiftData
 import AppKit
 
+extension Notification.Name {
+    static let showNewSkillSheet = Notification.Name("showNewSkillSheet")
+}
+
 @main
 struct FastTalkApp: App {
     @NSApplicationDelegateAdaptor(AppLifecycleLogger.self) private var lifecycleLogger
@@ -41,21 +45,10 @@ struct FastTalkApp: App {
             TextEditingCommands()
             CommandGroup(replacing: .newItem) {
                 Button("New Item") {
-                    switch appState.sidebarFilter {
-                    case .allNotes:
+                    if appState.sidebarFilter == .allNotes {
                         NotificationCenter.default.post(name: .newNoteRequested, object: nil)
-                    case .allSkills:
-                        appState.newItemKind = .skill
-                        appState.showingNewSkillSheet = true
-                    case .allAgents:
-                        appState.newItemKind = .agent
-                        appState.showingNewSkillSheet = true
-                    case .allRules:
-                        appState.newItemKind = .rule
-                        appState.showingNewSkillSheet = true
-                    default:
-                        appState.newItemKind = .skill
-                        appState.showingNewSkillSheet = true
+                    } else {
+                        NotificationCenter.default.post(name: .showNewSkillSheet, object: nil)
                     }
                 }
                 .keyboardShortcut("n", modifiers: .command)
@@ -90,6 +83,11 @@ struct FastTalkApp: App {
                 }
                 .keyboardShortcut("j", modifiers: .command)
                 .disabled(appState.selectedSkill == nil || appState.selectedSkill?.isReadOnly == true)
+            }
+            CommandGroup(replacing: .appInfo) {
+                Button("About Fast Talk") {
+                    NSApp.orderFrontStandardAboutPanel(nil)
+                }
             }
             CommandGroup(after: .appInfo) {
                 Toggle("Debug Logging", isOn: $debugLoggingEnabled)

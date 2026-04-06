@@ -186,9 +186,13 @@ struct SkillListView: View {
             Button("Show in Finder") {
                 NSWorkspace.shared.selectFile(skill.filePath, inFileViewerRootedAtPath: "")
             }
+            if !skill.isReadOnly {
+                Divider()
+            }
+        } else if !skill.isReadOnly {
+            Divider()
         }
         if !skill.isReadOnly {
-            Divider()
             Button("Delete", role: .destructive) {
                 trashSkills([skill], restoreSelectionOnUndo: true)
             }

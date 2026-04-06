@@ -98,7 +98,7 @@ struct SkillDetailView: View {
                     SkillPreviewView(content: document.editorContent)
                         .transition(.opacity)
                 } else {
-                    SkillEditorView(document: document, isEditable: !skill.isReadOnly)
+                    SkillEditorView(document: document, itemKind: skill.itemKind, isEditable: !skill.isReadOnly)
                         .transition(.opacity)
                 }
 
@@ -183,6 +183,7 @@ struct SkillDetailView: View {
                     Image(systemName: "eye").tag(true)
                 }
                 .pickerStyle(.segmented)
+                .keyboardShortcut("e", modifiers: .command)
                 .help("Toggle Edit / Preview")
             }
             ToolbarItem {

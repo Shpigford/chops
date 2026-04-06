@@ -224,6 +224,7 @@ final class SkillEditorDocument {
 
 struct SkillEditorView: View {
     @Bindable var document: SkillEditorDocument
+    let itemKind: ItemKind
     var isEditable: Bool = true
 
     var body: some View {
@@ -239,6 +240,7 @@ struct SkillEditorView: View {
                     text: $document.editorContent,
                     preferredCursorLocation: $document.preferredCursorLocation,
                     editorFocusRequestID: $document.editorFocusRequestID,
+                    itemKind: itemKind,
                     isEditable: isEditable
                 )
                 .accessibilityLabel("Skill editor")
@@ -274,6 +276,7 @@ struct HighlightedTextEditor: NSViewRepresentable {
     @Binding var text: String
     @Binding var preferredCursorLocation: Int?
     @Binding var editorFocusRequestID: Int?
+    let itemKind: ItemKind
     var isEditable: Bool = true
     @Environment(\.colorScheme) private var colorScheme
 
@@ -350,6 +353,7 @@ struct HighlightedTextEditor: NSViewRepresentable {
 
         context.coordinator.parent = self
         textView.isEditable = isEditable
+        textView.isContinuousSpellCheckingEnabled = itemKind == .note
 
         // Re-highlight on appearance change
         let currentScheme = colorScheme

@@ -200,6 +200,10 @@ final class FastTalkTextView: NSTextView {
         let formatItem = NSMenuItem(title: "Text Format", action: nil, keyEquivalent: "")
         formatItem.submenu = formatMenu
 
+        guard !menu.items.isEmpty else {
+            return menu
+        }
+
         menu.insertItem(.separator(), at: 0)
         menu.insertItem(formatItem, at: 0)
 

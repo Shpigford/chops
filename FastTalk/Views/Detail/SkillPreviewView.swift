@@ -98,6 +98,8 @@ private struct MarkdownWebView: NSViewRepresentable {
     // MARK: - CSS
 
     private static let css = """
+    color-scheme: light dark;
+
     * {
         margin: 0;
         padding: 0;
@@ -111,18 +113,13 @@ private struct MarkdownWebView: NSViewRepresentable {
         max-width: 672px;
         margin: 0 auto;
         padding: 24px 24px 20px;
-        color: #222222;
-        background-color: #FAFAFA;
+        color: -apple-system-label;
+        background-color: Canvas;
         -webkit-font-smoothing: antialiased;
         -webkit-user-select: text;
     }
 
     @media (prefers-color-scheme: dark) {
-        body {
-            color: #E0E0E0;
-            background-color: #1A1A1A;
-        }
-        a { color: #6699CC; }
         code {
             background-color: #2A2A2A !important;
             color: #E07070 !important;
@@ -135,28 +132,6 @@ private struct MarkdownWebView: NSViewRepresentable {
         pre code {
             background: none !important;
             color: #E0E0E0 !important;
-        }
-        blockquote {
-            border-left-color: #444444;
-            color: #999999;
-        }
-        table th {
-            background-color: #2A2A2A;
-            border-color: #444444;
-        }
-        table td {
-            border-color: #333333;
-        }
-        table tr:nth-child(even) {
-            background-color: #222222;
-        }
-        hr {
-            border-color: #333333;
-        }
-        pre.frontmatter {
-            color: #999999;
-            background-color: #222222;
-            border-color: #333333;
         }
         pre.highlighted-code code.hljs {
             border-color: #333333;
@@ -184,7 +159,7 @@ private struct MarkdownWebView: NSViewRepresentable {
     }
 
     a {
-        color: #3366AA;
+        color: LinkText;
         text-decoration: none;
     }
     a:hover {
@@ -194,19 +169,20 @@ private struct MarkdownWebView: NSViewRepresentable {
     code {
         font-family: "SF Mono", SFMono-Regular, Menlo, monospace;
         font-size: 0.85em;
-        background-color: #F0F0F0;
-        color: #CC3333;
+        background-color: -apple-system-grouped-background;
+        color: -apple-system-red;
         padding: 0.15em 0.35em;
         border-radius: 3px;
     }
 
     pre {
-        background-color: #F5F5F5;
-        border: 1px solid #E0E0E0;
+        background-color: -apple-system-grouped-background;
+        border: 1px solid -apple-system-separator;
         border-radius: 4px;
         padding: 1em;
         margin-bottom: 1em;
         overflow-x: auto;
+        color: -apple-system-label;
     }
 
     pre code {
@@ -227,17 +203,17 @@ private struct MarkdownWebView: NSViewRepresentable {
     }
 
     pre.highlighted-code code.hljs {
-        border: 1px solid #E0E0E0;
+        border: 1px solid -apple-system-separator;
         border-radius: 4px;
         font-size: 0.85em;
     }
 
     blockquote {
-        border-left: 3px solid #CCCCCC;
+        border-left: 3px solid -apple-system-separator;
         padding-left: 1em;
         margin-left: 0;
         margin-bottom: 1em;
-        color: #666666;
+        color: -apple-system-secondary-label;
         font-style: italic;
     }
 
@@ -278,16 +254,16 @@ private struct MarkdownWebView: NSViewRepresentable {
 
     th {
         font-weight: 600;
-        background-color: #F5F5F5;
-        border-bottom: 2px solid #DDDDDD;
+        background-color: -apple-system-grouped-background;
+        border-bottom: 2px solid -apple-system-separator;
     }
 
     td {
-        border-bottom: 1px solid #EEEEEE;
+        border-bottom: 1px solid -apple-system-separator;
     }
 
     tr:nth-child(even) {
-        background-color: #FAFAFA;
+        background-color: -apple-system-grouped-background;
     }
 
     del {
@@ -297,7 +273,7 @@ private struct MarkdownWebView: NSViewRepresentable {
 
     hr {
         border: none;
-        border-top: 1px solid #DDDDDD;
+        border-top: 1px solid -apple-system-separator;
         margin: 2em 0;
     }
 
@@ -311,8 +287,8 @@ private struct MarkdownWebView: NSViewRepresentable {
         font-size: 11px;
         letter-spacing: 0.02em;
         line-height: 1.5;
-        color: #333333;
-        background-color: #F0F0F0;
+        color: -apple-system-secondary-label;
+        background-color: -apple-system-grouped-background;
         border: 1px solid transparent;
         border-radius: 6px;
         padding: 10px 12px;

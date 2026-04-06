@@ -133,6 +133,7 @@ struct ACPSettingsView: View {
         VStack(alignment: .leading, spacing: 8) {
             TextEditor(text: binding)
                 .font(.system(.callout, design: .monospaced))
+                .accessibilityLabel("\(type.displayName) template")
                 .scrollContentBackground(.hidden)
                 .frame(height: 200)
                 .padding(6)

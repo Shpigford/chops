@@ -621,6 +621,7 @@ struct ComposePanel: View {
         HStack(alignment: .bottom, spacing: 8) {
             TextField(isFirstTurn ? "Enter instructions…" : "Follow up…", text: $inputText, axis: .vertical)
                 .font(.body)
+                .accessibilityLabel("Message to agent")
                 .textFieldStyle(.plain)
                 .lineLimit(1...4)
                 .disabled(isProcessing || !isConnected || hasPendingDiffs)

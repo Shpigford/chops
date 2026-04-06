@@ -117,6 +117,7 @@ struct CollectionListView: View {
         ForEach(collections) { collection in
             if editingCollectionID == collection.persistentModelID {
                 TextField("Name", text: $editingName)
+                    .accessibilityLabel("Rename collection")
                     .textFieldStyle(.roundedBorder)
                     .focused($isRenameFocused)
                     .onAppear {

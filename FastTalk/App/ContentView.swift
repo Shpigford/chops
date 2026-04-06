@@ -127,6 +127,10 @@ struct ContentView: View {
             AppLogger.ui.notice("Sidebar filter changed to \(String(describing: appState.sidebarFilter), privacy: .public)")
         }
         .frame(minWidth: 900, minHeight: 500)
+        .onReceive(NotificationCenter.default.publisher(for: .showNewSkillSheet)) { _ in
+            appState.newItemKind = newItemKind(for: appState.sidebarFilter)
+            appState.showingNewSkillSheet = true
+        }
         .onReceive(NotificationCenter.default.publisher(for: .customScanPathsChanged)) { _ in
             AppLogger.lifecycle.notice("Received customScanPathsChanged notification")
             AppRuntimeDiagnostics.logSnapshot(reason: "customScanPathsChanged before rescan")
@@ -192,6 +196,19 @@ struct ContentView: View {
             Task {
                 await scanner.syncAllRemoteServers()
             }
+        }
+    }
+
+    private func newItemKind(for filter: SidebarFilter) -> ItemKind {
+        switch filter {
+        case .allNotes:
+            return .note
+        case .allAgents:
+            return .agent
+        case .allRules:
+            return .rule
+        case .allSkills, .favorites, .tool, .collection, .server:
+            return .skill
         }
     }
 }
