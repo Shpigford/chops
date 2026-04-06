@@ -90,7 +90,7 @@ struct ComposePanel: View {
             }
         }
         .frame(height: panelHeight)
-        .background(Color(.windowBackgroundColor))
+        .background(.regularMaterial)
         .onAppear {
             if selectedAgentId == nil {
                 selectedAgentId = configuredAgents.first?.id
@@ -173,13 +173,14 @@ struct ComposePanel: View {
                 Text("Choose an agent to get started")
                     .font(.callout)
                     .foregroundStyle(.secondary)
-                Picker("", selection: $selectedAgentId) {
+                Picker("Agent", selection: $selectedAgentId) {
                     Text("Select agent…").tag(nil as String?)
                     ForEach(configuredAgents) { agent in
                         Text(agent.name).tag(Optional(agent.id))
                     }
                 }
                 .labelsHidden()
+                .pickerStyle(.menu)
                 .fixedSize()
                 if selectedAgentId != nil {
                     if isConnecting {
@@ -238,7 +239,7 @@ struct ComposePanel: View {
                                         .lineLimit(1)
                                 }
                                 Spacer()
-                                Toggle("", isOn: Binding(
+                                Toggle(agent.name, isOn: Binding(
                                     get: { configuration.isEnabled(agent.id) },
                                     set: { configuration.setEnabled(agent.id, $0) }
                                 ))
@@ -265,13 +266,14 @@ struct ComposePanel: View {
         HStack(spacing: 8) {
             // LEFT: Tool picker + connection + debug
             HStack(spacing: 8) {
-                Picker("", selection: $selectedAgentId) {
+                Picker("Agent", selection: $selectedAgentId) {
                     Text("Select...").tag(nil as String?)
                     ForEach(configuredAgents) { agent in
                         Text(agent.name).tag(Optional(agent.id))
                     }
                 }
                 .labelsHidden()
+                .pickerStyle(.menu)
                 .frame(width: 120)
 
                 connectionButton
@@ -301,7 +303,7 @@ struct ComposePanel: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
-        .background(Color(.controlBackgroundColor))
+        .background(.bar)
     }
 
     // MARK: - Config Options Bar
@@ -337,6 +339,7 @@ struct ComposePanel: View {
                 Text(opt.name.replacingOccurrences(of: " (recommended)", with: "")).tag(opt.value)
             }
         }
+        .pickerStyle(.menu)
         .fixedSize()
         .help(option.description ?? option.name)
     }
@@ -378,7 +381,7 @@ struct ComposePanel: View {
                     }
                     .padding(12)
                 }
-                .background(Color(.textBackgroundColor).opacity(0.3))
+                .background(.ultraThinMaterial)
                 .onChange(of: messages.count) { _, _ in
                     withAnimation { proxy.scrollTo("live-assistant", anchor: .bottom) }
                 }
@@ -522,7 +525,7 @@ struct ComposePanel: View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 4) {
                 if message.isError {
-                    Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange)
+                    Image(systemName: "exclamationmark.triangle.fill").symbolRenderingMode(.multicolor)
                     Text("Error").foregroundStyle(.orange)
                 } else {
                     Image(systemName: "sparkles").foregroundStyle(.secondary)
@@ -626,13 +629,14 @@ struct ComposePanel: View {
                 } label: {
                     Image(systemName: "stop.fill")
                         .font(.body)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Color(NSColor.alternateSelectedControlTextColor))
                         .frame(width: 36)
                         .frame(maxHeight: .infinity)
-                        .background(Color.red.opacity(0.8))
+                        .background(Color(NSColor.systemRed).opacity(0.8))
                         .clipShape(RoundedRectangle(cornerRadius: 8))
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel("Stop Generation")
                 .help("Stop (⌘.)")
                 .keyboardShortcut(".", modifiers: .command)
             } else {
@@ -641,7 +645,7 @@ struct ComposePanel: View {
                 } label: {
                     Image(systemName: "paperplane.fill")
                         .font(.body)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Color(NSColor.alternateSelectedControlTextColor))
                         .frame(width: 36)
                         .frame(maxHeight: .infinity)
                         .background(sendDisabled ? Color.accentColor.opacity(0.4) : Color.accentColor)
@@ -650,13 +654,14 @@ struct ComposePanel: View {
                 .buttonStyle(.plain)
                 .disabled(sendDisabled)
                 .keyboardShortcut(.return, modifiers: .command)
+                .accessibilityLabel("Send Message")
                 .help("Send (⌘↩)")
             }
         }
         .fixedSize(horizontal: false, vertical: true)
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
-        .background(Color(.controlBackgroundColor))
+        .background(.bar)
     }
 
     private var resizeHandle: some View {
@@ -714,6 +719,7 @@ struct ComposePanel: View {
         }
         .buttonStyle(.plain)
         .help(isConnected ? "Disconnect" : isConnecting ? "Cancel connection" : "Connect to \(selectedAgent?.name ?? "agent")")
+        .accessibilityLabel(isConnected ? "Disconnect" : "Connect")
         .disabled(selectedAgentId == nil)
     }
 
@@ -728,6 +734,9 @@ struct ComposePanel: View {
         }
         .buttonStyle(.plain)
         .foregroundStyle(.secondary)
+        .keyboardShortcut(.escape, modifiers: [])
+        .accessibilityLabel("Close Compose Panel")
+        .help("Close")
     }
 
     @ViewBuilder
@@ -740,6 +749,7 @@ struct ComposePanel: View {
                     .foregroundStyle(.orange)
             }
             .buttonStyle(.plain)
+            .accessibilityLabel("View ACP Debug Logs")
             .help("View ACP Logs")
             .popover(isPresented: $showingDebugLogs) {
                 ACPLogViewer()
