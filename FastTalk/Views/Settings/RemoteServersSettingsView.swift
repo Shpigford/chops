@@ -16,17 +16,32 @@ struct RemoteServersSettingsView: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
-            ScrollView {
+            if servers.isEmpty {
                 VStack(spacing: 8) {
-                    ForEach(servers) { server in
-                        ServerRow(server: server)
-                        if server.id != servers.last?.id {
-                            Divider()
+                    Image(systemName: "server.rack")
+                        .font(.title2)
+                        .foregroundStyle(.tertiary)
+                    Text("No servers configured")
+                        .foregroundStyle(.secondary)
+                    Text("Add a remote server to browse and edit skills via SSH.")
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                }
+                .frame(maxWidth: .infinity)
+                .frame(minHeight: 120)
+            } else {
+                ScrollView {
+                    VStack(spacing: 8) {
+                        ForEach(servers) { server in
+                            ServerRow(server: server)
+                            if server.id != servers.last?.id {
+                                Divider()
+                            }
                         }
                     }
                 }
+                .frame(minHeight: 120)
             }
-            .frame(minHeight: 120)
 
             HStack {
                 Spacer()
