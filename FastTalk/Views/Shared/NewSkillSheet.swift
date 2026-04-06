@@ -31,7 +31,7 @@ struct NewSkillSheet: View {
                 .fontWeight(.bold)
 
             Form {
-                TextField("\(itemKind.singularName) name", text: $skillName)
+                TextField("\(itemKind.singularName) name:", text: $skillName)
                     .textFieldStyle(.roundedBorder)
 
                 Picker("Tool", selection: $selectedTool) {
@@ -40,6 +40,7 @@ struct NewSkillSheet: View {
                             .tag(tool)
                     }
                 }
+                .pickerStyle(.menu)
             }
             .formStyle(.grouped)
 
@@ -53,6 +54,7 @@ struct NewSkillSheet: View {
                 Button("Cancel") {
                     dismiss()
                 }
+                .buttonStyle(.bordered)
                 .keyboardShortcut(.cancelAction)
 
                 Spacer()
@@ -60,6 +62,7 @@ struct NewSkillSheet: View {
                 Button("Create") {
                     createItem()
                 }
+                .buttonStyle(.borderedProminent)
                 .keyboardShortcut(.defaultAction)
                 .disabled(skillName.isEmpty)
             }

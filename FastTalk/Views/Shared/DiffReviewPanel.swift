@@ -16,16 +16,16 @@ enum DiffLineKind {
     var prefixColor: Color {
         switch self {
         case .unchanged: .secondary
-        case .added:     .green
-        case .removed:   .red
+        case .added:     Color(NSColor.systemGreen)
+        case .removed:   Color(NSColor.systemRed)
         }
     }
 
     var background: Color {
         switch self {
         case .unchanged: .clear
-        case .added:     Color.green.opacity(0.12)
-        case .removed:   Color.red.opacity(0.12)
+        case .added:     Color(NSColor.systemGreen).opacity(0.12)
+        case .removed:   Color(NSColor.systemRed).opacity(0.12)
         }
     }
 }
@@ -128,13 +128,14 @@ struct DiffReviewPanel: View {
         HStack(spacing: 10) {
             Image(systemName: "plusminus")
                 .foregroundStyle(.secondary)
+                .accessibilityHidden(true)
 
-            Label("+\(addedCount)", systemImage: "")
+            Text("+\(addedCount)")
                 .font(.caption.monospaced())
-                .foregroundStyle(.green)
-            Label("-\(removedCount)", systemImage: "")
+                .foregroundStyle(Color(NSColor.systemGreen))
+            Text("-\(removedCount)")
                 .font(.caption.monospaced())
-                .foregroundStyle(.red)
+                .foregroundStyle(Color(NSColor.systemRed))
 
             Spacer()
 
@@ -147,18 +148,19 @@ struct DiffReviewPanel: View {
             Button("Reject", action: onReject)
                 .buttonStyle(.bordered)
                 .controlSize(.small)
+                .keyboardShortcut(.cancelAction)
                 .disabled(isApplying)
 
             Button(isApplying ? "Applying..." : "Accept", action: onAccept)
                 .buttonStyle(.borderedProminent)
                 .controlSize(.small)
-                .tint(.green)
+                .tint(Color(NSColor.systemGreen))
                 .keyboardShortcut(.return, modifiers: .command)
                 .disabled(isApplying)
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 6)
-        .background(Color(.controlBackgroundColor))
+        .background(.bar)
     }
 
     private var diffScroll: some View {
@@ -178,10 +180,11 @@ struct DiffReviewPanel: View {
                     .padding(.horizontal, 8)
                     .padding(.vertical, 1)
                     .background(line.kind.background)
+                    .accessibilityLabel("\(line.kind.prefix) \(line.text)")
                 }
             }
         }
-        .background(Color(.textBackgroundColor))
+        .background(.regularMaterial)
     }
 }
 

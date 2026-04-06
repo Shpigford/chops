@@ -6,11 +6,12 @@ struct ToolBadge: View {
 
     var body: some View {
         Text(tool.shortLabel)
-            .font(.system(size: 9, weight: .semibold, design: .rounded))
+            .font(.system(.caption2, design: .rounded).weight(.semibold))
             .foregroundStyle(.secondary)
             .padding(.horizontal, 4)
             .padding(.vertical, 2)
             .background(.quaternary, in: RoundedRectangle(cornerRadius: 3))
+            .accessibilityLabel(tool.displayName)
     }
 }
 
@@ -20,16 +21,19 @@ struct ToolIcon: View {
     var size: CGFloat = 16
 
     var body: some View {
-        if let assetName = tool.logoAssetName {
-            Image(assetName)
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(width: size, height: size)
-        } else {
-            Image(systemName: tool.iconName)
-                .font(.system(size: size * 0.7))
-                .frame(width: size, height: size)
+        Group {
+            if let assetName = tool.logoAssetName {
+                Image(assetName)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: size, height: size)
+            } else {
+                Image(systemName: tool.iconName)
+                    .font(.system(size: size * 0.7))
+                    .frame(width: size, height: size)
+            }
         }
+        .accessibilityLabel(tool.displayName)
     }
 }
 

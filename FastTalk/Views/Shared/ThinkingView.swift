@@ -17,7 +17,7 @@ struct ThinkingView: View {
             } label: {
                 HStack(spacing: 5) {
                     Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
-                        .font(.caption2)
+                        .font(.caption2.weight(.semibold))
                         .foregroundStyle(.secondary)
                     if !settled {
                         ProgressView().controlSize(.mini)
@@ -34,6 +34,8 @@ struct ThinkingView: View {
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .accessibilityLabel("Thinking")
+            .accessibilityValue(isExpanded ? "Expanded" : "Collapsed")
             .padding(.horizontal, 10)
             .padding(.vertical, 6)
 
@@ -49,6 +51,7 @@ struct ThinkingView: View {
                         .padding(.bottom, 8)
                 }
                 .frame(maxHeight: 140)
+                .transition(.opacity)
             }
         }
         .padding(.bottom, 4)

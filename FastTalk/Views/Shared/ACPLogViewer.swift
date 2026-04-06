@@ -17,14 +17,12 @@ struct ACPLogViewer: View {
                 Spacer()
 
                 Toggle("Debug Mode", isOn: $debugEnabled)
-                    .toggleStyle(.switch)
                     .controlSize(.small)
                     .onChange(of: debugEnabled) { _, newValue in
                         acpLog.debugEnabled = newValue
                     }
 
                 Toggle("Auto-refresh", isOn: $autoRefresh)
-                    .toggleStyle(.switch)
                     .controlSize(.small)
 
                 Button {
@@ -34,6 +32,7 @@ struct ACPLogViewer: View {
                 }
                 .buttonStyle(.borderless)
                 .help("Refresh")
+                .accessibilityLabel("Refresh")
 
                 Button {
                     acpLog.clearLogs()
@@ -43,6 +42,7 @@ struct ACPLogViewer: View {
                 }
                 .buttonStyle(.borderless)
                 .help("Clear Logs")
+                .accessibilityLabel("Clear Logs")
 
                 Button {
                     NSWorkspace.shared.selectFile(acpLog.logURL.path, inFileViewerRootedAtPath: "")
@@ -51,10 +51,11 @@ struct ACPLogViewer: View {
                 }
                 .buttonStyle(.borderless)
                 .help("Show in Finder")
+                .accessibilityLabel("Show in Finder")
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
-            .background(Color(.controlBackgroundColor))
+            .background(.bar)
 
             Divider()
 
@@ -74,7 +75,7 @@ struct ACPLogViewer: View {
                     }
                 }
             }
-            .background(Color(.textBackgroundColor))
+            .background(.regularMaterial)
         }
         .onAppear {
             refreshLogs()
