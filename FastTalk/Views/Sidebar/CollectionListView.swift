@@ -226,7 +226,7 @@ struct CollectionListView: View {
                     .keyboardShortcut(.defaultAction)
                 }
             }
-            .padding()
+            .padding(16)
             .frame(width: 240)
         }
         .alert("Collection Error", isPresented: Binding(

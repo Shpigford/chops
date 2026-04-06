@@ -162,7 +162,7 @@ struct SkillMetadataBar: View {
                     .font(.caption)
             }
         }
-        .padding()
+        .padding(16)
         .frame(width: 200)
     }
 }

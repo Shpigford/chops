@@ -232,7 +232,7 @@ struct SkillEditorView: View {
             if document.isLoadingRemote {
                 VStack {
                     ProgressView("Loading from server...")
-                        .padding()
+                        .padding(14)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {

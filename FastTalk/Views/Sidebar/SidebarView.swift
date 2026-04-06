@@ -88,7 +88,7 @@ struct SidebarView: View {
                                 )) {
                                     Text(error)
                                         .font(.caption)
-                                        .padding()
+                                        .padding(16)
                                         .frame(maxWidth: 250)
                                 }
                             }
