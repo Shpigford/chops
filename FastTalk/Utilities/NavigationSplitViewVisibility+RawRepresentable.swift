@@ -14,11 +14,9 @@ extension NavigationSplitViewVisibility: @retroactive RawRepresentable {
 
     public var rawValue: String {
         switch self {
-        case .all: return "all"
         case .doubleColumn: return "doubleColumn"
         case .detailOnly: return "detailOnly"
-        case .automatic: return "all"
-        @unknown default: return "all"
+        default: return "all"
         }
     }
 }
