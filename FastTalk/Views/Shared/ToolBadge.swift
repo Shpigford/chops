@@ -11,6 +11,7 @@ struct ToolBadge: View {
             .padding(.horizontal, 4)
             .padding(.vertical, 2)
             .background(.quaternary, in: RoundedRectangle(cornerRadius: 3))
+            .help(tool.displayName)
             .accessibilityLabel(tool.displayName)
     }
 }

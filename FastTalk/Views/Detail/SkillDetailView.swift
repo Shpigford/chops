@@ -159,6 +159,12 @@ struct SkillDetailView: View {
             guard !skill.isReadOnly else { return }
             document.save(to: skill)
         }
+        .onReceive(NotificationCenter.default.publisher(for: .toggleComposePanelRequested)) { _ in
+            guard !skill.isReadOnly else { return }
+            withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.2)) {
+                showingComposePanel.toggle()
+            }
+        }
         .alert("Save Error", isPresented: $document.showingSaveError) {
             Button("OK") {}
         } message: {
@@ -202,6 +208,7 @@ struct SkillDetailView: View {
                     } label: {
                         Image(systemName: "trash")
                     }
+                    .keyboardShortcut(.delete, modifiers: .command)
                     .help("Delete \(skill.displayTypeName)")
                     .accessibilityLabel("Delete \(skill.displayTypeName)")
                 }
@@ -224,10 +231,10 @@ struct SkillDetailView: View {
                 return Alert(
                     title: Text("Make \"\(skill.name)\" Global?"),
                     message: Text("This will move the skill to ~/.agents/skills/ and symlink it to all installed agents."),
-                    primaryButton: .default(Text("Make Global")) {
+                    primaryButton: .cancel(),
+                    secondaryButton: .default(Text("Make Global")) {
                         makeSkillGlobal()
-                    },
-                    secondaryButton: .cancel()
+                    }
                 )
             case .deleteError(let message):
                 return Alert(
@@ -247,7 +254,7 @@ struct SkillDetailView: View {
 
     private var composeFloatingButton: some View {
         Image(systemName: "sparkles")
-            .font(.system(size: 14, weight: .semibold))
+            .font(.callout.weight(.semibold))
             .foregroundStyle(Color(NSColor.alternateSelectedControlTextColor))
             .frame(width: 36, height: 36)
             .background(Circle().fill(Color.accentColor))

@@ -36,7 +36,7 @@ struct RemoteServersSettingsView: View {
                 .buttonStyle(.bordered)
             }
         }
-        .padding()
+        .padding(20)
         .sheet(isPresented: $showingAddSheet) {
             AddServerSheet()
         }
@@ -53,6 +53,7 @@ private struct ServerRow: View {
     @State private var testResult: TestResult?
     @State private var syncLog: String?
     @State private var showingEditSheet = false
+    @State private var serverToDelete: RemoteServer?
 
     enum TestResult {
         case success
@@ -124,8 +125,7 @@ private struct ServerRow: View {
                 }
 
                 Button(role: .destructive) {
-                    modelContext.delete(server)
-                    try? modelContext.save()
+                    serverToDelete = server
                 } label: {
                     Image(systemName: "minus.circle.fill")
                         .symbolRenderingMode(.multicolor)
@@ -155,6 +155,12 @@ private struct ServerRow: View {
         }
         .sheet(isPresented: $showingEditSheet) {
             EditServerSheet(server: server)
+        }
+        .confirmationDialog("Remove \"\(serverToDelete?.label ?? "")\"?", isPresented: .init(get: { serverToDelete != nil }, set: { if !$0 { serverToDelete = nil } })) {
+            Button("Remove", role: .destructive) { if let server = serverToDelete { modelContext.delete(server); try? modelContext.save() } }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This will remove the server and all synced skills from Fast Talk.")
         }
     }
 
@@ -206,7 +212,7 @@ private struct AddServerSheet: View {
 
     @State private var label = ""
     @State private var host = ""
-    @State private var port = "22"
+    @State private var portNumber: Int = 22
     @State private var username = ""
     @State private var basePath = ""
     @State private var sshKeyPath = ""
@@ -222,12 +228,13 @@ private struct AddServerSheet: View {
             Form {
                 TextField("Label:", text: $label, prompt: Text("Production Server"))
                 TextField("Host:", text: $host, prompt: Text("192.168.1.100"))
-                TextField("Port:", text: $port, prompt: Text("22"))
+                TextField("Port:", value: $portNumber, format: .number)
                 TextField("Username:", text: $username, prompt: Text("root"))
                 TextField("Base Path:", text: $basePath, prompt: Text("e.g. ~/.openclaw, ~/skills"))
                 TextField("SSH Key Path:", text: $sshKeyPath, prompt: Text("Optional — e.g. ~/.ssh/id_ed25519"))
             }
             .formStyle(.grouped)
+            .scrollDisabled(true)
 
             if let testError {
                 Text(testError)
@@ -276,7 +283,7 @@ private struct AddServerSheet: View {
         let server = RemoteServer(
             label: label,
             host: host,
-            port: Int(port) ?? 22,
+            port: portNumber,
             username: username,
             skillsBasePath: basePath
         )
@@ -302,7 +309,7 @@ private struct AddServerSheet: View {
         let server = RemoteServer(
             label: label,
             host: host,
-            port: Int(port) ?? 22,
+            port: portNumber,
             username: username,
             skillsBasePath: basePath
         )
@@ -326,7 +333,7 @@ private struct EditServerSheet: View {
 
     @State private var label: String = ""
     @State private var host: String = ""
-    @State private var port: String = ""
+    @State private var portNumber: Int = 22
     @State private var username: String = ""
     @State private var basePath: String = ""
     @State private var sshKeyPath: String = ""
@@ -339,7 +346,7 @@ private struct EditServerSheet: View {
             Form {
                 TextField("Label:", text: $label, prompt: Text("Production Server"))
                 TextField("Host:", text: $host, prompt: Text("192.168.1.100"))
-                TextField("Port:", text: $port, prompt: Text("22"))
+                TextField("Port:", value: $portNumber, format: .number)
                 TextField("Username:", text: $username, prompt: Text("root"))
                 TextField("Base Path:", text: $basePath, prompt: Text("e.g. ~/.openclaw, ~/skills"))
                 TextField("SSH Key Path:", text: $sshKeyPath, prompt: Text("Optional — e.g. ~/.ssh/id_ed25519"))
@@ -359,11 +366,11 @@ private struct EditServerSheet: View {
                     let connectionChanged = server.host != host
                         || server.username != username
                         || server.skillsBasePath != basePath
-                        || server.port != (Int(port) ?? 22)
+                        || server.port != portNumber
 
                     server.label = label
                     server.host = host
-                    server.port = Int(port) ?? 22
+                    server.port = portNumber
                     server.username = username
                     server.skillsBasePath = basePath
                     server.sshKeyPath = sshKeyPath.isEmpty ? nil : sshKeyPath
@@ -395,7 +402,7 @@ private struct EditServerSheet: View {
         .onAppear {
             label = server.label
             host = server.host
-            port = "\(server.port)"
+            portNumber = server.port
             username = server.username
             basePath = server.skillsBasePath
             sshKeyPath = server.sshKeyPath ?? ""

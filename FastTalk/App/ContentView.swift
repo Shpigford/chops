@@ -13,17 +13,17 @@ struct ContentView: View {
     private var searchPrompt: LocalizedStringKey {
         switch appState.sidebarFilter {
         case .allNotes:
-            "Search notes..."
+            "Notes"
         case .allAgents:
-            "Search agents..."
+            "Agents"
         case .allRules:
-            "Search rules..."
+            "Rules"
         case .allSkills:
-            "Search skills..."
+            "Skills"
         case .favorites:
-            "Search favorites..."
+            "Favorites"
         case .tool, .collection, .server:
-            "Search items..."
+            "Items"
         }
     }
 

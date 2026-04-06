@@ -30,7 +30,7 @@ struct ACPSettingsView: View {
 
                 templateSection
             }
-            .padding()
+            .padding(20)
         }
         .frame(maxHeight: 550)
         .task { await configuration.loadRegistryIfNeeded() }
@@ -132,7 +132,7 @@ struct ACPSettingsView: View {
 
         VStack(alignment: .leading, spacing: 8) {
             TextEditor(text: binding)
-                .font(.system(.caption, design: .monospaced))
+                .font(.system(.callout, design: .monospaced))
                 .scrollContentBackground(.hidden)
                 .frame(height: 200)
                 .padding(6)
@@ -157,13 +157,14 @@ struct ACPSettingsView: View {
                 Button("Save") {
                     saveTemplate(type)
                 }
+                .keyboardShortcut("s", modifiers: .command)
                 .buttonStyle(.borderedProminent)
                 .controlSize(.small)
                 .disabled(!templateChanges.contains(type))
             }
         }
         .confirmationDialog(
-            "Reset Template?",
+            "Reset \"\(type.displayName)\"?",
             isPresented: Binding(
                 get: { showingResetConfirm == type },
                 set: { if !$0 { showingResetConfirm = nil } }
