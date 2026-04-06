@@ -153,7 +153,7 @@ struct SkillListView: View {
 
     @ViewBuilder
     private func contextMenu(for skill: Skill) -> some View {
-        Button(skill.isFavorite ? "Unfavorite" : "Favorite") {
+        Button(skill.isFavorite ? "Remove from Favorites" : "Add to Favorites") {
             skill.isFavorite.toggle()
             try? modelContext.save()
         }
@@ -293,6 +293,7 @@ struct SkillListView: View {
                     .contextMenu { contextMenu(for: skill) }
             }
         }
+        .listStyle(.plain)
         .onDeleteCommand(perform: trashSelectedSkills)
         .navigationTitle(title)
         .toolbar {
@@ -324,6 +325,8 @@ struct SkillListView: View {
                         } label: {
                             Image(systemName: appState.toolKindFilter != nil ? "ellipsis.circle.fill" : "ellipsis.circle")
                         }
+                        .help("Filter by Type")
+                        .accessibilityLabel("Filter by Type")
                     }
                     if isNotesLibraryView {
                         Button {
@@ -332,6 +335,7 @@ struct SkillListView: View {
                             Image(systemName: "plus")
                         }
                         .help("New Note")
+                        .accessibilityLabel("New Note")
                     } else {
                         Menu {
                             Button {
@@ -368,6 +372,8 @@ struct SkillListView: View {
                             Image(systemName: "plus")
                         }
                         .menuIndicator(.hidden)
+                        .help("New Item")
+                        .accessibilityLabel("New Item")
                     }
                 }
             }
@@ -430,73 +436,76 @@ struct SkillRow: View {
     var showTypeBadge: Bool = false
 
     var body: some View {
-        if skill.itemKind == .note {
-            HStack(alignment: .top, spacing: 8) {
+        Group {
+            if skill.itemKind == .note {
+                HStack(alignment: .top, spacing: 8) {
+                    HStack(spacing: 6) {
+                        Text(skill.name)
+                            .lineLimit(1)
+
+                        if skill.isFavorite {
+                            Image(systemName: "star.fill")
+                                .font(.caption2)
+                                .foregroundStyle(Color(NSColor.systemYellow))
+                        }
+                    }
+
+                    Spacer(minLength: 8)
+
+                    Text(skill.fileModifiedDate.formatted(.relative(presentation: .named)))
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+                        .lineLimit(1)
+                }
+                .padding(.vertical, 4)
+            } else {
                 HStack(spacing: 6) {
+                    if showTypeBadge {
+                        let kindIcon: String = switch skill.itemKind {
+                        case .note: "note.text"
+                        case .agent: "person.crop.rectangle"
+                        case .rule: "list.bullet.rectangle"
+                        case .skill: "doc.text"
+                        }
+                        Image(systemName: kindIcon)
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+
                     Text(skill.name)
                         .lineLimit(1)
 
                     if skill.isFavorite {
                         Image(systemName: "star.fill")
                             .font(.caption2)
-                            .foregroundStyle(.yellow)
+                            .foregroundStyle(Color(NSColor.systemYellow))
+                    }
+
+                    Spacer()
+
+                    if skill.isRemote, let serverLabel = skill.remoteServer?.label {
+                        Text(serverLabel)
+                            .font(.caption)
+                            .foregroundStyle(.tertiary)
+                            .lineLimit(1)
+                    } else if let project = skill.projectName {
+                        Text(project)
+                            .font(.caption)
+                            .foregroundStyle(.tertiary)
+                            .lineLimit(1)
+                    }
+
+                    HStack(spacing: 3) {
+                        ForEach(skill.toolSources, id: \.self) { tool in
+                            ToolIcon(tool: tool, size: 14)
+                                .help(tool.displayName)
+                                .opacity(0.6)
+                        }
                     }
                 }
-
-                Spacer(minLength: 8)
-
-                Text(skill.fileModifiedDate.formatted(.relative(presentation: .named)))
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
-                    .lineLimit(1)
+                .padding(.vertical, 4)
             }
-            .padding(.vertical, 6)
-        } else {
-            HStack(spacing: 6) {
-                if showTypeBadge {
-                    let kindIcon: String = switch skill.itemKind {
-                    case .note: "note.text"
-                    case .agent: "person.crop.rectangle"
-                    case .rule: "list.bullet.rectangle"
-                    case .skill: "doc.text"
-                    }
-                    Image(systemName: kindIcon)
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                }
-
-                Text(skill.name)
-                    .lineLimit(1)
-
-                if skill.isFavorite {
-                    Image(systemName: "star.fill")
-                        .font(.caption2)
-                        .foregroundStyle(.yellow)
-                }
-
-                Spacer()
-
-                if skill.isRemote, let serverLabel = skill.remoteServer?.label {
-                    Text(serverLabel)
-                        .font(.caption)
-                        .foregroundStyle(.tertiary)
-                        .lineLimit(1)
-                } else if let project = skill.projectName {
-                    Text(project)
-                        .font(.caption)
-                        .foregroundStyle(.tertiary)
-                        .lineLimit(1)
-                }
-
-                HStack(spacing: 3) {
-                    ForEach(skill.toolSources, id: \.self) { tool in
-                        ToolIcon(tool: tool, size: 14)
-                            .help(tool.displayName)
-                            .opacity(0.6)
-                    }
-                }
-            }
-            .padding(.vertical, 4)
         }
+        .accessibilityElement(children: .combine)
     }
 }
