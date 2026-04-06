@@ -11,6 +11,7 @@ struct CollectionListView: View {
     @State private var editingCollectionID: PersistentIdentifier?
     @State private var editingName = ""
     @State private var collectionToDelete: SkillCollection?
+    @State private var targetedCollectionID: PersistentIdentifier?
     @State private var errorMessage: String?
     @FocusState private var isRenameFocused: Bool
 
@@ -91,9 +92,10 @@ struct CollectionListView: View {
         }
     }
 
-    private func handleDrop(_ resolvedPaths: [String], onto collection: SkillCollection) -> Bool {
+    private func handleDrop(_ urls: [URL], onto collection: SkillCollection) -> Bool {
         var added = false
-        for path in resolvedPaths {
+        for url in urls {
+            let path = url.path
             let descriptor = FetchDescriptor<Skill>(
                 predicate: #Predicate { $0.resolvedPath == path }
             )
@@ -102,6 +104,7 @@ struct CollectionListView: View {
             collection.skills.append(skill)
             added = true
         }
+        targetedCollectionID = nil
         if added { try? modelContext.save() }
         return added
     }
@@ -134,11 +137,26 @@ struct CollectionListView: View {
                     }
                     .tag(SidebarFilter.collection(collection.name))
             } else {
+                let isDropTarget = targetedCollectionID == collection.persistentModelID
                 Label(collection.name, systemImage: collection.icon)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.vertical, 2)
+                    .padding(.horizontal, 4)
+                    .contentShape(RoundedRectangle(cornerRadius: 6))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 6)
+                            .stroke(Color.accentColor, lineWidth: isDropTarget ? 1.5 : 0)
+                    }
                     .badge(collection.skills.count)
                     .tag(SidebarFilter.collection(collection.name))
-                    .dropDestination(for: String.self) { resolvedPaths, _ in
-                        handleDrop(resolvedPaths, onto: collection)
+                    .dropDestination(for: URL.self) { urls, _ in
+                        handleDrop(urls, onto: collection)
+                    } isTargeted: { isTargeted in
+                        if isTargeted {
+                            targetedCollectionID = collection.persistentModelID
+                        } else if targetedCollectionID == collection.persistentModelID {
+                            targetedCollectionID = nil
+                        }
                     }
                     .contextMenu {
                         Button("Rename") {

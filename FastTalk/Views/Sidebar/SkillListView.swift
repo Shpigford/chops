@@ -293,7 +293,7 @@ struct SkillListView: View {
             ForEach(filteredSkills) { skill in
                 SkillRow(skill: skill, showTypeBadge: showsTypeBadge)
                     .tag(skill.resolvedPath)
-                    .draggable(skill.resolvedPath)
+                    .draggable(URL(fileURLWithPath: skill.resolvedPath))
                     .contextMenu { contextMenu(for: skill) }
                     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                         if !skill.isRemote && !skill.isReadOnly {
