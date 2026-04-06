@@ -39,6 +39,7 @@ struct SkillMetadataBar: View {
                     }
                 }
                 .help(installedPathsSummary)
+                .accessibilityLabel("Installed in: \(installedPathsSummary)")
 
                 Divider().frame(height: 16)
 
@@ -92,6 +93,8 @@ struct SkillMetadataBar: View {
                 .foregroundStyle(.secondary)
         }
         .buttonStyle(.plain)
+        .help("Assign to Collection")
+        .accessibilityLabel("Assign to Collection")
         .popover(isPresented: $showingCollectionPicker) {
             collectionPickerContent
         }

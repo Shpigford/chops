@@ -38,11 +38,7 @@ private struct MarkdownWebView: NSViewRepresentable {
         return webView
     }
 
-    private static let dynamicBgColor = NSColor(name: nil) { appearance in
-        appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
-            ? NSColor(red: 0x1A/255.0, green: 0x1A/255.0, blue: 0x1A/255.0, alpha: 1)
-            : NSColor(red: 0xFA/255.0, green: 0xFA/255.0, blue: 0xFA/255.0, alpha: 1)
-    }
+    private static let dynamicBgColor = NSColor.underPageBackgroundColor
 
     func updateNSView(_ webView: WKWebView, context: Context) {
         webView.underPageBackgroundColor = Self.dynamicBgColor

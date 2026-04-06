@@ -134,7 +134,6 @@ struct CollectionListView: View {
                             editingName = collection.name
                             editingCollectionID = collection.persistentModelID
                         }
-                        Divider()
                         Button("Delete", role: .destructive) {
                             modelContext.delete(collection)
                             try? modelContext.save()
@@ -180,6 +179,7 @@ struct CollectionListView: View {
                                 )
                         }
                         .buttonStyle(.plain)
+                        .accessibilityLabel(icon.replacingOccurrences(of: ".", with: " "))
                     }
                 }
 
@@ -188,9 +188,13 @@ struct CollectionListView: View {
                         errorMessage = nil
                         showingNewCollection = false
                     }
+                    .buttonStyle(.bordered)
+                    .keyboardShortcut(.cancelAction)
                     Spacer()
                     Button("Create", action: createCollection)
                     .disabled(normalizedName(newCollectionName).isEmpty)
+                    .buttonStyle(.borderedProminent)
+                    .keyboardShortcut(.defaultAction)
                 }
             }
             .padding()

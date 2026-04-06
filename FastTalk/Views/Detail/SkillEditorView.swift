@@ -241,6 +241,7 @@ struct SkillEditorView: View {
                     editorFocusRequestID: $document.editorFocusRequestID,
                     isEditable: isEditable
                 )
+                .accessibilityLabel("Skill editor")
             }
 
             HStack(spacing: 6) {

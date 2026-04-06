@@ -28,11 +28,7 @@ enum EditorTheme {
 
     // MARK: - Dynamic Colors
 
-    static let textColor = NSColor(name: "editorText") { appearance in
-        appearance.isDark
-            ? NSColor(red: 0.878, green: 0.878, blue: 0.878, alpha: 1)
-            : NSColor(red: 0.133, green: 0.133, blue: 0.133, alpha: 1)
-    }
+    static let textColor = NSColor.textColor
 
     static let syntaxColor = NSColor(name: "editorSyntax") { appearance in
         appearance.isDark
@@ -64,11 +60,7 @@ enum EditorTheme {
             : NSColor(red: 0.75, green: 0.2, blue: 0.2, alpha: 1)
     }
 
-    static let linkColor = NSColor(name: "editorLink") { appearance in
-        appearance.isDark
-            ? NSColor(red: 0.4, green: 0.6, blue: 0.9, alpha: 1)
-            : NSColor(red: 0.2, green: 0.4, blue: 0.7, alpha: 1)
-    }
+    static let linkColor = NSColor.linkColor
 
     static let blockquoteColor = NSColor(name: "editorBlockquote") { appearance in
         appearance.isDark
