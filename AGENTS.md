@@ -9,7 +9,7 @@
 ## Build And Validation
 - Prefer the `Makefile` entrypoints for end-to-end validation and deployment workflows instead of retyping the script commands by hand.
 - After any repo change, run the narrowest appropriate `rtk make` target before declaring the task done.
-- Use `rtk make bundle-local-release` as the default finish-line validation for app changes.
+- Use `rtk make macbook` as the default finish-line validation for app changes.
 - Use `rtk make macbook` when the task includes remote deployment, remote launch, or explicit “run it on the MacBook” verification.
 - Use `rtk make restart-on-macbook` only when the bundle is already copied and you only need to stop and relaunch the remote app.
 - Run `rtk xcodegen generate` after every `project.yml` edit. Install `xcodegen` first if it is missing.
