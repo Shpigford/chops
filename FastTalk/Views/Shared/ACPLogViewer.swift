@@ -63,10 +63,10 @@ struct ACPLogViewer: View {
             ScrollViewReader { proxy in
                 ScrollView {
                     Text(logContent)
-                        .font(.system(.caption, design: .monospaced))
+                        .font(.system(.callout, design: .monospaced))
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .textSelection(.enabled)
-                        .padding(8)
+                        .padding(.horizontal, 16).padding(.vertical, 8)
                         .id("bottom")
                 }
                 .onChange(of: logContent) { _, _ in

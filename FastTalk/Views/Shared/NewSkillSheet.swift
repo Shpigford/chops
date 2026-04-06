@@ -25,7 +25,7 @@ struct NewSkillSheet: View {
     }
 
     var body: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 16) {
             Text("New \(itemKind.singularName)")
                 .font(.title2)
                 .fontWeight(.bold)
@@ -67,7 +67,7 @@ struct NewSkillSheet: View {
                 .disabled(skillName.isEmpty)
             }
         }
-        .padding(24)
+        .padding(20)
         .frame(width: 400)
         .onAppear {
             // Ensure selectedTool is valid for the current item kind

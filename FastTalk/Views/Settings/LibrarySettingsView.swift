@@ -17,7 +17,7 @@ struct LibrarySettingsView: View {
                     .foregroundStyle(.secondary)
             }
         }
-        .padding()
+        .padding(20)
     }
 
     private var displayPath: String {

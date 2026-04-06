@@ -8,7 +8,7 @@ struct SkillMetadataBar: View {
     @State private var showingCollectionPicker = false
 
     var body: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: 8) {
             if skill.itemKind == .note {
                 Text(displayPath)
                     .font(.caption)
@@ -131,10 +131,10 @@ struct SkillMetadataBar: View {
     }
 
     private var collectionPickerContent: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 6) {
             Text(skill.itemKind == .note ? "Category" : "Collections")
                 .font(.headline)
-                .padding(.bottom, 4)
+                .padding(.bottom, 8)
             ForEach(allCollections) { collection in
                 let isAssigned = skill.collections.contains(where: { $0.name == collection.name })
                 Button {

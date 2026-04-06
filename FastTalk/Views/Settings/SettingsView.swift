@@ -44,7 +44,7 @@ struct SettingsView: View {
     var body: some View {
         VStack(spacing: 0) {
             // Tab bar
-            HStack(spacing: 1) {
+            HStack(spacing: 8) {
                 ForEach(SettingsTab.allCases) { tab in
                     SettingsTabButton(tab: tab, isSelected: selectedTab == tab) {
                         withAnimation(.easeInOut(duration: 0.15)) {
@@ -54,8 +54,8 @@ struct SettingsView: View {
                 }
             }
             .padding(.horizontal, 12)
-            .padding(.top, 8)
-            .padding(.bottom, 4)
+            .padding(.top, 12)
+            .padding(.bottom, 6)
 
             Divider()
 
@@ -99,7 +99,7 @@ struct SettingsView: View {
             .pickerStyle(.menu)
             .frame(maxWidth: 300)
         }
-        .padding()
+        .padding(20)
     }
 
     private var scanSettings: some View {
@@ -165,7 +165,7 @@ struct SettingsView: View {
                 .buttonStyle(.bordered)
             }
         }
-        .padding()
+        .padding(20)
     }
 
     private func loadCustomPaths() {
@@ -187,7 +187,7 @@ private struct SettingsTabButton: View {
 
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 2) {
+            VStack(spacing: 4) {
                 Image(systemName: tab.icon)
                     .font(.title3)
                     .frame(height: 20)
@@ -198,7 +198,7 @@ private struct SettingsTabButton: View {
             .frame(maxWidth: .infinity)
             .padding(.vertical, 6)
             .padding(.horizontal, 4)
-            .background(isSelected ? Color.accentColor.opacity(0.15) : Color.clear)
+            .background(isSelected ? Color(NSColor.selectedContentBackgroundColor).opacity(0.15) : Color.clear)
             .clipShape(RoundedRectangle(cornerRadius: 6))
             .contentShape(Rectangle())
         }

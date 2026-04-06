@@ -146,6 +146,7 @@ struct ComposePanel: View {
             Button("Cancel") {
                 acpClient?.respondToPermission(optionId: nil)
             }
+            .keyboardShortcut(.cancelAction)
             .foregroundStyle(.secondary)
         }
         .padding(24)
@@ -301,7 +302,7 @@ struct ComposePanel: View {
                 closeButton
             }
         }
-        .padding(.horizontal, 12)
+        .padding(.horizontal, 16)
         .padding(.vertical, 8)
         .background(.bar)
     }
@@ -379,7 +380,7 @@ struct ComposePanel: View {
                                 .id("live-assistant")
                         }
                     }
-                    .padding(12)
+                    .padding(.horizontal, 16).padding(.vertical, 12)
                 }
                 .background(.ultraThinMaterial)
                 .onChange(of: messages.count) { _, _ in
@@ -659,7 +660,7 @@ struct ComposePanel: View {
             }
         }
         .fixedSize(horizontal: false, vertical: true)
-        .padding(.horizontal, 12)
+        .padding(.horizontal, 16)
         .padding(.vertical, 8)
         .background(.bar)
     }

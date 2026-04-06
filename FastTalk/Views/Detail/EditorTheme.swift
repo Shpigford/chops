@@ -3,13 +3,13 @@ import AppKit
 enum EditorTheme {
     // MARK: - Editor Font
 
-    static let editorFontSize: CGFloat = 13
+    static let editorFontSize: CGFloat = NSFont.systemFontSize
     static let editorFont = NSFont.monospacedSystemFont(ofSize: editorFontSize, weight: .regular)
 
     // MARK: - Margins
 
     static let editorInsetX: CGFloat = 48
-    static let editorInsetTop: CGFloat = 12
+    static let editorInsetTop: CGFloat = 14
 
     // MARK: - Line Spacing
 
@@ -30,29 +30,10 @@ enum EditorTheme {
 
     static let textColor = NSColor.textColor
 
-    static let syntaxColor = NSColor(name: "editorSyntax") { appearance in
-        appearance.isDark
-            ? NSColor(red: 0.45, green: 0.45, blue: 0.45, alpha: 1)
-            : NSColor(red: 0.6, green: 0.6, blue: 0.6, alpha: 1)
-    }
-
-    static let headingColor = NSColor(name: "editorHeading") { appearance in
-        appearance.isDark
-            ? NSColor(red: 0.95, green: 0.95, blue: 0.95, alpha: 1)
-            : NSColor(red: 0.1, green: 0.1, blue: 0.1, alpha: 1)
-    }
-
-    static let boldColor = NSColor(name: "editorBold") { appearance in
-        appearance.isDark
-            ? NSColor(red: 0.9, green: 0.9, blue: 0.9, alpha: 1)
-            : NSColor(red: 0.15, green: 0.15, blue: 0.15, alpha: 1)
-    }
-
-    static let italicColor = NSColor(name: "editorItalic") { appearance in
-        appearance.isDark
-            ? NSColor(red: 0.8, green: 0.8, blue: 0.8, alpha: 1)
-            : NSColor(red: 0.25, green: 0.25, blue: 0.25, alpha: 1)
-    }
+    static let syntaxColor = NSColor.secondaryLabelColor
+    static let headingColor = NSColor.labelColor
+    static let boldColor = NSColor.labelColor
+    static let italicColor = NSColor.secondaryLabelColor
 
     static let codeColor = NSColor(name: "editorCode") { appearance in
         appearance.isDark
@@ -61,18 +42,8 @@ enum EditorTheme {
     }
 
     static let linkColor = NSColor.linkColor
-
-    static let blockquoteColor = NSColor(name: "editorBlockquote") { appearance in
-        appearance.isDark
-            ? NSColor(red: 0.6, green: 0.6, blue: 0.6, alpha: 1)
-            : NSColor(red: 0.4, green: 0.4, blue: 0.4, alpha: 1)
-    }
-
-    static let frontmatterColor = NSColor(name: "editorFrontmatter") { appearance in
-        appearance.isDark
-            ? NSColor(red: 0.55, green: 0.55, blue: 0.65, alpha: 1)
-            : NSColor(red: 0.35, green: 0.35, blue: 0.5, alpha: 1)
-    }
+    static let blockquoteColor = NSColor.tertiaryLabelColor
+    static let frontmatterColor = NSColor.tertiaryLabelColor
 }
 
 extension NSAppearance {

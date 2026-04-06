@@ -298,7 +298,7 @@ struct SkillListView: View {
         .navigationTitle(title)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                HStack(spacing: 4) {
+                HStack(spacing: 8) {
                     if case .tool = appState.sidebarFilter, availableKinds.count > 1 {
                         Menu {
                             Button {

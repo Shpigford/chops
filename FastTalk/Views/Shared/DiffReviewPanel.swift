@@ -178,7 +178,7 @@ struct DiffReviewPanel: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
                     .padding(.horizontal, 8)
-                    .padding(.vertical, 1)
+                    .padding(.vertical, 2)
                     .background(line.kind.background)
                     .accessibilityLabel("\(line.kind.prefix) \(line.text)")
                 }
