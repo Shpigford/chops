@@ -235,6 +235,7 @@ struct CollectionListView: View {
             Button("Cancel", role: .cancel) {
                 collectionToDelete = nil
             }
+            .keyboardShortcut(.defaultAction)
         } message: { collection in
             Text("Delete \"\(collection.name)\"? This won't delete the skills inside it.")
         }

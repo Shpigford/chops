@@ -241,8 +241,9 @@ struct SkillDetailView: View {
                 deleteSkill()
             }
             Button("Cancel", role: .cancel) {}
+                .keyboardShortcut(.defaultAction)
         } message: {
-            Text("This moves the \(skill.displayTypeName.lowercased()) to Trash.")
+            Text("This moves \"\(skill.name)\" to Trash.")
         }
         .alert(item: $activeAlert) { alert in
             switch alert {
