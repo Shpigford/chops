@@ -9,6 +9,7 @@ struct FastTalkApp: App {
     @AppStorage("ACPDebugLogging") private var debugLoggingEnabled = false
 
     init() {
+        NSWindow.allowsAutomaticWindowTabbing = false
         AppLogger.lifecycle.notice("FastTalkApp init bundleID=\(Bundle.main.bundleIdentifier ?? "unknown", privacy: .public)")
     }
 
@@ -28,11 +29,13 @@ struct FastTalkApp: App {
     }()
 
     var body: some Scene {
-        WindowGroup {
+        WindowGroup("Fast Talk") {
             ContentView()
                 .environment(appState)
         }
         .modelContainer(sharedModelContainer)
+        .defaultSize(width: 960, height: 640)
+        .windowToolbarStyle(.unified(showsTitle: false))
         .commands {
             TextEditingCommands()
             CommandGroup(replacing: .newItem) {
@@ -47,10 +50,10 @@ struct FastTalkApp: App {
                     NotificationCenter.default.post(name: .saveCurrentSkill, object: nil)
                 }
                 .keyboardShortcut("s", modifiers: .command)
-                .disabled(appState.selectedSkill == nil)
+                .disabled(appState.selectedSkill == nil || appState.selectedSkill?.isReadOnly == true)
             }
-            CommandGroup(after: .help) {
-                Toggle("Enable Debug Logging", isOn: $debugLoggingEnabled)
+            CommandGroup(after: .appInfo) {
+                Toggle("Debug Logging", isOn: $debugLoggingEnabled)
                 Divider()
                 Button("Export Diagnostic Log…") {
                     let context = sharedModelContainer.mainContext
