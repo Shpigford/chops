@@ -82,7 +82,7 @@ struct RegistrySheet: View {
             HStack {
                 Image(systemName: "magnifyingglass")
                     .foregroundStyle(.secondary)
-                TextField("Search skills (e.g. react, testing, deploy)...", text: $searchText)
+                TextField("Search skills", text: $searchText, prompt: Text("react, testing, deploy"))
                     .textFieldStyle(.plain)
                 if isSearching {
                     ProgressView()
@@ -90,7 +90,7 @@ struct RegistrySheet: View {
                 }
             }
             .padding(10)
-            .background(.quaternary.opacity(0.5))
+            .background(.quaternary)
             .clipShape(RoundedRectangle(cornerRadius: 8))
             .padding(.horizontal, 20)
             .padding(.vertical, 12)
@@ -164,7 +164,7 @@ struct RegistrySheet: View {
                         .padding(16)
                 }
                 .frame(maxHeight: 200)
-                .background(.quaternary.opacity(0.3))
+                .background(.quaternary)
 
                 Divider()
 
@@ -188,7 +188,7 @@ struct RegistrySheet: View {
                             }
                             .font(.caption)
                             .buttonStyle(.plain)
-                            .foregroundColor(.accentColor)
+                            .foregroundStyle(.tint)
                         }
                     }
 
@@ -200,24 +200,28 @@ struct RegistrySheet: View {
                         ScrollView {
                             VStack(spacing: 0) {
                                 ForEach(installedAgents) { agent in
-                                    HStack(spacing: 8) {
-                                        Image(systemName: selectedAgents.contains(agent.id) ? "checkmark.circle.fill" : "circle")
-                                            .foregroundColor(selectedAgents.contains(agent.id) ? .accentColor : .secondary)
-                                            .font(.system(size: 14))
-
-                                        Text(agent.displayName)
-                                            .font(.system(size: 12))
-
-                                        Spacer()
-                                    }
-                                    .contentShape(Rectangle())
-                                    .onTapGesture {
+                                    Button {
                                         if selectedAgents.contains(agent.id) {
                                             selectedAgents.remove(agent.id)
                                         } else {
                                             selectedAgents.insert(agent.id)
                                         }
+                                    } label: {
+                                        HStack(spacing: 8) {
+                                            Image(systemName: selectedAgents.contains(agent.id) ? "checkmark.circle.fill" : "circle")
+                                                .foregroundStyle(selectedAgents.contains(agent.id) ? .tint : .secondary)
+                                                .font(.body)
+
+                                            Text(agent.displayName)
+                                                .font(.callout)
+
+                                            Spacer()
+                                        }
+                                        .contentShape(Rectangle())
                                     }
+                                    .buttonStyle(.plain)
+                                    .accessibilityLabel(agent.displayName)
+                                    .accessibilityValue(selectedAgents.contains(agent.id) ? "Selected" : "Not selected")
                                     .padding(.vertical, 4)
                                     .padding(.horizontal, 4)
                                 }
@@ -258,6 +262,7 @@ struct RegistrySheet: View {
                             Text("Install")
                         }
                     }
+                    .buttonStyle(.borderedProminent)
                     .keyboardShortcut(.defaultAction)
                     .disabled(selectedAgents.isEmpty || isInstalling || installSuccess)
                 }
