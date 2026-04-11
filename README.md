@@ -183,4 +183,4 @@ This repo includes a Claude Code skill at `.claude/skills/setup.md` that gives A
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+FSL-1.1-MIT — see [LICENSE](LICENSE).
