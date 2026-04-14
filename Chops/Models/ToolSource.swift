@@ -255,6 +255,22 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
         return paths.contains { fm.fileExists(atPath: $0) }
     }
 
+    var mcpConfigPaths: [String] {
+        let home = FileManager.default.homeDirectoryForCurrentUser.path
+        switch self {
+        case .claude:
+            return ["\(home)/.claude.json"]
+        case .claudeDesktop:
+            return ["\(home)/Library/Application Support/Claude/claude_desktop_config.json"]
+        case .cursor:
+            return ["\(home)/.cursor/mcp.json"]
+        case .copilot:
+            return ["\(home)/.vscode/mcp.json"]
+        default:
+            return []
+        }
+    }
+
     private static func cliBinaryExists(_ name: String) -> Bool {
         let fm = FileManager.default
         let home = fm.homeDirectoryForCurrentUser.path

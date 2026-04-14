@@ -11,6 +11,7 @@ final class AppState {
     var sidebarFilter: SidebarFilter = .allSkills
     /// Filter by item kind within a tool view (nil = show all)
     var toolKindFilter: ItemKind?
+    var selectedMCPServer: MCPServer?
 }
 
 enum SidebarFilter: Hashable {
@@ -21,4 +22,5 @@ enum SidebarFilter: Hashable {
     case tool(ToolSource)
     case collection(String)
     case server(String)
+    case allMCPServers
 }

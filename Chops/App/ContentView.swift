@@ -6,7 +6,9 @@ struct ContentView: View {
     @Environment(AppState.self) private var appState
     @Query(sort: \Skill.name) private var skills: [Skill]
     @State private var scanner: SkillScanner?
+    @State private var mcpScanner: MCPScanner?
     @State private var fileWatcher: FileWatcher?
+    @State private var mcpFileWatcher: FileWatcher?
     @State private var columnVisibility: NavigationSplitViewVisibility = .all
 
     var body: some View {
@@ -15,9 +17,23 @@ struct ContentView: View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
             SidebarView()
         } content: {
-            SkillListView()
+            if appState.sidebarFilter == .allMCPServers {
+                MCPListView()
+            } else {
+                SkillListView()
+            }
         } detail: {
-            if let skill = appState.selectedSkill {
+            if appState.sidebarFilter == .allMCPServers {
+                if let server = appState.selectedMCPServer {
+                    MCPDetailView(server: server)
+                } else {
+                    ContentUnavailableView(
+                        "Select a Server",
+                        systemImage: "point.3.connected.trianglepath.dotted",
+                        description: Text("Choose an MCP server to view its configuration.")
+                    )
+                }
+            } else if let skill = appState.selectedSkill {
                 SkillDetailView(skill: skill)
             } else {
                 ContentUnavailableView(
@@ -43,6 +59,7 @@ struct ContentView: View {
         .frame(minWidth: 900, minHeight: 500)
         .onReceive(NotificationCenter.default.publisher(for: .customScanPathsChanged)) { _ in
             scanner?.scanAll()
+            mcpScanner?.scanAll()
         }
     }
 
@@ -80,6 +97,33 @@ struct ContentView: View {
         watcher.watchDirectories(allPaths)
         self.fileWatcher = watcher
         AppLogger.ui.notice("File watchers active on \(allPaths.count) directories")
+
+        // MCP server scanning
+        let mcpScanner = MCPScanner(modelContext: modelContext)
+        self.mcpScanner = mcpScanner
+        mcpScanner.scanAll()
+
+        var mcpPaths: [String] = []
+        for tool in ToolSource.allCases {
+            for path in tool.mcpConfigPaths {
+                let expanded = (path as NSString).expandingTildeInPath
+                if fm.fileExists(atPath: expanded) {
+                    mcpPaths.append(expanded)
+                }
+            }
+        }
+        let customPaths = UserDefaults.standard.stringArray(forKey: "customScanPaths") ?? []
+        for basePath in customPaths where fm.fileExists(atPath: basePath) {
+            mcpPaths.append(basePath)
+        }
+        if !mcpPaths.isEmpty {
+            let mcpWatcher = FileWatcher { _ in
+                mcpScanner.scanAll()
+            }
+            mcpWatcher.watchDirectories(mcpPaths)
+            self.mcpFileWatcher = mcpWatcher
+            AppLogger.ui.notice("MCP file watchers active on \(mcpPaths.count) paths")
+        }
 
         // Sync remote servers in the background
         Task {

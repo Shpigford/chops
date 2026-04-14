@@ -16,9 +16,12 @@
 		309B12E0B72A22C9772BBC99 /* ChopsApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2787064DC7DF112E70C4E4D0 /* ChopsApp.swift */; };
 		322C22C23073C29FC0C6098D /* MarkdownMessageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 947EAED7376B7762A373EF08 /* MarkdownMessageView.swift */; };
 		331F55021A7E6C9F0B666514 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 4338FC540625A275BBC9AAC9 /* Sparkle */; };
+		338B2D758146EF36F72D8D82 /* MCPDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 266B85AEA99EB82A2622A834 /* MCPDetailView.swift */; };
+		3966FE72FE9CA8827080E86E /* MCPListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A40C11729CB927FB906E39DD /* MCPListView.swift */; };
 		3BF88469DCE0B56DD15DDB09 /* ACPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DAD83C176F3A71A5B360BFD /* ACPClient.swift */; };
 		3F0ED402E77D8D25C600BAED /* TemplateManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12C5CD1627D4EFF58AEF4F71 /* TemplateManager.swift */; };
 		480681BAD19F7CAF6AE154A2 /* RemoteServersSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E684304D1723CA691F40335B /* RemoteServersSettingsView.swift */; };
+		4E15E33BC6DB0C8D1A901884 /* MCPServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C2EAC981D1DE54C6A130984 /* MCPServer.swift */; };
 		53C393C13E30EC439317509F /* ToolBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7B6AE242CAD6A285DD57079 /* ToolBadge.swift */; };
 		590A98554CAF058BC006CC53 /* ACPAgentFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BBC9E32924CF525F1C96BAE /* ACPAgentFactory.swift */; };
 		5B81DED237A60776ADB04134 /* RemoteServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3314080A44DEB895223E36D5 /* RemoteServer.swift */; };
@@ -52,6 +55,7 @@
 		BFF9964529E6C48F4F7BCB97 /* MarkdownSyntaxHighlighter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 135976FA0E8358E099157DE1 /* MarkdownSyntaxHighlighter.swift */; };
 		C30BEAE03E54BD36F257A925 /* ToolFilterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A5774429CCE83C2AFBE046C /* ToolFilterView.swift */; };
 		C6CFF37CC0B155E8846344A4 /* ChopsIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 04C3C644B72DD508A7CBC403 /* ChopsIcon.icon */; };
+		C93C75003EB3B07E44C89539 /* MCPScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BA99672C2C0108B368F1CE7 /* MCPScanner.swift */; };
 		C983C685C6296C2EF73CE57D /* CursorACPAgent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07899C351E63B32277272A59 /* CursorACPAgent.swift */; };
 		CBD8FECF1C5A453C8B021665 /* FrontmatterParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C77C5B30E6C885B39444E5B /* FrontmatterParser.swift */; };
 		CCD92CB102DFA0965D6AFDB5 /* SidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CF7822031FD82A28978D9C5 /* SidebarView.swift */; };
@@ -80,8 +84,10 @@
 		17F7FE50C96124BA4EE43A6F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		181FD0056E54DEB3957FB4DC /* WizardTemplate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WizardTemplate.swift; sourceTree = "<group>"; };
 		231C267216AF1BCA8628B667 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
+		266B85AEA99EB82A2622A834 /* MCPDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MCPDetailView.swift; sourceTree = "<group>"; };
 		2787064DC7DF112E70C4E4D0 /* ChopsApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChopsApp.swift; sourceTree = "<group>"; };
 		27D6ED655F951177D2152351 /* Skill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Skill.swift; sourceTree = "<group>"; };
+		2BA99672C2C0108B368F1CE7 /* MCPScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MCPScanner.swift; sourceTree = "<group>"; };
 		2CF7822031FD82A28978D9C5 /* SidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarView.swift; sourceTree = "<group>"; };
 		2D07C2CD05E172DB71F63033 /* ThinkingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThinkingView.swift; sourceTree = "<group>"; };
 		2D9B5801101BA69BB84EE28D /* ChopsSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChopsSettings.swift; sourceTree = "<group>"; };
@@ -89,6 +95,7 @@
 		3314080A44DEB895223E36D5 /* RemoteServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteServer.swift; sourceTree = "<group>"; };
 		372FA72F2C179B79470DF86A /* MarkdownRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownRenderer.swift; sourceTree = "<group>"; };
 		3A4F680B33C74A38FCF5ADD5 /* MDCParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MDCParser.swift; sourceTree = "<group>"; };
+		3C2EAC981D1DE54C6A130984 /* MCPServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MCPServer.swift; sourceTree = "<group>"; };
 		4CA102A49ACFB23BC15794F8 /* CollectionListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionListView.swift; sourceTree = "<group>"; };
 		511C5A2149EFF77BDA7D4692 /* ACPLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ACPLogger.swift; sourceTree = "<group>"; };
 		5155D141EF812A3FE9ADF59C /* SkillParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillParser.swift; sourceTree = "<group>"; };
@@ -112,6 +119,7 @@
 		9BBC9E32924CF525F1C96BAE /* ACPAgentFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ACPAgentFactory.swift; sourceTree = "<group>"; };
 		9C052B94D025127C9823E7BC /* ACPSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ACPSettingsView.swift; sourceTree = "<group>"; };
 		9FC9D3E83D8640CC258CF361 /* SkillRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillRegistry.swift; sourceTree = "<group>"; };
+		A40C11729CB927FB906E39DD /* MCPListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MCPListView.swift; sourceTree = "<group>"; };
 		A7B6AE242CAD6A285DD57079 /* ToolBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolBadge.swift; sourceTree = "<group>"; };
 		A924245DDDA4C6A59BE15567 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		AA64A368BBF950CD36C4F495 /* SkillListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkillListView.swift; sourceTree = "<group>"; };
@@ -178,6 +186,15 @@
 			path = Chops;
 			sourceTree = "<group>";
 		};
+		1A63A1808F90A76846892103 /* MCP */ = {
+			isa = PBXGroup;
+			children = (
+				266B85AEA99EB82A2622A834 /* MCPDetailView.swift */,
+				A40C11729CB927FB906E39DD /* MCPListView.swift */,
+			);
+			path = MCP;
+			sourceTree = "<group>";
+		};
 		1B016A7C37052B1801FCFD6A /* Shared */ = {
 			isa = PBXGroup;
 			children = (
@@ -221,6 +238,7 @@
 			isa = PBXGroup;
 			children = (
 				96A2A820C082754BBFB0237D /* Detail */,
+				1A63A1808F90A76846892103 /* MCP */,
 				40FF74A5B2D0A1E16B14B7A4 /* Settings */,
 				1B016A7C37052B1801FCFD6A /* Shared */,
 				95530102A99D9A389717E414 /* Sidebar */,
@@ -243,6 +261,7 @@
 			children = (
 				F45D5C8E8C732B2F4A867E43 /* AppLogger.swift */,
 				CAD26AA4787A2E0CDC86AADC /* FileWatcher.swift */,
+				2BA99672C2C0108B368F1CE7 /* MCPScanner.swift */,
 				7FFC47BDE92105F4736B379F /* SearchService.swift */,
 				5155D141EF812A3FE9ADF59C /* SkillParser.swift */,
 				9FC9D3E83D8640CC258CF361 /* SkillRegistry.swift */,
@@ -261,6 +280,7 @@
 				907E59B064AB8366B60BF611 /* AgentTarget.swift */,
 				2D9B5801101BA69BB84EE28D /* ChopsSettings.swift */,
 				C9AFE1AF02B0F8057791C2A9 /* Collection.swift */,
+				3C2EAC981D1DE54C6A130984 /* MCPServer.swift */,
 				3314080A44DEB895223E36D5 /* RemoteServer.swift */,
 				B1F8AA042D5D8A9F92F35CA3 /* SchemaVersions.swift */,
 				27D6ED655F951177D2152351 /* Skill.swift */,
@@ -426,6 +446,10 @@
 				99EE8F6124FE91AC9576D6FD /* FileWatcher.swift in Sources */,
 				CBD8FECF1C5A453C8B021665 /* FrontmatterParser.swift in Sources */,
 				A0862ECC573FDC0AA7CB9950 /* LibrarySettingsView.swift in Sources */,
+				338B2D758146EF36F72D8D82 /* MCPDetailView.swift in Sources */,
+				3966FE72FE9CA8827080E86E /* MCPListView.swift in Sources */,
+				C93C75003EB3B07E44C89539 /* MCPScanner.swift in Sources */,
+				4E15E33BC6DB0C8D1A901884 /* MCPServer.swift in Sources */,
 				7FD1DE6640F9339D5E97E09A /* MDCParser.swift in Sources */,
 				322C22C23073C29FC0C6098D /* MarkdownMessageView.swift in Sources */,
 				E7ED248D6F94C1B1DEF1E8BA /* MarkdownRenderer.swift in Sources */,

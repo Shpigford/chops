@@ -6,6 +6,7 @@ struct SidebarView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Skill.name) private var allSkills: [Skill]
     @Query(sort: \RemoteServer.label) private var servers: [RemoteServer]
+    @Query(sort: \MCPServer.name) private var mcpServers: [MCPServer]
     @State private var syncingServerIDs: Set<String> = []
     @State private var serverErrors: [String: String] = [:]
     @State private var showingErrorForServer: String?
@@ -52,6 +53,14 @@ struct SidebarView: View {
                     }
                     .badge(toolCount(tool))
                     .tag(SidebarFilter.tool(tool))
+                }
+            }
+
+            if !mcpServers.isEmpty {
+                Section("MCP") {
+                    Label("All Servers", systemImage: "point.3.connected.trianglepath.dotted")
+                        .badge(mcpServers.count)
+                        .tag(SidebarFilter.allMCPServers)
                 }
             }
 
