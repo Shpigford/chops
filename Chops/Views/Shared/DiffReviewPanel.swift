@@ -98,8 +98,9 @@ func computeDiff(from original: String, to proposed: String) -> [DiffLine] {
 struct DiffReviewPanel: View {
     let original: String
     let proposed: String
-    let onAccept: () -> Void
-    let onReject: () -> Void
+    /// When nil, the Accept/Reject footer is hidden — the panel becomes read-only.
+    let onAccept: (() -> Void)?
+    let onReject: (() -> Void)?
     var isApplying = false
 
     @State private var lines: [DiffLine] = []
@@ -144,17 +145,21 @@ struct DiffReviewPanel: View {
 
             Spacer()
 
-            Button("Reject", action: onReject)
-                .buttonStyle(.bordered)
-                .controlSize(.small)
-                .disabled(isApplying)
+            if let onReject {
+                Button("Reject", action: onReject)
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                    .disabled(isApplying)
+            }
 
-            Button(isApplying ? "Applying..." : "Accept", action: onAccept)
-                .buttonStyle(.borderedProminent)
-                .controlSize(.small)
-                .tint(.green)
-                .keyboardShortcut(.return, modifiers: .command)
-                .disabled(isApplying)
+            if let onAccept {
+                Button(isApplying ? "Applying..." : "Accept", action: onAccept)
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.small)
+                    .tint(.green)
+                    .keyboardShortcut(.return, modifiers: .command)
+                    .disabled(isApplying)
+            }
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 6)

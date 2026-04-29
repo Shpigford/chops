@@ -52,11 +52,11 @@ SwiftData store path is explicit: `~/Library/Application Support/Chops/Chops.sto
 - `SkillScanner` — probes tool directories (~/.claude/skills/, ~/.cursor/rules/, etc.), parses frontmatter, upserts into SwiftData. Deduplicates via resolved symlink paths.
 - `FileWatcher` — FSEvents via `DispatchSourceFileSystemObject`, triggers re-scan on changes.
 - `SkillParser` → dispatches to `FrontmatterParser` (.md) or `MDCParser` (.mdc).
-- **ACP agent hierarchy** — `BaseACPAgent` owns all transport/session logic. Vendor subclasses override three hooks:
-  - `shouldFilter(JsonRpcMessage) → Bool` — drop messages before SDK decoding (e.g. Augment's `usage_update`)
-  - `postProcess(String) → String` — strip vendor-specific XML tags before text is stored
-  - `resolvePermission(title, options)` — present permission UI; hook for future session-wide allow-all
-  - `ACPAgentFactory.make(for: ToolSource)` instantiates the right subclass; `ComposePanel` holds `BaseACPAgent?`.
+- **Agent transports** — Chops drives the user's installed `claude` and `codex` binaries directly via a one-shot, request/response pattern. No streaming protocol, no JSON-RPC, no permission gymnastics — Chops sends the system prompt + current file content + user request, the model returns "summary + fenced full file", Chops parses the fence, builds a `PendingWrite`, and the existing diff-review UI gates the disk write.
+  - `ClaudeCLIAgent` — `claude -p --output-format json --system-prompt … --model sonnet --settings '{"effortLevel":"low",…}' "<user message>"`. Reads the JSON envelope, returns `result`. See `Chops/Services/Agents/Claude/`.
+  - `CodexCLIAgent` — `codex exec --skip-git-repo-check --sandbox read-only --ephemeral --output-last-message <tmp> "<user message>"`. Reads the temp file for the final agent message. See `Chops/Services/Agents/Codex/`.
+  - Both share `OneShotResponseParser` (`Chops/Services/Agents/OneShotResponseParser.swift`) — the parser tries a structured-edits JSON envelope first and falls back to summary + fenced full-file. Either format produces a `PendingWrite`.
+  - Both conform to `AgentSession` (`Chops/Services/Agents/AgentSession.swift`); `AgentFactory.make(for:)` returns the right one. `ComposePanel` keys off the protocol so the UI doesn't care which transport is in use.
 
 **Views:** Three-column `NavigationSplitView` (Sidebar → List → Detail). Editor uses native `NSTextView` with markdown highlighting. Cmd+S save via `FocusedValues`. Agent responses render via `MarkdownMessageView` (MarkdownUI `.gitHub` theme + syntax highlighting).
 

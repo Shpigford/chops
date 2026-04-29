@@ -270,22 +270,78 @@ enum ToolSource: String, Codable, CaseIterable, Identifiable {
     }
 
     private static func cliBinaryExists(_ name: String) -> Bool {
+        cliBinaryURL(name) != nil
+    }
+
+    /// Resolves an executable name to an absolute file URL by probing standard install locations
+    /// and active nvm node versions. Returns nil if not found.
+    static func cliBinaryURL(_ name: String, extraPaths: [String] = []) -> URL? {
         let fm = FileManager.default
         let home = fm.homeDirectoryForCurrentUser.path
-        let paths = [
-            "/usr/local/bin/\(name)",
-            "/opt/homebrew/bin/\(name)",
+        var paths = extraPaths
+        paths.append(contentsOf: [
             "\(home)/.local/bin/\(name)",
-        ]
-        for path in paths where fm.fileExists(atPath: path) {
-            return true
+            "/opt/homebrew/bin/\(name)",
+            "/usr/local/bin/\(name)",
+        ])
+        for path in paths where fm.isExecutableFile(atPath: path) {
+            return URL(fileURLWithPath: path)
         }
         let nvmDir = "\(home)/.nvm/versions/node"
         if let nodeDirs = try? fm.contentsOfDirectory(atPath: nvmDir) {
-            for nodeDir in nodeDirs {
-                if fm.fileExists(atPath: "\(nvmDir)/\(nodeDir)/bin/\(name)") { return true }
+            for nodeDir in nodeDirs.sorted().reversed() {
+                let candidate = "\(nvmDir)/\(nodeDir)/bin/\(name)"
+                if fm.isExecutableFile(atPath: candidate) {
+                    return URL(fileURLWithPath: candidate)
+                }
             }
         }
-        return false
+        return nil
+    }
+
+    /// Resolved binary URL for tools that can be driven directly via subprocess.
+    /// Currently used by Claude and Codex transports.
+    var cliBinaryURL: URL? {
+        let home = FileManager.default.homeDirectoryForCurrentUser.path
+        switch self {
+        case .claude:
+            return Self.cliBinaryURL("claude")
+        case .codex:
+            return Self.cliBinaryURL("codex", extraPaths: ["\(home)/.codex/bin/codex"])
+        default:
+            return nil
+        }
+    }
+
+    /// Runs `<bin> --version` and parses semver. Returns nil if the binary is missing
+    /// or the output doesn't match an expected pattern.
+    func cliVersion() async -> (major: Int, minor: Int, patch: Int)? {
+        guard let url = cliBinaryURL else { return nil }
+        return await Task.detached(priority: .userInitiated) { () -> (Int, Int, Int)? in
+            let proc = Process()
+            proc.executableURL = url
+            proc.arguments = ["--version"]
+            let pipe = Pipe()
+            proc.standardOutput = pipe
+            proc.standardError = FileHandle.nullDevice
+            do {
+                try proc.run()
+                proc.waitUntilExit()
+            } catch {
+                return nil
+            }
+            guard proc.terminationStatus == 0 else { return nil }
+            let data = (try? pipe.fileHandleForReading.readToEnd()) ?? Data()
+            try? pipe.fileHandleForReading.close()
+            guard let raw = String(data: data, encoding: .utf8) else { return nil }
+            let pattern = #/(\d+)\.(\d+)\.(\d+)/#
+            guard let match = raw.firstMatch(of: pattern),
+                  let major = Int(match.output.1),
+                  let minor = Int(match.output.2),
+                  let patch = Int(match.output.3) else {
+                return nil
+            }
+            return (major, minor, patch)
+        }.value
     }
 }

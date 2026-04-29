@@ -5,7 +5,7 @@ import Sparkle
 @main
 struct ChopsApp: App {
     @State private var appState = AppState()
-    @AppStorage("ACPDebugLogging") private var debugLoggingEnabled = false
+    @AppStorage("AgentDebugLogging") private var debugLoggingEnabled = false
     private let updaterController: SPUStandardUpdaterController
 
     init() {

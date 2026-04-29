@@ -1,8 +1,6 @@
-import ACPModel
-import ACPRegistry
 import SwiftUI
 
-/// Inline panel for composing/editing skill content with ACP
+/// Inline panel for composing/editing skill content via the user's installed Claude or Codex.
 struct ComposePanel: View {
     private struct DiffApplyError: Identifiable {
         let id = UUID()
@@ -22,16 +20,16 @@ struct ComposePanel: View {
 
     @State private var selectedTemplateType: WizardTemplateType
     @State private var inputText = ""
-    @AppStorage("ACPSelectedAgentId") private var selectedAgentId: String?
-    @State private var acpClient: BaseACPAgent?
+    @AppStorage("AgentSelectedId") private var selectedAgentId: String?
+    @State private var agent: (any AgentSession)?
     @State private var showingDebugLogs = false
 
-    /// Completed conversation history. Never holds in-flight messages — the SDK drives live state.
+    /// Completed conversation history. Never holds in-flight messages — the agent drives live state.
     @State private var messages: [ChatMessage] = []
     /// True until the first successful prompt in this session.
     @State private var isFirstTurn = true
 
-    @AppStorage("ACPDebugLogging") private var debugLoggingEnabled = false
+    @AppStorage("AgentDebugLogging") private var debugLoggingEnabled = false
     @State private var panelHeight: CGFloat = ComposeConstants.defaultPanelHeight
     @State private var isDragging = false
     @State private var dragStartHeight: CGFloat?
@@ -63,12 +61,12 @@ struct ComposePanel: View {
         self._selectedTemplateType = State(initialValue: templateType)
     }
 
-    private var configuredAgents: [RegistryAgent] { ACPConfiguration.shared.enabledAgents }
-    private var selectedAgent: RegistryAgent? { configuredAgents.first { $0.id == selectedAgentId } }
+    private var configuredAgents: [AgentID] { AgentConfiguration.shared.enabledAgents }
+    private var selectedAgent: AgentID? { selectedAgentId.flatMap(AgentID.init(rawValue:)) }
 
-    private var isConnected: Bool { acpClient?.isConnected ?? false }
-    private var isConnecting: Bool { acpClient?.isConnecting ?? false }
-    private var isProcessing: Bool { acpClient?.isProcessing ?? false }
+    private var isConnected: Bool { agent?.isConnected ?? false }
+    private var isConnecting: Bool { agent?.isConnecting ?? false }
+    private var isProcessing: Bool { agent?.isProcessing ?? false }
     private var hasPendingDiffs: Bool { messages.contains { $0.diffs.contains { $0.status == .pending } } }
 
     var body: some View {
@@ -93,7 +91,7 @@ struct ComposePanel: View {
         .background(Color(.windowBackgroundColor))
         .onAppear {
             if selectedAgentId == nil {
-                selectedAgentId = configuredAgents.first?.id
+                selectedAgentId = configuredAgents.first?.rawValue
             }
         }
         .onDisappear {
@@ -102,17 +100,16 @@ struct ComposePanel: View {
         .onChange(of: selectedAgentId) { _, _ in
             forceDisconnect()
         }
-        .onChange(of: configuredAgents.map(\.id)) { _, newIds in
+        .onChange(of: configuredAgents.map(\.rawValue)) { _, newIds in
             if selectedAgentId == nil || !newIds.contains(selectedAgentId ?? "") {
                 selectedAgentId = newIds.first
             }
         }
-        .task { await ACPConfiguration.shared.loadRegistryIfNeeded() }
         .sheet(isPresented: Binding(
-            get: { acpClient?.pendingPermissionRequest != nil },
-            set: { if !$0 { acpClient?.respondToPermission(optionId: nil) } }
+            get: { agent?.pendingPermissionRequest != nil },
+            set: { if !$0 { agent?.respondToPermission(optionId: nil) } }
         )) {
-            if let request = acpClient?.pendingPermissionRequest {
+            if let request = agent?.pendingPermissionRequest {
                 permissionSheet(request: request)
             }
         }
@@ -127,6 +124,17 @@ struct ComposePanel: View {
 
     @ViewBuilder
     private func permissionSheet(request: PermissionRequest) -> some View {
+        if let diff = request.diffPreview {
+            // Pre-flight diff approval. The agent has NOT touched the file yet — clicking
+            // Approve writes it, clicking Reject leaves disk untouched.
+            diffPermissionSheet(request: request, diff: diff)
+        } else {
+            simplePermissionSheet(request: request)
+        }
+    }
+
+    @ViewBuilder
+    private func simplePermissionSheet(request: PermissionRequest) -> some View {
         VStack(alignment: .leading, spacing: 16) {
             Label("Permission Required", systemImage: "hand.raised.fill")
                 .font(.headline)
@@ -136,7 +144,7 @@ struct ComposePanel: View {
             VStack(alignment: .leading, spacing: 8) {
                 ForEach(request.options, id: \.optionId) { option in
                     Button(option.name) {
-                        acpClient?.respondToPermission(optionId: option.optionId)
+                        agent?.respondToPermission(optionId: option.optionId)
                     }
                     .buttonStyle(.bordered)
                     .tint(permissionOptionTint(for: option.kind))
@@ -144,12 +152,62 @@ struct ComposePanel: View {
             }
             Divider()
             Button("Cancel") {
-                acpClient?.respondToPermission(optionId: nil)
+                agent?.respondToPermission(optionId: nil)
             }
             .foregroundStyle(.secondary)
         }
         .padding(24)
         .frame(minWidth: 320, maxWidth: 440)
+    }
+
+    @ViewBuilder
+    private func diffPermissionSheet(request: PermissionRequest, diff: PermissionDiffPreview) -> some View {
+        let fileName = URL(fileURLWithPath: diff.path).lastPathComponent
+        let approveOption = request.options.first { $0.kind.hasPrefix("allow") }
+        let rejectOption = request.options.first { $0.kind.hasPrefix("reject") }
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 8) {
+                Image(systemName: diff.existedBefore ? "pencil.line" : "doc.badge.plus")
+                    .foregroundStyle(.tint)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(request.title)
+                        .font(.headline)
+                    Text(diff.path)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                }
+                Spacer()
+            }
+
+            DiffReviewPanel(
+                original: diff.originalText ?? "",
+                proposed: diff.proposedText,
+                onAccept: {
+                    agent?.respondToPermission(optionId: approveOption?.optionId)
+                },
+                onReject: {
+                    agent?.respondToPermission(optionId: rejectOption?.optionId)
+                },
+                isApplying: false
+            )
+            .frame(minHeight: 320, idealHeight: 420, maxHeight: 540)
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.secondary.opacity(0.2)))
+
+            HStack {
+                Spacer()
+                Button("Cancel") {
+                    agent?.respondToPermission(optionId: nil)
+                }
+                .keyboardShortcut(.cancelAction)
+                .foregroundStyle(.secondary)
+            }
+        }
+        .padding(20)
+        .frame(minWidth: 640, idealWidth: 820, maxWidth: 1100)
+        .accessibilityLabel("Approve change to \(fileName)")
     }
 
     private func permissionOptionTint(for kind: String) -> Color {
@@ -175,30 +233,13 @@ struct ComposePanel: View {
                     .foregroundStyle(.secondary)
                 Picker("", selection: $selectedAgentId) {
                     Text("Select agent…").tag(nil as String?)
-                    ForEach(configuredAgents) { agent in
-                        Text(agent.name).tag(Optional(agent.id))
+                    ForEach(configuredAgents) { agentId in
+                        Text(agentId.displayName).tag(Optional(agentId.rawValue))
                     }
                 }
                 .labelsHidden()
                 .fixedSize()
-                if selectedAgentId != nil {
-                    if isConnecting {
-                        HStack(spacing: 6) {
-                            ProgressView().controlSize(.small)
-                            Text("Connecting…")
-                                .foregroundStyle(.secondary)
-                        }
-                        .font(.callout)
-                    } else {
-                        Button {
-                            connect()
-                        } label: {
-                            Label("Connect", systemImage: "link")
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .controlSize(.regular)
-                    }
-                }
+                connectControlsForSelectedAgent
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
@@ -207,7 +248,55 @@ struct ComposePanel: View {
         }
     }
 
-    private let configuration = ACPConfiguration.shared
+    /// Connect / Connecting / Install controls for the currently-selected agent.
+    @ViewBuilder
+    private var connectControlsForSelectedAgent: some View {
+        if let agentId = selectedAgent {
+            if isConnecting {
+                HStack(spacing: 6) {
+                    ProgressView().controlSize(.small)
+                    Text("Connecting…")
+                        .foregroundStyle(.secondary)
+                }
+                .font(.callout)
+            } else if agentId.toolSource.cliBinaryURL == nil {
+                VStack(spacing: 8) {
+                    Text("\(agentId.displayName) isn't installed.")
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                    Link(destination: agentId.installURL) {
+                        Label("Install \(agentId.displayName)", systemImage: "arrow.down.circle")
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.regular)
+                }
+            } else if let error = agent?.lastError {
+                VStack(spacing: 8) {
+                    Text(error)
+                        .font(.callout)
+                        .foregroundStyle(.red)
+                        .multilineTextAlignment(.center)
+                        .lineLimit(4)
+                    Button {
+                        connect()
+                    } label: {
+                        Label("Retry", systemImage: "arrow.clockwise")
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.regular)
+                }
+                .frame(maxWidth: 360)
+            } else {
+                Button {
+                    connect()
+                } label: {
+                    Label("Connect", systemImage: "link")
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.regular)
+            }
+        }
+    }
 
     private var noToolsConfiguredView: some View {
         ZStack(alignment: .topTrailing) {
@@ -220,33 +309,26 @@ struct ComposePanel: View {
                     .foregroundStyle(.secondary)
 
                 VStack(spacing: 0) {
-                    if configuration.isLoadingRegistry {
-                        HStack(spacing: 6) {
-                            ProgressView().controlSize(.small)
-                            Text("Loading agents…").foregroundStyle(.secondary)
-                        }
-                        .padding(.vertical, 12)
-                    } else {
-                        ForEach(configuration.registryAgents) { agent in
-                            HStack(spacing: 10) {
-                                VStack(alignment: .leading, spacing: 1) {
-                                    Text(agent.name)
-                                        .font(.callout.weight(.medium))
-                                    Text(agent.description)
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                        .lineLimit(1)
-                                }
-                                Spacer()
-                                Toggle("", isOn: Binding(
-                                    get: { configuration.isEnabled(agent.id) },
-                                    set: { configuration.setEnabled(agent.id, $0) }
-                                ))
-                                .labelsHidden()
+                    ForEach(AgentConfiguration.shared.supported) { agentId in
+                        HStack(spacing: 10) {
+                            VStack(alignment: .leading, spacing: 1) {
+                                Text(agentId.displayName)
+                                    .font(.callout.weight(.medium))
+                                Text(agentId.description)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                    .lineLimit(1)
                             }
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 8)
+                            Spacer()
+                            Toggle("", isOn: Binding(
+                                get: { AgentConfiguration.shared.isEnabled(agentId) },
+                                set: { AgentConfiguration.shared.setEnabled(agentId, $0) }
+                            ))
+                            .labelsHidden()
+                            .disabled(agentId.toolSource.cliBinaryURL == nil)
                         }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
                     }
                 }
                 .background(Color.primary.opacity(0.05))
@@ -258,7 +340,6 @@ struct ComposePanel: View {
             closeButton
                 .padding(12)
         }
-        .task { await configuration.loadRegistryIfNeeded() }
     }
 
     private var topBar: some View {
@@ -267,8 +348,8 @@ struct ComposePanel: View {
             HStack(spacing: 8) {
                 Picker("", selection: $selectedAgentId) {
                     Text("Select...").tag(nil as String?)
-                    ForEach(configuredAgents) { agent in
-                        Text(agent.name).tag(Optional(agent.id))
+                    ForEach(configuredAgents) { agentId in
+                        Text(agentId.displayName).tag(Optional(agentId.rawValue))
                     }
                 }
                 .labelsHidden()
@@ -281,7 +362,7 @@ struct ComposePanel: View {
             Spacer()
 
             // Error indicator — connection errors reported by the agent.
-            if let error = acpClient?.lastError {
+            if let error = agent?.lastError {
                 HStack(spacing: 4) {
                     Image(systemName: "exclamationmark.circle.fill")
                         .foregroundStyle(.red)
@@ -293,52 +374,11 @@ struct ComposePanel: View {
                 .frame(maxWidth: 200)
             }
 
-            // RIGHT: config options (when connected) + close
-            HStack(spacing: 8) {
-                inlineConfigOptions
-                closeButton
-            }
+            closeButton
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
         .background(Color(.controlBackgroundColor))
-    }
-
-    // MARK: - Config Options Bar
-
-    /// Inline config option pickers shown in the top bar when connected.
-    @ViewBuilder
-    private var inlineConfigOptions: some View {
-        let options = acpClient?.sessionConfigOptions ?? []
-        if isConnected && !options.isEmpty {
-            ForEach(options, id: \.id) { option in
-                if case .select(let select) = option.kind {
-                    configOptionPicker(option: option, select: select)
-                }
-            }
-        }
-    }
-
-    @ViewBuilder
-    private func configOptionPicker(option: SessionConfigOption, select: SessionConfigSelect) -> some View {
-        let flatOptions: [SessionConfigSelectOption] = {
-            switch select.options {
-            case .ungrouped(let opts): return opts
-            case .grouped(let groups): return groups.flatMap(\.options)
-            }
-        }()
-        Picker(option.name, selection: Binding(
-            get: { select.currentValue },
-            set: { newValue in
-                Task { try? await acpClient?.setConfigOption(id: option.id, value: newValue) }
-            }
-        )) {
-            ForEach(flatOptions, id: \.value) { opt in
-                Text(opt.name.replacingOccurrences(of: " (recommended)", with: "")).tag(opt.value)
-            }
-        }
-        .fixedSize()
-        .help(option.description ?? option.name)
     }
 
     // MARK: - Chat Area
@@ -389,7 +429,7 @@ struct ComposePanel: View {
                         withAnimation { proxy.scrollTo(last.id, anchor: .bottom) }
                     }
                 }
-                .onChange(of: acpClient?.currentActivity) { _, _ in
+                .onChange(of: agent?.currentActivity) { _, _ in
                     if isProcessing {
                         withAnimation { proxy.scrollTo("live-assistant", anchor: .bottom) }
                     }
@@ -433,10 +473,11 @@ struct ComposePanel: View {
 
     @ViewBuilder
     private func liveAssistantRow(bubbleWidth: CGFloat) -> some View {
-        let thoughtText = acpClient?.thoughtText ?? ""
-        let responseText = acpClient?.responseText ?? ""
-        let displayText = acpClient?.conversationalText(from: responseText) ?? responseText
-        let activity = acpClient?.currentActivity
+        let thoughtText = agent?.thoughtText ?? ""
+        let responseText = agent?.responseText ?? ""
+        let displayText = agent?.conversationalText(from: responseText) ?? responseText
+        let waitingOnUser = agent?.pendingPermissionRequest != nil
+        let activities = agent?.activities ?? []
 
         VStack(alignment: .leading, spacing: 6) {
             if !thoughtText.isEmpty {
@@ -448,6 +489,8 @@ struct ComposePanel: View {
                     Image(systemName: "sparkles").foregroundStyle(.secondary)
                     Text("Agent").foregroundStyle(.secondary)
                     Spacer()
+                    elapsedTurnLabel
+                    inlineStopButton
                 }
                 .font(.caption)
                 .padding(.horizontal, 10).padding(.top, 8).padding(.bottom, 4)
@@ -460,17 +503,16 @@ struct ComposePanel: View {
                         .textSelection(.enabled)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal, 10).padding(.vertical, 8)
-                } else if let activity {
+                }
+
+                if !activities.isEmpty {
+                    activityFeed(activities, waitingOnUser: waitingOnUser)
+                        .padding(.horizontal, 10).padding(.vertical, 8)
+                } else if displayText.isEmpty {
                     HStack(spacing: 6) {
                         ProgressView().controlSize(.mini)
-                        Text(activity).foregroundStyle(.secondary)
-                    }
-                    .font(.callout)
-                    .padding(.horizontal, 10).padding(.vertical, 8)
-                } else {
-                    HStack(spacing: 6) {
-                        ProgressView().controlSize(.mini)
-                        Text("Working…").foregroundStyle(.secondary)
+                        Text(waitingOnUser ? "Waiting for your approval" : "Working…")
+                            .foregroundStyle(.secondary)
                     }
                     .font(.callout)
                     .padding(.horizontal, 10).padding(.vertical, 8)
@@ -481,6 +523,70 @@ struct ComposePanel: View {
             .clipShape(RoundedRectangle(cornerRadius: 8))
             .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.secondary.opacity(0.2)))
         }
+    }
+
+    @ViewBuilder
+    private func activityFeed(_ activities: [AgentActivity], waitingOnUser: Bool) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            ForEach(activities) { activity in
+                ActivityRow(activity: activity)
+            }
+            if waitingOnUser {
+                HStack(spacing: 8) {
+                    Image(systemName: "hand.raised.fill")
+                        .foregroundStyle(.orange)
+                        .frame(width: 14, alignment: .center)
+                    Text("Waiting for your approval")
+                        .font(.callout)
+                        .foregroundStyle(.orange)
+                    Spacer()
+                }
+            }
+        }
+    }
+
+    private func liveStatusText(activity: String?, waitingOnUser: Bool) -> String {
+        if waitingOnUser {
+            return "Waiting for your approval"
+        }
+        return activity ?? "Working…"
+    }
+
+    /// Ticks every second while a turn is in flight so the elapsed-time label updates.
+    @ViewBuilder
+    private var elapsedTurnLabel: some View {
+        if let started = agent?.turnStartedAt {
+            TimelineView(.periodic(from: started, by: 1.0)) { ctx in
+                Text(formatElapsed(from: started, to: ctx.date))
+                    .font(.caption.monospacedDigit())
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var inlineStopButton: some View {
+        if isProcessing {
+            Button {
+                agent?.cancelPrompt()
+            } label: {
+                Label("Stop", systemImage: "stop.fill")
+                    .labelStyle(.titleAndIcon)
+                    .font(.caption)
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+            .tint(.red)
+            .help("Stop this turn (⌘.)")
+        }
+    }
+
+    private func formatElapsed(from start: Date, to now: Date) -> String {
+        let s = Int(now.timeIntervalSince(start))
+        if s < 60 { return "\(s)s" }
+        let m = s / 60
+        let r = s % 60
+        return "\(m)m \(r)s"
     }
 
     // MARK: - Completed Message Rows
@@ -622,7 +728,7 @@ struct ComposePanel: View {
 
             if isProcessing {
                 Button {
-                    acpClient?.cancelPrompt()
+                    agent?.cancelPrompt()
                 } label: {
                     Image(systemName: "stop.fill")
                         .font(.body)
@@ -713,7 +819,7 @@ struct ComposePanel: View {
             .frame(width: 20, height: 20)
         }
         .buttonStyle(.plain)
-        .help(isConnected ? "Disconnect" : isConnecting ? "Cancel connection" : "Connect to \(selectedAgent?.name ?? "agent")")
+        .help(isConnected ? "Disconnect" : isConnecting ? "Cancel connection" : "Connect to \(selectedAgent?.displayName ?? "agent")")
         .disabled(selectedAgentId == nil)
     }
 
@@ -740,9 +846,9 @@ struct ComposePanel: View {
                     .foregroundStyle(.orange)
             }
             .buttonStyle(.plain)
-            .help("View ACP Logs")
+            .help("View Agent Logs")
             .popover(isPresented: $showingDebugLogs) {
-                ACPLogViewer()
+                AgentLogViewer()
                     .frame(width: 600, height: 400)
             }
         }
@@ -751,9 +857,9 @@ struct ComposePanel: View {
     // MARK: - Actions
 
     private func connect() {
-        guard let agent = selectedAgent, !isConnected, !isConnecting else { return }
-        let client = ACPAgentFactory.make(for: agent.id)
-        acpClient = client  // agent's @Observable state drives the UI from this point
+        guard let agentId = selectedAgent, !isConnected, !isConnecting else { return }
+        let client = AgentFactory.make(for: agentId)
+        agent = client  // agent's @Observable state drives the UI from this point
         let systemPrompt = TemplateManager.shared.systemPrompt(
             for: selectedTemplateType,
             skillName: skillName,
@@ -761,11 +867,11 @@ struct ComposePanel: View {
             filePath: filePath,
             frontmatter: frontmatter
         )
-        client.startConnect(agent: agent, workingDirectory: workingDirectory, systemPrompt: systemPrompt)
+        client.startConnect(workingDirectory: workingDirectory, systemPrompt: systemPrompt)
     }
 
     private func sendMessage() {
-        guard let client = acpClient else { return }
+        guard let client = agent else { return }
         let text = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return }
 
@@ -781,17 +887,21 @@ struct ComposePanel: View {
                 // readFile(at:) reads disk, which may be stale (auto-save debounce).
                 let original = content
                 client.primeDeferredContent(for: fp, content: original)
-                let prompt = buildPrompt(text: text, originalContent: original)
-                try await client.prompt(prompt)
+                // The agent owns prompt construction (system prompt + file content +
+                // user request). We just hand it the raw user text.
+                try await client.prompt(text)
                 isFirstTurn = false
 
                 let raw = client.responseText
                 let processed = client.conversationalText(from: raw)
                 let finalText = processed.isEmpty ? raw : processed
-                acpLog.info("Compose: turn done — raw=\(raw.count) chars, thought=\(client.thoughtText.count) chars")
+                agentLog.info("Compose: turn done — raw=\(raw.count) chars, thought=\(client.thoughtText.count) chars")
 
                 messages.append(ChatMessage(id: assistantId, role: .assistant, text: finalText, thoughtText: client.thoughtText))
                 await handleWrites(client: client, messageId: assistantId, filePath: fp, originalContent: original)
+            } catch is CancellationError {
+                client.clearPendingWrites()
+                messages.append(ChatMessage(id: assistantId, role: .assistant, text: "Stopped."))
             } catch {
                 client.clearPendingWrites()
                 messages.append(ChatMessage(id: assistantId, role: .assistant, text: error.localizedDescription, isError: true))
@@ -807,22 +917,12 @@ struct ComposePanel: View {
         }.value
     }
 
-    /// Expands the template on the first turn; returns plain text on subsequent turns.
-    private func buildPrompt(text: String, originalContent: String) -> String {
-        guard isFirstTurn, let template = TemplateManager.shared.template(for: selectedTemplateType) else {
-            return text
-        }
-        return template.content
-            .replacingOccurrences(of: "{{file_content}}", with: originalContent.isEmpty ? "(empty)" : originalContent)
-            .replacingOccurrences(of: "{{user_instructions}}", with: text)
-    }
-
     /// Attaches diffs from pending writes or disk changes; logs text-only turns.
-    private func handleWrites(client: BaseACPAgent, messageId: UUID, filePath: String, originalContent: String) async {
+    private func handleWrites(client: any AgentSession, messageId: UUID, filePath: String, originalContent: String) async {
         let autoAccept = client.isBypassMode
-        acpLog.info("Compose: handleWrites — filePath=\(filePath) originalContent.count=\(originalContent.count) autoAccept=\(autoAccept)")
+        agentLog.info("Compose: handleWrites — filePath=\(filePath) originalContent.count=\(originalContent.count) autoAccept=\(autoAccept)")
         if !client.pendingWrites.isEmpty {
-            acpLog.info("Compose: attaching \(client.pendingWrites.count) diff(s) from write_text_file")
+            agentLog.info("Compose: attaching \(client.pendingWrites.count) diff(s) from write_text_file")
             await attachDiffs(messageId: messageId, writes: client.pendingWrites, fallbackOriginal: originalContent, autoAccept: autoAccept)
             client.clearPendingWrites()
             return
@@ -848,7 +948,7 @@ struct ComposePanel: View {
     }
 
     /// Converts pending writes into ChatDiff entries and attaches them to the message.
-    /// Uses the pre-write snapshot captured by the ACP layer; do not reread disk here because
+    /// Uses the pre-write snapshot captured by the agent transport; do not reread disk here because
     /// the agent may already have mutated the file.
     /// Resolves `path` through symlinks so that e.g. a `.cursor/rules/foo.md` symlink
     /// and its target `~/.aidevtools/rules/foo.md` compare as equal.
@@ -864,7 +964,7 @@ struct ComposePanel: View {
     ) async {
         guard let idx = messages.firstIndex(where: { $0.id == messageId }) else { return }
         let resolvedFilePath = resolvedPath(filePath)
-        acpLog.debug("Compose: attachDiffs — filePath=\(filePath) resolved=\(resolvedFilePath) fallback.count=\(fallbackOriginal.count)")
+        agentLog.debug("Compose: attachDiffs — filePath=\(filePath) resolved=\(resolvedFilePath) fallback.count=\(fallbackOriginal.count)")
         var diffs: [ChatDiff] = []
         for write in writes {
             let writtenResolved = resolvedPath(write.path)
@@ -886,14 +986,21 @@ struct ComposePanel: View {
                 originalData = write.originalData
                 existedBefore = write.existedBefore
             }
-            acpLog.debug("Compose: diff \(write.path) original=\(original?.count ?? -1) chars")
+            agentLog.debug("Compose: diff \(write.path) original=\(original?.count ?? -1) chars")
+            // For direct-CLI agents the user has already approved this write via the
+            // pre-flight permission sheet (which renders the diff). Mark it accepted so
+            // the chat shows a record without prompting again. ACP-style writes (none today)
+            // would still arrive as .pending.
+            let initialStatus: DiffStatus = write.agentDidWrite ? .accepted : .pending
             diffs.append(
                 ChatDiff(
                     path: write.path,
                     original: original,
                     originalData: originalData,
                     existedBefore: existedBefore,
-                    proposed: write.content
+                    proposed: write.content,
+                    agentDidWrite: write.agentDidWrite,
+                    status: initialStatus
                 )
             )
         }
@@ -920,8 +1027,14 @@ struct ComposePanel: View {
         if resolvedPath(diff.path) == resolvedPath(filePath) {
             messages[msgIdx].diffs[diffIndex].status = .accepted
             // Currently-open file: update editor binding, onAccept() persists to disk.
+            // Direct-CLI agents already wrote to disk; skip re-persist to avoid a redundant write.
             content = diff.proposed
-            onAccept()
+            if !diff.agentDidWrite {
+                onAccept()
+            }
+        } else if diff.agentDidWrite {
+            // Direct-CLI: file is already at proposed content on disk. Just mark accepted.
+            messages[msgIdx].diffs[diffIndex].status = .accepted
         } else {
             let actionID = diffActionID(messageId: messageId, diffIndex: diffIndex)
             guard applyingDiffID != actionID else { return }
@@ -950,8 +1063,46 @@ struct ComposePanel: View {
     private func rejectDiff(messageId: UUID, diffIndex: Int) {
         guard let msgIdx = messages.firstIndex(where: { $0.id == messageId }),
               diffIndex < messages[msgIdx].diffs.count else { return }
+        let diff = messages[msgIdx].diffs[diffIndex]
         messages[msgIdx].diffs[diffIndex].status = .rejected
-        // No disk revert needed — file was never written.
+
+        // Direct-CLI agents (Claude, Codex) already wrote to disk by the time the user sees
+        // the diff. Revert from the snapshot we captured pre-write.
+        guard diff.agentDidWrite else { return }
+        let resolvedDiffPath = resolvedPath(diff.path)
+        let editorIsThisFile = resolvedDiffPath == resolvedPath(filePath)
+        Task {
+            do {
+                try await Self.revertWrittenDiff(diff)
+                if editorIsThisFile, let original = diff.original {
+                    content = original
+                }
+            } catch {
+                let fileName = URL(fileURLWithPath: diff.path).lastPathComponent
+                AppLogger.fileIO.error("Revert failed for \(diff.path): \(error.localizedDescription)")
+                diffApplyError = DiffApplyError(
+                    message: "Couldn't revert \(fileName): \(error.localizedDescription)"
+                )
+            }
+        }
+    }
+
+    /// Restores a file to its pre-write state. If the file didn't exist before, removes it.
+    nonisolated private static func revertWrittenDiff(_ diff: ChatDiff) async throws {
+        try await Task.detached(priority: .userInitiated) {
+            let url = URL(fileURLWithPath: diff.path)
+            if diff.existedBefore {
+                if let originalData = diff.originalData {
+                    try originalData.write(to: url, options: .atomic)
+                } else if let original = diff.original {
+                    try original.write(to: url, atomically: true, encoding: .utf8)
+                }
+            } else {
+                if FileManager.default.fileExists(atPath: url.path) {
+                    try FileManager.default.removeItem(at: url)
+                }
+            }
+        }.value
     }
 
     private func diffActionID(messageId: UUID, diffIndex: Int) -> String {
@@ -970,8 +1121,8 @@ struct ComposePanel: View {
     }
 
     private func forceDisconnect() {
-        let client = acpClient
-        acpClient = nil
+        let client = agent
+        agent = nil
         isFirstTurn = true
         messages = []
         applyingDiffID = nil

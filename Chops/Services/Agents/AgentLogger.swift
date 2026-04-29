@@ -1,21 +1,21 @@
 import Foundation
 import os.log
 
-/// Centralized ACP logging with optional debug mode and file storage
-final class ACPLogger: @unchecked Sendable {
-    static let shared = ACPLogger()
+/// Centralized agent logging with optional debug mode and file storage.
+final class AgentLogger: @unchecked Sendable {
+    static let shared = AgentLogger()
 
-    private let osLog = Logger(subsystem: "md.chops", category: "ACP")
+    private let osLog = Logger(subsystem: "md.chops", category: "Agent")
     private let logFileURL: URL
-    private let queue = DispatchQueue(label: "md.chops.acplogger", qos: .utility)
+    private let queue = DispatchQueue(label: "md.chops.agentlogger", qos: .utility)
     private static let isoFormatter = ISO8601DateFormatter()
     private var fileHandle: FileHandle?
 
-    /// Enable verbose debug logging (send/receive payloads)
+    /// Enable verbose debug logging (send/receive payloads).
     var debugEnabled: Bool {
-        get { UserDefaults.standard.bool(forKey: "ACPDebugLogging") }
+        get { UserDefaults.standard.bool(forKey: "AgentDebugLogging") }
         set {
-            UserDefaults.standard.set(newValue, forKey: "ACPDebugLogging")
+            UserDefaults.standard.set(newValue, forKey: "AgentDebugLogging")
             if newValue {
                 info("Debug logging enabled")
             }
@@ -30,7 +30,7 @@ final class ACPLogger: @unchecked Sendable {
 
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd"
-        let filename = "acp-\(dateFormatter.string(from: Date())).log"
+        let filename = "agent-\(dateFormatter.string(from: Date())).log"
         logFileURL = logsDir.appendingPathComponent(filename)
 
         if !FileManager.default.fileExists(atPath: logFileURL.path) {
@@ -44,20 +44,12 @@ final class ACPLogger: @unchecked Sendable {
         try? fileHandle?.close()
     }
 
-    // MARK: - Public API
-
-    func info(_ message: String) {
-        log(level: .info, message: message)
-    }
-
+    func info(_ message: String) { log(level: .info, message: message) }
     func debug(_ message: String) {
         guard debugEnabled else { return }
         log(level: .debug, message: message)
     }
-
-    func error(_ message: String) {
-        log(level: .error, message: message)
-    }
+    func error(_ message: String) { log(level: .error, message: message) }
 
     enum Direction { case send, receive }
 
@@ -72,10 +64,9 @@ final class ACPLogger: @unchecked Sendable {
         }
     }
 
-    /// Get the log file URL for viewing
     var logURL: URL { logFileURL }
 
-    /// Get recent log content — runs on the logger's background queue, never blocks the caller.
+    /// Returns the most recent `lines` from the log. Reads off the main thread.
     func recentLogs(lines: Int = 200) async -> String {
         await withCheckedContinuation { continuation in
             queue.async { [self] in
@@ -91,13 +82,11 @@ final class ACPLogger: @unchecked Sendable {
         }
     }
 
-    /// Clear logs — truncates the file and writes a single marker entry.
     func clearLogs() {
         queue.async { [weak self] in
             guard let self else { return }
             try? self.fileHandle?.truncate(atOffset: 0)
             self.fileHandle?.seek(toFileOffset: 0)
-            // Call log() directly on the queue to avoid an extra async hop.
             let timestamp = Self.isoFormatter.string(from: Date())
             let line = "[\(timestamp)] [INFO] Logs cleared\n"
             if let data = line.data(using: .utf8) {
@@ -106,8 +95,6 @@ final class ACPLogger: @unchecked Sendable {
             self.osLog.info("Logs cleared")
         }
     }
-
-    // MARK: - Private
 
     private enum Level: String {
         case info = "INFO"
@@ -120,7 +107,7 @@ final class ACPLogger: @unchecked Sendable {
         let line = "[\(timestamp)] [\(level.rawValue)] \(message)\n"
 
         switch level {
-        case .info: osLog.info("\(message)")
+        case .info:  osLog.info("\(message)")
         case .debug: osLog.debug("\(message)")
         case .error: osLog.error("\(message)")
         }
@@ -133,6 +120,5 @@ final class ACPLogger: @unchecked Sendable {
     }
 }
 
-// MARK: - Global convenience
-
-let acpLog = ACPLogger.shared
+/// Global convenience handle. Used by transports and views.
+let agentLog = AgentLogger.shared

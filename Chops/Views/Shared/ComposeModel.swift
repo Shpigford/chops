@@ -13,7 +13,28 @@ struct ChatDiff: Sendable {
     let originalData: Data?
     let existedBefore: Bool
     let proposed: String
+    /// True when the agent already performed the disk write (e.g. Claude direct CLI). On
+    /// reject we must restore from `originalData`.
+    let agentDidWrite: Bool
     var status: DiffStatus = .pending
+
+    init(
+        path: String,
+        original: String?,
+        originalData: Data?,
+        existedBefore: Bool,
+        proposed: String,
+        agentDidWrite: Bool = false,
+        status: DiffStatus = .pending
+    ) {
+        self.path = path
+        self.original = original
+        self.originalData = originalData
+        self.existedBefore = existedBefore
+        self.proposed = proposed
+        self.agentDidWrite = agentDidWrite
+        self.status = status
+    }
 }
 
 struct ChatMessage: Identifiable {

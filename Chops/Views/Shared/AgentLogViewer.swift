@@ -1,17 +1,16 @@
 import SwiftUI
 
-/// Viewer for ACP debug logs
-struct ACPLogViewer: View {
+/// Viewer for the agent debug log file written by `AgentLogger`.
+struct AgentLogViewer: View {
     @State private var logContent = ""
-    @State private var debugEnabled = acpLog.debugEnabled
+    @State private var debugEnabled = agentLog.debugEnabled
     @State private var autoRefresh = true
     @State private var refreshTask: Task<Void, Never>?
 
     var body: some View {
         VStack(spacing: 0) {
-            // Toolbar
             HStack {
-                Text("ACP Logs")
+                Text("Agent Logs")
                     .font(.headline)
 
                 Spacer()
@@ -20,7 +19,7 @@ struct ACPLogViewer: View {
                     .toggleStyle(.switch)
                     .controlSize(.small)
                     .onChange(of: debugEnabled) { _, newValue in
-                        acpLog.debugEnabled = newValue
+                        agentLog.debugEnabled = newValue
                     }
 
                 Toggle("Auto-refresh", isOn: $autoRefresh)
@@ -36,7 +35,7 @@ struct ACPLogViewer: View {
                 .help("Refresh")
 
                 Button {
-                    acpLog.clearLogs()
+                    agentLog.clearLogs()
                     refreshLogs()
                 } label: {
                     Image(systemName: "trash")
@@ -45,7 +44,7 @@ struct ACPLogViewer: View {
                 .help("Clear Logs")
 
                 Button {
-                    NSWorkspace.shared.selectFile(acpLog.logURL.path, inFileViewerRootedAtPath: "")
+                    NSWorkspace.shared.selectFile(agentLog.logURL.path, inFileViewerRootedAtPath: "")
                 } label: {
                     Image(systemName: "folder")
                 }
@@ -58,7 +57,6 @@ struct ACPLogViewer: View {
 
             Divider()
 
-            // Log content
             ScrollViewReader { proxy in
                 ScrollView {
                     Text(logContent)
@@ -87,8 +85,7 @@ struct ACPLogViewer: View {
 
     private func refreshLogs() {
         Task {
-            let content = await acpLog.recentLogs(lines: 500)
-            logContent = content
+            logContent = await agentLog.recentLogs(lines: 500)
         }
     }
 
@@ -97,14 +94,13 @@ struct ACPLogViewer: View {
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(1))
                 guard autoRefresh else { continue }
-                let content = await acpLog.recentLogs(lines: 500)
-                logContent = content
+                logContent = await agentLog.recentLogs(lines: 500)
             }
         }
     }
 }
 
 #Preview {
-    ACPLogViewer()
+    AgentLogViewer()
         .frame(width: 600, height: 400)
 }

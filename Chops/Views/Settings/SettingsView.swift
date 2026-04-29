@@ -80,7 +80,7 @@ struct SettingsView: View {
         case .library:
             LibrarySettingsView()
         case .aiAssist:
-            ACPSettingsView()
+            AgentSettingsView()
         case .scanDirs:
             scanSettings
         case .servers:
